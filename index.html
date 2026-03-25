@@ -3,534 +3,1445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNJ - Quản Lý Sản Phẩm</title>
+    <title>Quản Lý Sản Xuất Hình Ảnh</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Nhúng Tailwind CSS để style giao diện -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- Babel (để biên dịch JSX trong trình duyệt) -->
+    <!-- Nhúng Babel để biên dịch JSX sang JS thuần trên trình duyệt -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-gray-800">
-
+<body class="bg-[#FDF4E3]">
+    <!-- Nơi React sẽ render giao diện -->
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useMemo } = React;
+    <!-- Script chính của ứng dụng React -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useMemo, useRef } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        
+        import { 
+          LayoutDashboard, Package, Camera, CheckCircle, Clock, AlertCircle,
+          Search, Filter, Download, TrendingUp, BarChart3, Calendar, Edit2, Save,
+          XCircle, PlusCircle, Trash2, Minus, ChevronDown, ChevronUp, ArrowRight,
+          Layers, PenTool, Eye, EyeOff, User, CalendarDays, CheckSquare, Database,
+          UploadCloud, FileSpreadsheet, Loader2, PieChart, MapPin, Video
+        } from 'https://esm.sh/lucide-react@0.292.0';
 
+        // --- MOCK DATA ---
+        const initialDatabaseData = [
+          { stt: 1, sku: 'GNPF00W000004', lot: '', location: '', borrowStatus: 'Chưa mượn', receiveDate: '', month: '3', category: 'Hàng kênh 10', collection: 'New Arrival', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 2, sku: 'GMDDDDX000083', lot: 'Mã phiên', location: '', borrowStatus: 'Chưa mượn', receiveDate: '', month: '3', category: 'Hàng kênh 10', collection: 'New Arrival', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 3, sku: 'GCPTDDW000013', lot: '', location: '', borrowStatus: 'Chưa mượn', receiveDate: '', month: '3', category: 'Hàng 2024', collection: 'New Arrival', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 8, sku: 'GI0000Y060366', lot: '14m_KHO_1808.2025', location: 'KHO', borrowStatus: 'Chưa mượn', receiveDate: '', month: '4', category: 'Hàng 2025', collection: 'Trang sức 24K', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 3986, sku: 'GL0000W001676', lot: '103m_KHO_2403.2026', location: 'KHO', borrowStatus: 'Dự kiến mượn', receiveDate: '', month: '4', category: 'Hàng 2026', collection: 'Disney Evergreen', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 3987, sku: 'GL0000W001677', lot: '103m_KHO_2403.2026', location: 'KHO', borrowStatus: 'Dự kiến mượn', receiveDate: '', month: '4', category: 'Hàng 2026', collection: 'Disney Evergreen', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+          { stt: 3990, sku: 'GLXM00W000545', lot: '103m_KHO_2403.2026', location: 'KHO', borrowStatus: 'Dự kiến mượn', receiveDate: '', month: '4', category: 'Hàng 2026', collection: 'Disney Evergreen', photoStatus: 'Chưa chụp', retouchStatus: 'chưa retouch' },
+        ];
+
+        const initialKeyCollections = [
+          { id: 1, name: 'New Arrival', target: 200, current: 45, status: 'Đang chạy' }, 
+          { id: 2, name: 'Disney Evergreen', target: 150, current: 150, status: 'Hoàn thành' },
+          { id: 3, name: 'Trang sức 24K', target: 350, current: 0, status: 'Dự kiến' },
+        ];
+
+        const initialBorrowingData = [
+          { id: 'B01', lot: 'LM-001', status: 'Done', month: 1, location: 'KHO', type: 'Đã mượn', plan: '-', actual: 422, note: '', startDate: '01/01/2026', days: 30, receiveDate: '01/31/2026', returnDate: '-', color: 'text-gray-700', photographer: 'Minh', shootStatus: 'Đã xong', retoucher: 'Lan', retouchStatus: 'Đã xong' },
+          { id: 'B02', lot: 'LM-002', status: 'Done', month: 2, location: 'KHO', type: 'Đã mượn', plan: '-', actual: 479, note: '', startDate: '02/01/2026', days: 27, receiveDate: '02/28/2026', returnDate: '-', color: 'text-gray-700', photographer: 'Tuấn', shootStatus: 'Đã xong', retoucher: 'Huy', retouchStatus: 'Đã xong' },
+          { id: 'B03', lot: 'LM-003', status: 'Process', month: 3, location: 'KHO', type: 'Đã mượn', plan: 204, actual: 355, note: 'Kiểm kê, nghỉ tết', startDate: '01/22/2026', days: 40, receiveDate: '03/03/2026', returnDate: '03/16/2026', color: 'text-gray-700', photographer: 'Minh', shootStatus: 'Đang xử lý', retoucher: 'Lan', retouchStatus: 'Chưa bắt đầu' },
+          { id: 'B05', lot: 'LM-005', status: 'Process', month: 3, location: 'Sang tay', type: 'Đã mượn', plan: 11, actual: 11, note: '', startDate: '03/03/2026', days: 2, receiveDate: '03/05/2026', returnDate: '-', color: 'text-gray-700', photographer: 'Tuấn', shootStatus: 'Đang set-up', retoucher: 'Huy', retouchStatus: 'Chờ duyệt' },
+          { id: 'B06', lot: 'LM-006', status: 'Dự kiến', month: 3, location: 'NVT', type: 'Đã mượn', plan: 45, actual: 221, note: '', startDate: '03/03/2026', days: 2, receiveDate: '03/05/2026', returnDate: '-', color: 'text-gray-700', photographer: 'Minh', shootStatus: 'Chưa chụp', retoucher: '-', retouchStatus: 'Chưa bắt đầu' },
+          { id: 'B11', lot: 'LM-011', status: 'Dự kiến', month: 3, location: 'KHO', type: 'Dự kiến mượn', plan: 143, actual: 202, note: '', startDate: '03/02/2026', days: 22, receiveDate: '03/24/2026', returnDate: '-', color: 'text-blue-600', photographer: '-', shootStatus: 'Chưa chụp', retoucher: '-', retouchStatus: 'Chưa bắt đầu' },
+        ];
+
+        const initialVideoData = [
+          { id: 'V01', month: 1, lot: 'Video-Jan', actual: 44, shootStatus: 'Đã xong', editStatus: 'Đã xong', note: 'Hoàn thành tốt' },
+          { id: 'V02', month: 2, lot: 'Video-Feb', actual: 34, shootStatus: 'Đã xong', editStatus: 'Đang dựng', note: 'Chờ duyệt file cuối' },
+        ];
+
+        // --- UTILS ---
+        const getStatusColor = (status) => {
+          if (!status) return 'bg-gray-100 text-gray-500 border-gray-200';
+          const s = status.toLowerCase();
+          if (s.includes('done') || s.includes('hoàn thành') || s.includes('đã xong') || s.includes('đã mượn') || s.includes('đã chụp') || s.includes('đã retouch')) return 'bg-[#CBA563]/20 text-[#7A5C22] border-[#CBA563]/40';
+          if (s.includes('chưa') || s.includes('not yet') || s.includes('dự kiến')) return 'bg-gray-100 text-gray-600 border-gray-200';
+          if (s.includes('cancel') || s.includes('quá hạn')) return 'bg-[#A91E22]/10 text-[#A91E22] border-[#A91E22]/30';
+          return 'bg-[#1C3F60]/10 text-[#1C3F60] border-[#1C3F60]/30'; 
+        };
+
+        const calculateDaysDifference = (startStr, endStr) => {
+          if (!startStr || startStr === '-' || !endStr || endStr === '-') return '-';
+          const start = new Date(startStr); const end = new Date(endStr);
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) return '-';
+          return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        };
+
+        const diffDaysDates = (start, end) => {
+          if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+          const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+          const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+          return Math.round((e - s) / (1000 * 60 * 60 * 24));
+        };
+
+        const formatShortDate = (dateObj) => {
+          if (!dateObj || isNaN(dateObj.getTime())) return '-';
+          return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const computeBatches = (receiveDateStr, totalQty) => {
+          const validQty = Number(totalQty) || 0;
+          if (!receiveDateStr || receiveDateStr === '-' || validQty <= 0) return [];
+          const receiveDate = new Date(receiveDateStr);
+          if (isNaN(receiveDate.getTime())) return [];
+
+          const batches = [];
+          let remaining = validQty;
+          
+          let currentPhotoStart = new Date(receiveDate);
+          currentPhotoStart.setDate(currentPhotoStart.getDate() + 1);
+
+          let batchNum = 1;
+          const maxPerBatch = 160;
+          const photoRate = 32; 
+          const retouchRate = 20; 
+
+          while (remaining > 0) {
+            const qty = Math.min(maxPerBatch, remaining);
+            remaining -= qty;
+
+            const photoDays = Math.ceil(qty / photoRate);
+            const retouchDays = Math.ceil(qty / retouchRate);
+
+            const pStart = new Date(currentPhotoStart);
+            const pEnd = new Date(pStart);
+            pEnd.setDate(pEnd.getDate() + Math.max(1, photoDays) - 1); 
+
+            const rStart = new Date(pEnd);
+            rStart.setDate(rStart.getDate() + 1); 
+            
+            const rEnd = new Date(rStart);
+            rEnd.setDate(rEnd.getDate() + Math.max(1, retouchDays) - 1);
+
+            const totalDays = Math.ceil((rEnd - pStart) / (1000 * 60 * 60 * 24)) + 1;
+
+            batches.push({
+              name: `GÓI ${batchNum}`, qty, photoStart: pStart, photoEnd: pEnd, photoDays, retouchStart: rStart, retouchEnd: rEnd, retouchDays, totalDays: totalDays
+            });
+
+            currentPhotoStart = new Date(pEnd);
+            currentPhotoStart.setDate(currentPhotoStart.getDate() + 1);
+            batchNum++;
+          }
+          return batches;
+        };
+
+        const ProgressBar = ({ label, value, max, colorClass }) => {
+          const percentage = max > 0 ? Math.round((value / max) * 100) : 0;
+          return (
+            <div className="mb-5">
+              <div className="flex justify-between items-end mb-1.5">
+                <span className="text-sm font-bold text-[#1C3F60]">{label}</span>
+                <span className="text-sm font-medium text-gray-600">{value.toLocaleString()} / {max.toLocaleString()} <span className="font-bold text-[#A91E22]">({percentage}%)</span></span>
+              </div>
+              <div className="w-full bg-[#EBE1CD] rounded-full h-2.5 overflow-hidden shadow-inner">
+                <div className={`h-2.5 rounded-full ${colorClass} transition-all duration-1000`} style={{ width: `${percentage}%` }}></div>
+              </div>
+            </div>
+          );
+        };
+
+        // --- MAIN APP COMPONENT ---
         function App() {
-            const [activeTab, setActiveTab] = useState('database');
+          const [activeTab, setActiveTab] = useState('overview'); 
+          
+          // States cho Database Tab (Isolated)
+          const [dbData, setDbData] = useState(initialDatabaseData);
+          const [dbSearchQuery, setDbSearchQuery] = useState('');
+          const [dbSelectedMonths, setDbSelectedMonths] = useState([]);
+          const [dbSelectedLocations, setDbSelectedLocations] = useState([]);
+          const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+          const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+          const [isImporting, setIsImporting] = useState(false);
+          const [showMissingPhoto, setShowMissingPhoto] = useState(false);
+          const [showMissingRetouch, setShowMissingRetouch] = useState(false);
+          const fileInputRef = useRef(null);
+          const [dbPage, setDbPage] = useState(1);
+          const dbItemsPerPage = 100;
 
-            // ================= STATE CHO DATABASE =================
-            const [dbData, setDbData] = useState([]);
-            const [searchTerm, setSearchTerm] = useState('');
-            const [selectedMonths, setSelectedMonths] = useState([]);
-            const [selectedLocations, setSelectedLocations] = useState([]);
-            
-            const [showUnshotDetails, setShowUnshotDetails] = useState(false);
-            const [showUnretouchedDetails, setShowUnretouchedDetails] = useState(false);
-            
-            const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
-            const [isLocDropdownOpen, setIsLocDropdownOpen] = useState(false);
+          // States Collections
+          const [collections, setCollections] = useState(initialKeyCollections);
+          const [editingColId, setEditingColId] = useState(null);
+          const [editColData, setEditColData] = useState({});
 
-            // ================= STATE CHO VIDEO =================
-            const [videoData, setVideoData] = useState([
-                { id: 1, month: 'Tháng 1', shot: 44 },
-                { id: 2, month: 'Tháng 2', shot: 34 }
-            ]);
-            const [newVideoRecord, setNewVideoRecord] = useState({ month: '', shot: '' });
+          // States Borrowing & Production
+          const [borrowData, setBorrowData] = useState(initialBorrowingData);
+          const [editingId, setEditingId] = useState(null);
+          const [editFormData, setEditFormData] = useState({});
+          const [isAddingNew, setIsAddingNew] = useState(false);
 
-            const kpiNăm = 480;
-            const kpiQuý = 120;
-            const totalVideoShot = videoData.reduce((acc, curr) => acc + Number(curr.shot), 0);
+          const [editingProdId, setEditingProdId] = useState(null);
+          const [editProdFormData, setEditProdFormData] = useState({});
+          
+          const [searchQuery, setSearchQuery] = useState('');
+          const [showPivotTable, setShowPivotTable] = useState(true);
+          const [selectedPivotMonths, setSelectedPivotMonths] = useState([]);
 
-            // Xử lý Import CSV
-            const handleFileUpload = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const text = event.target.result;
-                        const rows = text.split('\n');
-                        const headers = rows[0].split(',').map(h => h.trim());
-                        
-                        const parsedData = rows.slice(1).map(row => {
-                            const values = row.split(',');
-                            let obj = {};
-                            headers.forEach((header, index) => {
-                                obj[header] = values[index] ? values[index].trim() : '';
-                            });
-                            return obj;
-                        }).filter(row => row['Mã SKU 17']); 
-                        
-                        setDbData(parsedData);
-                    };
-                    reader.readAsText(file);
+          const [hideCompletedBorrow, setHideCompletedBorrow] = useState(true);
+          const [hideCompletedProd, setHideCompletedProd] = useState(true);
+
+          // States for Video Production
+          const [videoData, setVideoData] = useState(initialVideoData);
+          const [editingVideoId, setEditingVideoId] = useState(null);
+          const [editVideoFormData, setEditVideoFormData] = useState({});
+          const [isAddingNewVideo, setIsAddingNewVideo] = useState(false);
+
+          // Get available filters dynamically from DB Data
+          const availableDbMonths = useMemo(() => {
+            return [...new Set(dbData.map(r => r.month))]
+              .filter(m => m !== undefined && m !== null && String(m).trim() !== '')
+              .sort((a, b) => Number(a) - Number(b));
+          }, [dbData]);
+
+          const availableDbLocations = useMemo(() => {
+            return [...new Set(dbData.map(r => r.location))]
+              .filter(l => l !== undefined && l !== null && String(l).trim() !== '')
+              .sort((a, b) => String(a).localeCompare(String(b)));
+          }, [dbData]);
+
+          // Data Filtering & Pagination cho Database Tab
+          const filteredDbData = useMemo(() => {
+            return dbData.filter(row => {
+              const matchSearch = Object.values(row).some(val => String(val).toLowerCase().includes(dbSearchQuery.toLowerCase()));
+              const matchMonth = dbSelectedMonths.length === 0 || dbSelectedMonths.includes(String(row.month));
+              const matchLocation = dbSelectedLocations.length === 0 || dbSelectedLocations.includes(String(row.location));
+              return matchSearch && matchMonth && matchLocation;
+            });
+          }, [dbData, dbSearchQuery, dbSelectedMonths, dbSelectedLocations]);
+
+          const totalDbPages = Math.ceil(filteredDbData.length / dbItemsPerPage) || 1;
+          const validDbPage = Math.min(dbPage, totalDbPages);
+          const paginatedDbData = filteredDbData.slice((validDbPage - 1) * dbItemsPerPage, validDbPage * dbItemsPerPage);
+
+          // CSV Import Handler
+          const handleImportCSV = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            setIsImporting(true);
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              const text = evt.target.result;
+              const lines = text.split(/\r?\n/);
+              const parsedData = [];
+
+              for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                let arr = [];
+                let quote = false;
+                let val = '';
+                for (let j = 0; j < line.length; j++) {
+                    let cc = line[j], nc = line[j+1];
+                    if (cc === '"' && quote && nc === '"') { val += '"'; j++; continue; }
+                    if (cc === '"') { quote = !quote; continue; }
+                    if (cc === ',' && !quote) { arr.push(val.trim()); val = ''; continue; }
+                    val += cc;
                 }
-            };
+                arr.push(val.trim());
 
-            // Logic Lọc Database
-            const filteredDbData = useMemo(() => {
-                return dbData.filter(item => {
-                    const matchSearch = (item['Mã SKU 17'] || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                        (item['Lô mượn'] || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        (item['Phân loại'] || '').toLowerCase().includes(searchTerm.toLowerCase());
-                    
-                    const itemMonth = item['Tháng'] || 'N/A';
-                    const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(itemMonth);
-                    
-                    const itemLoc = item['Nơi mượn'] || 'N/A';
-                    const matchLoc = selectedLocations.length === 0 || selectedLocations.includes(itemLoc);
-
-                    return matchSearch && matchMonth && matchLoc;
+                parsedData.push({
+                  stt: arr[0] || i,
+                  sku: arr[1] || '',
+                  lot: arr[2] || '',
+                  location: arr[3] || '',
+                  borrowStatus: arr[4] || '',
+                  receiveDate: arr[5] || '',
+                  month: arr[6] || '',
+                  category: arr[7] || '',
+                  collection: arr[8] || '',
+                  photoStatus: arr[9] || '',
+                  retouchStatus: arr[10] || ''
                 });
-            }, [dbData, searchTerm, selectedMonths, selectedLocations]);
-
-            // Logic Thống kê Database
-            const stats = useMemo(() => {
-                const total = filteredDbData.length;
-                
-                const borrowed = filteredDbData.filter(i => i['Tình trạng mượn']?.toLowerCase().includes('done mượn')).length;
-                const expected = filteredDbData.filter(i => i['Tình trạng mượn']?.toLowerCase().includes('dự kiến')).length;
-                const unborrowed = total - borrowed - expected;
-
-                const borrowedItems = filteredDbData.filter(i => i['Tình trạng mượn']?.toLowerCase().includes('done mượn'));
-                
-                const shot = borrowedItems.filter(i => i['Tình trạng chụp']?.toLowerCase().includes('đã chụp')).length;
-                const unshot = borrowed - shot;
-                
-                const retouched = borrowedItems.filter(i => i['Tình trạng retouch']?.toLowerCase().includes('đã retouch')).length;
-                const unretouched = borrowed - retouched;
-
-                const unshotBatches = [...new Set(borrowedItems.filter(i => !i['Tình trạng chụp']?.toLowerCase().includes('đã chụp')).map(i => i['Lô mượn']).filter(Boolean))];
-                const unretouchedBatches = [...new Set(borrowedItems.filter(i => !i['Tình trạng retouch']?.toLowerCase().includes('đã retouch')).map(i => i['Lô mượn']).filter(Boolean))];
-
-                return { 
-                    total, borrowed, expected, unborrowed, 
-                    shot, unshot, retouched, unretouched,
-                    unshotBatches, unretouchedBatches
-                };
-            }, [filteredDbData]);
-
-            const getPercent = (part, total) => total === 0 ? 0 : Math.round((part / total) * 100);
-
-            // ================= RENDER NAV =================
-            const renderNav = () => (
-                <nav className="bg-white shadow-sm border-b px-6 py-3 flex space-x-6 overflow-x-auto">
-                    {[
-                        { id: 'overview', icon: 'fa-chart-pie', label: 'Tổng quan' },
-                        { id: 'borrow', icon: 'fa-box', label: 'Mượn hàng' },
-                        { id: 'video', icon: 'fa-film', label: 'Sản xuất Video' },
-                        { id: 'database', icon: 'fa-database', label: 'Database Sản Phẩm' },
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center px-4 py-2 rounded-md font-medium transition-colors whitespace-nowrap ${
-                                activeTab === tab.id ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                        >
-                            <i className={`fas ${tab.icon} mr-2`}></i>
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
-            );
-
-            // ================= RENDER TAB VIDEO =================
-            const renderVideoTab = () => {
-                const handleAddVideo = () => {
-                    if(newVideoRecord.month && newVideoRecord.shot) {
-                        setVideoData([...videoData, { id: Date.now(), month: newVideoRecord.month, shot: Number(newVideoRecord.shot) }]);
-                        setNewVideoRecord({ month: '', shot: '' });
-                    }
-                };
-
-                const handleDeleteVideo = (id) => {
-                    setVideoData(videoData.filter(v => v.id !== id));
-                };
-
-                return (
-                    <div className="p-6 space-y-6">
-                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">KPI Sản Xuất Video</h2>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-                                <span className="text-gray-500 text-sm font-semibold uppercase tracking-wider">KPI Năm</span>
-                                <span className="text-4xl font-bold text-blue-600 mt-2">{kpiNăm}</span>
-                                <span className="text-sm text-gray-400 mt-1">SKU / năm</span>
-                            </div>
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-                                <span className="text-gray-500 text-sm font-semibold uppercase tracking-wider">KPI Quý</span>
-                                <span className="text-4xl font-bold text-purple-600 mt-2">{kpiQuý}</span>
-                                <span className="text-sm text-gray-400 mt-1">SKU / quý</span>
-                            </div>
-                            <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl shadow-sm text-white flex flex-col items-center justify-center">
-                                <span className="text-green-100 text-sm font-semibold uppercase tracking-wider">Đã Quay Thực Tế</span>
-                                <span className="text-4xl font-bold mt-2">{totalVideoShot}</span>
-                                <span className="text-sm text-green-100 mt-1">SKU (Đạt {getPercent(totalVideoShot, kpiNăm)}% Năm)</span>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Theo dõi chi tiết tiến độ</h3>
-                            
-                            <div className="flex flex-wrap gap-4 mb-6">
-                                <input 
-                                    type="text" placeholder="Tháng (VD: Tháng 3)" 
-                                    className="border border-gray-300 p-2.5 rounded-lg w-full md:w-48 outline-none focus:ring-2 focus:ring-blue-200"
-                                    value={newVideoRecord.month}
-                                    onChange={(e) => setNewVideoRecord({...newVideoRecord, month: e.target.value})}
-                                />
-                                <input 
-                                    type="number" placeholder="Số lượng SKU đã quay" 
-                                    className="border border-gray-300 p-2.5 rounded-lg w-full md:w-48 outline-none focus:ring-2 focus:ring-blue-200"
-                                    value={newVideoRecord.shot}
-                                    onChange={(e) => setNewVideoRecord({...newVideoRecord, shot: e.target.value})}
-                                />
-                                <button onClick={handleAddVideo} className="bg-blue-600 text-white px-5 py-2.5 rounded-lg flex items-center hover:bg-blue-700 transition">
-                                    <i className="fas fa-plus mr-2"></i> Thêm bản ghi
-                                </button>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-200">
-                                            <th className="p-3 font-semibold text-gray-600">Thời gian</th>
-                                            <th className="p-3 font-semibold text-gray-600">Số SKU Đã Quay</th>
-                                            <th className="p-3 font-semibold text-gray-600 w-24 text-center">Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {videoData.map((row) => (
-                                            <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                                <td className="p-3">{row.month}</td>
-                                                <td className="p-3 font-medium text-green-600">+{row.shot} SKU</td>
-                                                <td className="p-3 text-center">
-                                                    <button onClick={() => handleDeleteVideo(row.id)} className="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition">
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                );
+              }
+              
+              setDbData(parsedData);
+              setDbPage(1); 
+              setDbSelectedMonths([]);
+              setDbSelectedLocations([]);
+              setIsImporting(false);
+              e.target.value = null; 
             };
+            reader.readAsText(file);
+          };
 
-            // ================= RENDER TAB DATABASE =================
-            const renderDatabaseTab = () => {
-                const monthList = [...new Set(dbData.map(item => item['Tháng'] || 'N/A'))].filter(m => m !== 'N/A' && m !== '');
-                const locList = [...new Set(dbData.map(item => item['Nơi mượn'] || 'N/A'))].filter(l => l !== 'N/A' && l !== '');
+          // Metrics Calculations
+          const kpi2026 = 6692;
+          const metrics = useMemo(() => {
+            let totalDone = 0; let totalExpected = 0;
+            let totalReceived = 0; let totalShot = 0; let totalRetouched = 0;
+            const monthlyData = {}; const pivot = {}; let grandTotal = 0;
 
-                const toggleFilter = (list, setList, value) => {
-                    if (list.includes(value)) {
-                        setList(list.filter(item => item !== value));
-                    } else {
-                        setList([...list, value]);
-                    }
-                };
+            borrowData.forEach(row => {
+              const val = Number(row.actual) || 0;
 
-                return (
-                    <div className="p-6 space-y-6">
-                        {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
-                        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between">
-                                {/* Search */}
-                                <div className="relative flex-1 w-full">
-                                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm kiếm SKU, Lô mượn, Phân loại..."
-                                        className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 outline-none"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
+              if (row.type === 'Đã mượn') {
+                totalDone += val;
+                const m = row.month;
+                if (!monthlyData[m]) monthlyData[m] = 0;
+                monthlyData[m] += val;
+              }
+              if (row.type === 'Dự kiến mượn') totalExpected += val;
 
-                                {/* Các Nút Lọc và Action */}
-                                <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-                                    {/* Dropdown Tháng */}
-                                    <div className="relative">
-                                        <button 
-                                            onClick={() => {setIsMonthDropdownOpen(!isMonthDropdownOpen); setIsLocDropdownOpen(false);}}
-                                            className="px-4 py-2.5 border border-gray-300 rounded-lg flex items-center bg-gray-50 hover:bg-gray-100 min-w-[140px] justify-between transition"
-                                        >
-                                            <span className="text-gray-700 text-sm font-medium">Tháng ({selectedMonths.length || 'Tất cả'})</span>
-                                            <i className="fas fa-chevron-down ml-3 text-gray-400 text-xs"></i>
-                                        </button>
-                                        {isMonthDropdownOpen && (
-                                            <div className="absolute z-20 top-full mt-2 left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-xl py-2">
-                                                {monthList.length === 0 && <div className="px-4 py-2 text-sm text-gray-500">Chưa có dữ liệu</div>}
-                                                {monthList.map(m => (
-                                                    <label key={m} className="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={selectedMonths.includes(m)}
-                                                            onChange={() => toggleFilter(selectedMonths, setSelectedMonths, m)}
-                                                            className="mr-3 cursor-pointer w-4 h-4 text-blue-600 rounded"
-                                                        />
-                                                        {m}
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+              if (selectedPivotMonths.length === 0 || selectedPivotMonths.includes(Number(row.month))) {
+                const type = row.type; const loc = row.location;
+                if (!pivot[type]) pivot[type] = {};
+                if (!pivot[type][loc]) pivot[type][loc] = 0;
+                pivot[type][loc] += val;
+                grandTotal += val;
+              }
 
-                                    {/* Dropdown Nơi mượn */}
-                                    <div className="relative">
-                                        <button 
-                                            onClick={() => {setIsLocDropdownOpen(!isLocDropdownOpen); setIsMonthDropdownOpen(false);}}
-                                            className="px-4 py-2.5 border border-gray-300 rounded-lg flex items-center bg-gray-50 hover:bg-gray-100 min-w-[160px] justify-between transition"
-                                        >
-                                            <span className="text-gray-700 text-sm font-medium">Nơi mượn ({selectedLocations.length || 'Tất cả'})</span>
-                                            <i className="fas fa-chevron-down ml-3 text-gray-400 text-xs"></i>
-                                        </button>
-                                        {isLocDropdownOpen && (
-                                            <div className="absolute z-20 top-full mt-2 left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-xl py-2">
-                                                {locList.length === 0 && <div className="px-4 py-2 text-sm text-gray-500">Chưa có dữ liệu</div>}
-                                                {locList.map(loc => (
-                                                    <label key={loc} className="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={selectedLocations.includes(loc)}
-                                                            onChange={() => toggleFilter(selectedLocations, setSelectedLocations, loc)}
-                                                            className="mr-3 cursor-pointer w-4 h-4 text-blue-600 rounded"
-                                                        />
-                                                        {loc}
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+              if (row.receiveDate && row.receiveDate !== '-' && row.type === 'Đã mượn') {
+                totalReceived += val;
+                if (row.shootStatus === 'Đã xong') totalShot += val;
+                if (row.retouchStatus === 'Đã xong') totalRetouched += val;
+              }
+            });
 
-                                    {/* Nút Action */}
-                                    <label className="cursor-pointer bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg flex items-center shadow-sm transition text-sm font-medium">
-                                        <i className="fas fa-upload mr-2"></i> Import CSV
-                                        <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-                                    </label>
-                                    <button className="border border-gray-300 bg-white hover:bg-gray-50 px-5 py-2.5 rounded-lg flex items-center text-gray-700 shadow-sm transition text-sm font-medium">
-                                        <i className="fas fa-download mr-2"></i> Xuất Excel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            const percentDone = ((totalDone / kpi2026) * 100).toFixed(2);
+            const chartData = Object.entries(monthlyData).map(([m, val]) => ({ month: Number(m), val })).sort((a, b) => a.month - b.month);
+            const groupedPivot = Object.entries(pivot).map(([type, locsObj]) => {
+              const locs = Object.entries(locsObj).map(([loc, val]) => ({ loc, val }));
+              const typeTotal = locs.reduce((sum, l) => sum + l.val, 0);
+              return { type, locs, typeTotal };
+            });
+            groupedPivot.sort((a, b) => b.type.localeCompare(a.type));
 
-                        {/* BẢNG THỐNG KÊ SUMMARY */}
-                        {dbData.length > 0 && (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Khâu Mượn Hàng */}
-                                <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm">
-                                    <div className="flex items-center text-blue-800 font-bold mb-4">
-                                        <i className="fas fa-box text-lg mr-2"></i> KHÂU MƯỢN HÀNG
-                                        <span className="ml-auto text-xs bg-blue-100 px-2 py-1 rounded-full text-blue-700">Tổng: {stats.total} SKU</span>
-                                    </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <div className="flex justify-between text-gray-800 font-medium mb-1">
-                                                <span>Đã mượn về</span>
-                                                <span>{stats.borrowed} ({getPercent(stats.borrowed, stats.total)}%)</span>
-                                            </div>
-                                            <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{width: `${getPercent(stats.borrowed, stats.total)}%`}}></div></div>
-                                        </div>
-                                        <div className="flex justify-between text-gray-600">
-                                            <span>Dự kiến mượn:</span> <span className="font-medium">{stats.expected} ({getPercent(stats.expected, stats.total)}%)</span>
-                                        </div>
-                                        <div className="flex justify-between text-gray-600 border-t pt-2">
-                                            <span>Chưa mượn:</span> <span className="font-medium text-orange-500">{stats.unborrowed} ({getPercent(stats.unborrowed, stats.total)}%)</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Khâu Chụp Hình */}
-                                <div className="bg-white p-5 rounded-xl border border-orange-100 shadow-sm">
-                                    <div className="flex items-center text-orange-800 font-bold mb-4">
-                                        <i className="fas fa-camera text-lg mr-2"></i> KHÂU CHỤP HÌNH
-                                        <span className="ml-auto text-xs bg-orange-100 px-2 py-1 rounded-full text-orange-800">Từ {stats.borrowed} SKU đã mượn</span>
-                                    </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <div className="flex justify-between text-gray-800 font-medium mb-1">
-                                                <span>Đã chụp</span>
-                                                <span>{stats.shot} ({getPercent(stats.shot, stats.borrowed)}%)</span>
-                                            </div>
-                                            <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-orange-500 h-2 rounded-full" style={{width: `${getPercent(stats.shot, stats.borrowed)}%`}}></div></div>
-                                        </div>
-                                        <div className="pt-2">
-                                            <div className="flex justify-between text-gray-600 items-center">
-                                                <span>Chưa chụp:</span> 
-                                                <div className="flex items-center">
-                                                    <span className="font-bold text-red-500 mr-3">{stats.unshot} ({getPercent(stats.unshot, stats.borrowed)}%)</span>
-                                                    <button onClick={() => setShowUnshotDetails(!showUnshotDetails)} className="text-blue-600 hover:text-blue-800 text-xs flex items-center transition">
-                                                        Chi tiết <i className={`fas fa-chevron-${showUnshotDetails ? 'up' : 'down'} ml-1`}></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            {showUnshotDetails && stats.unshotBatches.length > 0 && (
-                                                <div className="mt-2 p-2 bg-red-50 rounded text-xs text-red-700 max-h-24 overflow-y-auto border border-red-100">
-                                                    <strong>Các lô chưa chụp xong:</strong> {stats.unshotBatches.join(', ')}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Khâu Retouch */}
-                                <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm">
-                                    <div className="flex items-center text-emerald-800 font-bold mb-4">
-                                        <i className="fas fa-pen text-lg mr-2"></i> KHÂU RETOUCH
-                                        <span className="ml-auto text-xs bg-emerald-100 px-2 py-1 rounded-full text-emerald-800">Từ {stats.borrowed} SKU đã mượn</span>
-                                    </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <div className="flex justify-between text-gray-800 font-medium mb-1">
-                                                <span>Đã Retouch</span>
-                                                <span>{stats.retouched} ({getPercent(stats.retouched, stats.borrowed)}%)</span>
-                                            </div>
-                                            <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-emerald-500 h-2 rounded-full" style={{width: `${getPercent(stats.retouched, stats.borrowed)}%`}}></div></div>
-                                        </div>
-                                        <div className="pt-2">
-                                            <div className="flex justify-between text-gray-600 items-center">
-                                                <span>Chưa Retouch:</span> 
-                                                <div className="flex items-center">
-                                                    <span className="font-bold text-red-500 mr-3">{stats.unretouched} ({getPercent(stats.unretouched, stats.borrowed)}%)</span>
-                                                    <button onClick={() => setShowUnretouchedDetails(!showUnretouchedDetails)} className="text-blue-600 hover:text-blue-800 text-xs flex items-center transition">
-                                                        Chi tiết <i className={`fas fa-chevron-${showUnretouchedDetails ? 'up' : 'down'} ml-1`}></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            {showUnretouchedDetails && stats.unretouchedBatches.length > 0 && (
-                                                <div className="mt-2 p-2 bg-red-50 rounded text-xs text-red-700 max-h-24 overflow-y-auto border border-red-100">
-                                                    <strong>Các lô chưa retouch xong:</strong> {stats.unretouchedBatches.join(', ')}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* BẢNG DỮ LIỆU CHI TIẾT */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left whitespace-nowrap">
-                                    <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
-                                        <tr>
-                                            <th className="p-4">STT</th>
-                                            <th className="p-4">Mã SKU 17</th>
-                                            <th className="p-4">Lô mượn</th>
-                                            <th className="p-4">Nơi mượn</th>
-                                            <th className="p-4">Trạng thái mượn</th>
-                                            <th className="p-4">Tháng</th>
-                                            <th className="p-4">Phân loại</th>
-                                            <th className="p-4">Trạng thái chụp</th>
-                                            <th className="p-4">Trạng thái Retouch</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {filteredDbData.slice(0, 100).map((row, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                                <td className="p-4 text-gray-500">{row['STT']}</td>
-                                                <td className="p-4 font-bold text-gray-800">{row['Mã SKU 17']}</td>
-                                                <td className="p-4">{row['Lô mượn']}</td>
-                                                <td className="p-4">
-                                                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">{row['Nơi mượn'] || '-'}</span>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                        row['Tình trạng mượn']?.toLowerCase() === 'done mượn' ? 'bg-green-100 text-green-800' :
-                                                        row['Tình trạng mượn']?.toLowerCase() === 'dự kiến mượn' ? 'bg-blue-100 text-blue-800' :
-                                                        'bg-gray-100 text-gray-600'
-                                                    }`}>
-                                                        {row['Tình trạng mượn'] || 'Chưa mượn'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4">{row['Tháng']}</td>
-                                                <td className="p-4 text-gray-600 max-w-[200px] truncate" title={row['Phân loại']}>{row['Phân loại']}</td>
-                                                <td className="p-4">
-                                                    <span className={row['Tình trạng chụp']?.toLowerCase().includes('đã') ? 'text-orange-600 font-bold' : 'text-gray-400'}>
-                                                        {row['Tình trạng chụp']}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className={row['Tình trạng retouch']?.toLowerCase().includes('đã') ? 'text-emerald-600 font-bold' : 'text-gray-400'}>
-                                                        {row['Tình trạng retouch']}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                {filteredDbData.length === 0 && (
-                                    <div className="p-10 text-center text-gray-500">
-                                        {dbData.length === 0 ? "Chưa có dữ liệu. Vui lòng Import file CSV." : "Không tìm thấy dữ liệu phù hợp với bộ lọc."}
-                                    </div>
-                                )}
-                                {filteredDbData.length > 100 && (
-                                    <div className="p-4 text-center text-sm text-gray-500 bg-gray-50 border-t">
-                                        Đang hiển thị 100 dòng đầu tiên trên tổng số {filteredDbData.length} kết quả.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
+            return { 
+              totalDone, totalExpected, percentDone, chartData, groupedPivot, grandTotal, 
+              prod: { totalReceived, totalShot, totalRetouched } 
             };
+          }, [borrowData, selectedPivotMonths]);
+
+          const filteredBorrowData = borrowData.filter(row => {
+            const matchSearch = Object.values(row).some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
+            return matchSearch;
+          });
+
+          // Handlers for Borrowing
+          const handleAddRow = () => {
+            const newId = 'B' + Date.now();
+            const newRow = {
+              id: newId, lot: `LM-${String(borrowData.length + 1).padStart(3, '0')}`, status: 'Process', month: new Date().getMonth() + 1, location: 'KHO', type: 'Đã mượn', plan: 0, actual: 0, note: '', startDate: '', days: '-', receiveDate: '', returnDate: '', color: 'text-gray-700',
+              photographer: '-', shootStatus: 'Chưa chụp', retoucher: '-', retouchStatus: 'Chưa bắt đầu'
+            };
+            setBorrowData([newRow, ...borrowData]);
+            setEditingId(newId); setEditFormData(newRow); setIsAddingNew(true);
+          };
+
+          const handleEditClick = (row) => {
+            setEditingId(row.id);
+            setEditFormData({ ...row });
+            setIsAddingNew(false);
+          };
+
+          const handleEditFormChange = (e, field) => {
+            const newValue = e.target.value;
+            const updatedForm = { ...editFormData, [field]: newValue };
+            if (field === 'startDate' || field === 'receiveDate') {
+              updatedForm.days = calculateDaysDifference(updatedForm.startDate, updatedForm.receiveDate);
+            }
+            setEditFormData(updatedForm);
+          };
+
+          const handleCancelEdit = () => {
+            if (isAddingNew) setBorrowData(borrowData.filter(r => r.id !== editingId));
+            setEditingId(null);
+            setIsAddingNew(false);
+          };
+
+          const handleSaveClick = () => {
+            setBorrowData(borrowData.map(row => row.id === editingId ? { ...editFormData, actual: Number(editFormData.actual) || 0 } : row));
+            setEditingId(null);
+            setIsAddingNew(false);
+          };
+
+          const handleDeleteRow = (id) => {
+            setBorrowData(borrowData.filter(r => r.id !== id));
+          };
+
+          // Handlers for Collections
+          const handleAddCol = () => {
+            const newCol = { id: Date.now(), name: 'Tên BST Mới', target: 100, current: 0, status: 'Dự kiến' };
+            setCollections([newCol, ...collections]);
+            setEditingColId(newCol.id);
+            setEditColData(newCol);
+          };
+
+          const handleEditColClick = (col) => {
+            setEditingColId(col.id);
+            setEditColData({ ...col });
+          };
+
+          const handleSaveColClick = () => {
+            setCollections(collections.map(c => c.id === editingColId ? { ...editColData, target: Number(editColData.target) || 0, current: Number(editColData.current) || 0 } : c));
+            setEditingColId(null);
+          };
+
+          const handleCancelColEdit = () => {
+            if (editColData.name === 'Tên BST Mới' && editColData.target === 100 && editColData.current === 0) {
+               setCollections(collections.filter(c => c.id !== editingColId));
+            }
+            setEditingColId(null);
+          };
+
+          const handleDeleteCol = (id) => {
+            setCollections(collections.filter(c => c.id !== id));
+          };
+
+          const handleColChange = (e, field) => {
+            setEditColData({ ...editColData, [field]: e.target.value });
+          };
+
+          // Handlers for Video Production
+          const handleAddVideoRow = () => {
+            const newId = 'V' + Date.now();
+            const newRow = {
+              id: newId, month: new Date().getMonth() + 1, lot: `Video-Mới`, actual: 0, shootStatus: 'Chưa quay', editStatus: 'Chưa dựng', note: ''
+            };
+            setVideoData([newRow, ...videoData]);
+            setEditingVideoId(newId);
+            setEditVideoFormData(newRow);
+            setIsAddingNewVideo(true);
+          };
+
+          const handleEditVideoClick = (row) => {
+            setEditingVideoId(row.id);
+            setEditVideoFormData({ ...row });
+            setIsAddingNewVideo(false);
+          };
+
+          const handleEditVideoFormChange = (e, field) => {
+            setEditVideoFormData({ ...editVideoFormData, [field]: e.target.value });
+          };
+
+          const handleCancelVideoEdit = () => {
+            if (isAddingNewVideo) {
+              setVideoData(videoData.filter(r => r.id !== editingVideoId));
+            }
+            setEditingVideoId(null);
+            setIsAddingNewVideo(false);
+          };
+
+          const handleSaveVideoClick = () => {
+            setVideoData(videoData.map(row => row.id === editingVideoId ? { ...editVideoFormData, actual: Number(editVideoFormData.actual) || 0 } : row));
+            setEditingVideoId(null);
+            setIsAddingNewVideo(false);
+          };
+
+          const handleDeleteVideoRow = (id) => {
+            setVideoData(videoData.filter(r => r.id !== id));
+          };
+
+          // ======================================================================
+          // RENDER COMPONENTS
+          // ======================================================================
+
+          const renderDatabase = () => {
+            const totalDb = filteredDbData.length;
+            let borrowDoneCount = 0; let borrowNotCount = 0; let borrowExpCount = 0;
+            let photoDoneCount = 0; let photoNotCount = 0;
+            let retouchDoneCount = 0; let retouchNotCount = 0;
+
+            const missingPhotoLotsMap = {};
+            const missingRetouchLotsMap = {};
+
+            filteredDbData.forEach(row => {
+              const bStatus = (row.borrowStatus || '').toLowerCase();
+              const pStatus = (row.photoStatus || '').toLowerCase();
+              const rStatus = (row.retouchStatus || '').toLowerCase();
+              const lotName = (row.lot && row.lot.trim() !== '') ? row.lot : '(Không rõ Lô)';
+
+              let isBorrowed = false;
+
+              if (bStatus.includes('đã') || bStatus.includes('done')) {
+                borrowDoneCount++;
+                isBorrowed = true;
+              } else if (bStatus.includes('dự kiến')) {
+                borrowExpCount++;
+              } else {
+                borrowNotCount++; 
+              }
+
+              if (isBorrowed) {
+                if (pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong')) {
+                  photoDoneCount++;
+                } else {
+                  photoNotCount++;
+                  missingPhotoLotsMap[lotName] = (missingPhotoLotsMap[lotName] || 0) + 1;
+                }
+
+                if (rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong')) {
+                  retouchDoneCount++;
+                } else {
+                  retouchNotCount++;
+                  missingRetouchLotsMap[lotName] = (missingRetouchLotsMap[lotName] || 0) + 1;
+                }
+              }
+            });
+
+            const borrowDonePct = totalDb ? Math.round((borrowDoneCount / totalDb) * 100) : 0;
+            const borrowExpPct = totalDb ? Math.round((borrowExpCount / totalDb) * 100) : 0;
+            const borrowNotPct = totalDb ? Math.round((borrowNotCount / totalDb) * 100) : 0;
+
+            const photoDonePct = borrowDoneCount ? Math.round((photoDoneCount / borrowDoneCount) * 100) : 0;
+            const photoNotPct = borrowDoneCount ? Math.round((photoNotCount / borrowDoneCount) * 100) : 0;
+            const retouchDonePct = borrowDoneCount ? Math.round((retouchDoneCount / borrowDoneCount) * 100) : 0;
+            const retouchNotPct = borrowDoneCount ? Math.round((retouchNotCount / borrowDoneCount) * 100) : 0;
+
+            const missingPhotoLots = Object.entries(missingPhotoLotsMap).map(([lot, count]) => ({ lot, count })).sort((a, b) => b.count - a.count);
+            const missingRetouchLots = Object.entries(missingRetouchLotsMap).map(([lot, count]) => ({ lot, count })).sort((a, b) => b.count - a.count);
 
             return (
-                <div className="min-h-screen bg-slate-50 flex flex-col">
-                    {/* HEADER GẮN LOGO PNJ */}
-                    <header className="bg-gradient-to-r from-red-700 to-red-600 text-white shadow-md">
-                        <div className="flex items-center justify-between px-6 py-4">
-                            <div className="flex items-center space-x-3">
-                                <div className="bg-white/20 p-2 rounded-lg">
-                                    <i className="fas fa-columns text-xl"></i>
-                                </div>
-                                <h1 className="text-xl font-bold tracking-wide">HỆ THỐNG QUẢN LÝ SẢN PHẨM</h1>
-                            </div>
-                            
-                            {/* Logo PNJ Trắng */}
-                            <div className="flex items-center">
-                                <img 
-                                    src="https://cdn.pnj.io/images/logo/pnj.com.vn.png" 
-                                    alt="PNJ Logo" 
-                                    className="h-8 object-contain filter brightness-0 invert" 
-                                />
-                            </div>
-                        </div>
-                    </header>
-
-                    {renderNav()}
-
-                    <main className="flex-1 max-w-[1600px] w-full mx-auto">
-                        {activeTab === 'overview' && (
-                            <div className="p-10 text-center text-gray-500 mt-10">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Trang Tổng Quan</h2>
-                                <p>Vui lòng chọn tab "Database Sản Phẩm" để import file và xem dữ liệu.</p>
-                            </div>
-                        )}
-                        {activeTab === 'borrow' && (
-                            <div className="p-10 text-center text-gray-500 mt-10">Giao diện quản lý mượn hàng đang được nâng cấp...</div>
-                        )}
-                        {activeTab === 'video' && renderVideoTab()}
-                        {activeTab === 'database' && renderDatabaseTab()}
-                    </main>
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="bg-gradient-to-r from-[#1C3F60] to-[#2A5C8C] p-6 rounded-xl shadow-lg text-white border border-[#CBA563]/50 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10"><Database size={120} /></div>
+                  <div className="relative z-10">
+                    <h3 className="text-xl font-bold text-[#CBA563] mb-2 flex items-center gap-2 uppercase tracking-wide">
+                      <Database size={22} /> Database Sản Phẩm
+                    </h3>
+                    <p className="text-white/80 text-sm max-w-2xl leading-relaxed mb-1">
+                      Nơi lưu trữ danh sách SKU thô. Bạn có thể Import file CSV của bạn lên đây để tham khảo và tìm kiếm trọn vẹn toàn bộ sản phẩm.
+                    </p>
+                    <p className="text-[#CBA563] text-sm font-bold bg-black/20 w-fit px-2 py-1 rounded mt-2">
+                      Lưu ý: Dữ liệu ở Tab này ĐỘC LẬP, KHÔNG làm thay đổi số lượng ở các Tab báo cáo khác.
+                    </p>
+                  </div>
                 </div>
+
+                <div className="bg-white rounded-xl border border-[#CBA563]/50 shadow-sm p-5">
+                   <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6 border-b border-gray-100 pb-5">
+                     <div className="flex items-center gap-2">
+                       <PieChart size={20} className="text-[#CBA563]" />
+                       <h3 className="text-base font-bold text-[#1C3F60]">Thống kê & Bảng dữ liệu</h3>
+                       <span className="text-[11px] bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-200 font-bold ml-2 shadow-sm hidden sm:inline-block">
+                         Đang hiển thị: {totalDb.toLocaleString()} SKU
+                       </span>
+                     </div>
+                     <div className="flex flex-wrap items-center gap-3">
+                       <div className="relative w-full sm:w-[200px]">
+                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                         <input type="text" value={dbSearchQuery} onChange={(e) => { setDbSearchQuery(e.target.value); setDbPage(1); }} placeholder="Tìm SKU, Lô..." className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#1C3F60] transition-colors" />
+                       </div>
+
+                       {availableDbMonths.length > 0 && (
+                         <div className="relative w-full sm:w-auto">
+                           <button onClick={() => { setMonthDropdownOpen(!monthDropdownOpen); setLocationDropdownOpen(false); }} className="flex items-center justify-between gap-2 w-full sm:w-auto px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold text-[#1C3F60] shadow-sm hover:bg-gray-100 transition-colors cursor-pointer">
+                             <span className="flex items-center gap-1.5"><CalendarDays size={14} className="text-gray-500" /> Tháng {dbSelectedMonths.length > 0 ? `(${dbSelectedMonths.length})` : '(Tất cả)'}</span>
+                             <ChevronDown size={14} className="text-gray-400" />
+                           </button>
+                           {monthDropdownOpen && (
+                             <>
+                               <div className="fixed inset-0 z-10" onClick={() => setMonthDropdownOpen(false)}></div>
+                               <div className="absolute right-0 sm:left-0 top-full mt-1.5 w-48 bg-white border border-gray-200 shadow-xl rounded-lg p-2 z-20 max-h-60 overflow-y-auto">
+                                 <div className="space-y-1">
+                                   {availableDbMonths.map(m => (
+                                     <label key={m} className="flex items-center gap-2 p-1.5 hover:bg-[#FDF4E3] rounded cursor-pointer text-xs font-medium text-[#1C3F60]">
+                                       <input type="checkbox" checked={dbSelectedMonths.includes(String(m))} onChange={() => {
+                                           if (dbSelectedMonths.includes(String(m))) { setDbSelectedMonths(dbSelectedMonths.filter(x => x !== String(m))); } else { setDbSelectedMonths([...dbSelectedMonths, String(m)]); }
+                                           setDbPage(1);
+                                         }} className="rounded border-gray-300 text-[#CBA563] focus:ring-[#CBA563]" /> Tháng {m}
+                                     </label>
+                                   ))}
+                                 </div>
+                                 <div className="mt-2 pt-2 border-t border-gray-100"><button onClick={() => { setDbSelectedMonths([]); setDbPage(1); }} className="w-full text-center text-[10px] text-gray-500 hover:text-[#1C3F60] font-bold cursor-pointer">Xóa bộ lọc</button></div>
+                               </div>
+                             </>
+                           )}
+                         </div>
+                       )}
+
+                       {availableDbLocations.length > 0 && (
+                         <div className="relative w-full sm:w-auto">
+                           <button onClick={() => { setLocationDropdownOpen(!locationDropdownOpen); setMonthDropdownOpen(false); }} className="flex items-center justify-between gap-2 w-full sm:w-auto px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold text-[#1C3F60] shadow-sm hover:bg-gray-100 transition-colors cursor-pointer">
+                             <span className="flex items-center gap-1.5"><MapPin size={14} className="text-gray-500" /> Nơi mượn {dbSelectedLocations.length > 0 ? `(${dbSelectedLocations.length})` : '(Tất cả)'}</span>
+                             <ChevronDown size={14} className="text-gray-400" />
+                           </button>
+                           {locationDropdownOpen && (
+                             <>
+                               <div className="fixed inset-0 z-10" onClick={() => setLocationDropdownOpen(false)}></div>
+                               <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-gray-200 shadow-xl rounded-lg p-2 z-20 max-h-60 overflow-y-auto">
+                                 <div className="space-y-1">
+                                   {availableDbLocations.map(loc => (
+                                     <label key={loc} className="flex items-center gap-2 p-1.5 hover:bg-[#FDF4E3] rounded cursor-pointer text-xs font-medium text-[#1C3F60]">
+                                       <input type="checkbox" checked={dbSelectedLocations.includes(String(loc))} onChange={() => {
+                                           if (dbSelectedLocations.includes(String(loc))) { setDbSelectedLocations(dbSelectedLocations.filter(x => x !== String(loc))); } else { setDbSelectedLocations([...dbSelectedLocations, String(loc)]); }
+                                           setDbPage(1);
+                                         }} className="rounded border-gray-300 text-[#CBA563] focus:ring-[#CBA563]" /> {loc}
+                                     </label>
+                                   ))}
+                                 </div>
+                                 <div className="mt-2 pt-2 border-t border-gray-100"><button onClick={() => { setDbSelectedLocations([]); setDbPage(1); }} className="w-full text-center text-[10px] text-gray-500 hover:text-[#1C3F60] font-bold cursor-pointer">Xóa bộ lọc</button></div>
+                               </div>
+                             </>
+                           )}
+                         </div>
+                       )}
+
+                       <div className="h-5 w-px bg-gray-300 hidden md:block mx-1"></div>
+
+                       <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImportCSV} className="hidden" />
+                       <button onClick={() => fileInputRef.current?.click()} disabled={isImporting} className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#1C3F60] text-white rounded-md text-xs font-bold hover:bg-[#2A5C8C] transition-colors shadow-sm cursor-pointer disabled:opacity-70 w-full sm:w-auto">
+                         {isImporting ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />} Import CSV
+                       </button>
+                       <button className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-[#1C3F60] text-[#1C3F60] rounded-md text-xs font-bold hover:bg-gray-50 transition-colors shadow-sm w-full sm:w-auto cursor-pointer">
+                         <FileSpreadsheet size={14} /> Xuất Excel
+                       </button>
+                     </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-2">
+                      <div className="bg-blue-50/50 rounded-xl p-5 border border-blue-100 shadow-sm h-full">
+                         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-5 flex items-center gap-1.5"><Package size={14} className="text-blue-500"/> Khâu Mượn Hàng</h4>
+                         <div className="space-y-4">
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-[#1C3F60] mb-1.5">
+                               <span>Đã mượn</span><span>{borrowDoneCount.toLocaleString()} <span className="text-[#CBA563] text-[11px] font-bold">({borrowDonePct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-blue-100/50"><div className="bg-[#1C3F60] h-1.5 rounded-full" style={{width: `${borrowDonePct}%`}}></div></div>
+                           </div>
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-blue-600 mb-1.5">
+                               <span>Dự kiến mượn</span><span>{borrowExpCount.toLocaleString()} <span className="text-blue-400 text-[11px] font-bold">({borrowExpPct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-blue-100/50"><div className="bg-blue-400 h-1.5 rounded-full" style={{width: `${borrowExpPct}%`}}></div></div>
+                           </div>
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-gray-500 mb-1.5">
+                               <span>Chưa mượn</span><span>{borrowNotCount.toLocaleString()} <span className="text-gray-400 text-[11px] font-bold">({borrowNotPct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-blue-100/50"><div className="bg-gray-400 h-1.5 rounded-full" style={{width: `${borrowNotPct}%`}}></div></div>
+                           </div>
+                         </div>
+                      </div>
+
+                      <div className="bg-[#FDF4E3]/50 rounded-xl p-5 border border-[#CBA563]/30 shadow-sm flex flex-col h-full relative">
+                         <div className="flex justify-between items-start mb-5">
+                           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Camera size={14} className="text-[#CBA563]"/> Khâu Chụp Hình</h4>
+                           <span className="text-[9px] font-bold text-[#CBA563] bg-white px-1.5 py-0.5 rounded border border-[#CBA563]/30 shadow-sm" title="Chỉ tính trên số lượng đã mượn thực tế">Từ {borrowDoneCount.toLocaleString()} SKU đã mượn</span>
+                         </div>
+                         <div className="space-y-4 flex-1">
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-[#A6823F] mb-1.5">
+                               <span>Đã chụp</span><span>{photoDoneCount.toLocaleString()} <span className="text-[#1C3F60] text-[11px] font-bold">({photoDonePct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-[#CBA563]/20"><div className="bg-[#CBA563] h-1.5 rounded-full" style={{width: `${photoDonePct}%`}}></div></div>
+                           </div>
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-gray-500 mb-1.5">
+                               <span>Chưa chụp</span><span>{photoNotCount.toLocaleString()} <span className="text-gray-400 text-[11px] font-bold">({photoNotPct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-[#CBA563]/20"><div className="bg-gray-400 h-1.5 rounded-full" style={{width: `${photoNotPct}%`}}></div></div>
+                           </div>
+                         </div>
+                         <div className="mt-4 pt-3 border-t border-[#CBA563]/20">
+                            <button onClick={() => setShowMissingPhoto(!showMissingPhoto)} className="text-[11px] font-bold text-[#1C3F60] hover:text-[#CBA563] flex items-center gap-1 transition-colors w-full justify-between cursor-pointer">
+                              <span>{showMissingPhoto ? 'Ẩn chi tiết Lô chưa chụp' : 'Xem chi tiết Lô chưa chụp'}</span>
+                              {showMissingPhoto ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+                            </button>
+                            {showMissingPhoto && (
+                              <div className="mt-3 max-h-[140px] overflow-y-auto bg-white p-2.5 rounded-md border border-[#CBA563]/20 shadow-inner">
+                                {missingPhotoLots.length === 0 ? (
+                                   <div className="text-[11px] text-gray-400 italic text-center py-2">Tuyệt vời! Tất cả Lô đều đã hoàn tất chụp hình.</div>
+                                ) : (
+                                   <ul className="space-y-1.5">
+                                     {missingPhotoLots.map((l, i) => (
+                                       <li key={i} className="flex justify-between items-center text-[11px]">
+                                         <span className="font-bold text-gray-600 truncate mr-2" title={l.lot}>{l.lot}</span>
+                                         <span className="bg-[#FDF4E3] border border-[#CBA563]/30 px-1.5 py-0.5 rounded text-[#A6823F] font-bold whitespace-nowrap">{l.count} SKU</span>
+                                       </li>
+                                     ))}
+                                   </ul>
+                                )}
+                              </div>
+                            )}
+                         </div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-5 border border-teal-200 shadow-sm flex flex-col h-full relative">
+                         <div className="flex justify-between items-start mb-5">
+                           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><PenTool size={14} className="text-teal-600"/> Khâu Retouch</h4>
+                           <span className="text-[9px] font-bold text-teal-700 bg-white px-1.5 py-0.5 rounded border border-teal-200 shadow-sm" title="Chỉ tính trên số lượng đã mượn thực tế">Từ {borrowDoneCount.toLocaleString()} SKU đã mượn</span>
+                         </div>
+                         <div className="space-y-4 flex-1">
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-[#4D7B85] mb-1.5">
+                               <span>Đã Retouch</span><span>{retouchDoneCount.toLocaleString()} <span className="text-[#1C3F60] text-[11px] font-bold">({retouchDonePct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-teal-100/50"><div className="bg-[#4D7B85] h-1.5 rounded-full" style={{width: `${retouchDonePct}%`}}></div></div>
+                           </div>
+                           <div>
+                             <div className="flex justify-between items-center text-sm font-bold text-gray-500 mb-1.5">
+                               <span>Chưa Retouch</span><span>{retouchNotCount.toLocaleString()} <span className="text-gray-400 text-[11px] font-bold">({retouchNotPct}%)</span></span>
+                             </div>
+                             <div className="w-full bg-white rounded-full h-1.5 border border-teal-100/50"><div className="bg-gray-400 h-1.5 rounded-full" style={{width: `${retouchNotPct}%`}}></div></div>
+                           </div>
+                         </div>
+                         <div className="mt-4 pt-3 border-t border-teal-100">
+                            <button onClick={() => setShowMissingRetouch(!showMissingRetouch)} className="text-[11px] font-bold text-[#1C3F60] hover:text-teal-600 flex items-center gap-1 transition-colors w-full justify-between cursor-pointer">
+                              <span>{showMissingRetouch ? 'Ẩn chi tiết Lô chưa Retouch' : 'Xem chi tiết Lô chưa Retouch'}</span>
+                              {showMissingRetouch ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+                            </button>
+                            {showMissingRetouch && (
+                              <div className="mt-3 max-h-[140px] overflow-y-auto bg-white p-2.5 rounded-md border border-teal-100 shadow-inner">
+                                {missingRetouchLots.length === 0 ? (
+                                   <div className="text-[11px] text-gray-400 italic text-center py-2">Tuyệt vời! Tất cả Lô đều đã hoàn tất Retouch.</div>
+                                ) : (
+                                   <ul className="space-y-1.5">
+                                     {missingRetouchLots.map((l, i) => (
+                                       <li key={i} className="flex justify-between items-center text-[11px]">
+                                         <span className="font-bold text-gray-600 truncate mr-2" title={l.lot}>{l.lot}</span>
+                                         <span className="bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded text-teal-700 font-bold whitespace-nowrap">{l.count} SKU</span>
+                                       </li>
+                                     ))}
+                                   </ul>
+                                )}
+                              </div>
+                            )}
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-[#CBA563]/50 shadow-sm overflow-hidden flex flex-col mt-6">
+                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#1C3F60]">Danh sách chi tiết (Trang {validDbPage}/{totalDbPages})</span>
+                  </div>
+                  <div className="overflow-x-auto h-[550px] overflow-y-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 z-10 bg-[#EBE1CD] shadow-sm">
+                        <tr className="text-[11px] uppercase tracking-wider text-[#1C3F60]">
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">STT</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Mã SKU 17</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Lô mượn</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Nơi mượn</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50 border-l border-gray-300">Tình trạng mượn</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Ngày nhận</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50 text-center">Tháng</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Phân loại</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">BST dự kiến</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50 border-l border-gray-300">Tình trạng chụp</th>
+                          <th className="px-4 py-3 font-bold whitespace-nowrap border-b border-[#CBA563]/50">Tình trạng retouch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {paginatedDbData.length === 0 ? (
+                          <tr>
+                            <td colSpan="11" className="px-4 py-12 text-center text-gray-500 italic">
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                <Database size={32} className="text-gray-300" /> Không tìm thấy dữ liệu.
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedDbData.map((row, index) => (
+                            <tr key={index} className="hover:bg-[#FDF4E3] transition-colors text-[12px] bg-white group">
+                              <td className="px-4 py-3 text-gray-500 text-center font-medium">{row.stt}</td>
+                              <td className="px-4 py-3 font-bold text-[#1C3F60] whitespace-nowrap">{row.sku}</td>
+                              <td className="px-4 py-3 text-gray-700 font-medium whitespace-nowrap">{row.lot || '-'}</td>
+                              <td className="px-4 py-3 text-gray-700 font-medium whitespace-nowrap">{row.location || '-'}</td>
+                              <td className="px-4 py-3 border-l border-gray-100 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(row.borrowStatus)}`}>{row.borrowStatus || '-'}</span></td>
+                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.receiveDate || '-'}</td>
+                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-center">{row.month ? <span className="bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded shadow-sm text-[10px] font-bold">T{row.month}</span> : '-'}</td>
+                              <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.category || '-'}</td>
+                              <td className="px-4 py-3 text-gray-500 font-bold whitespace-nowrap max-w-[150px] truncate" title={row.collection}>{row.collection || '-'}</td>
+                              <td className="px-4 py-3 border-l border-gray-100 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(row.photoStatus)}`}>{row.photoStatus || '-'}</span></td>
+                              <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(row.retouchStatus)}`}>{row.retouchStatus || '-'}</span></td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-gray-500">Hiển thị tối đa {dbItemsPerPage} dòng mỗi trang</span>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setDbPage(p => Math.max(1, p - 1))} disabled={validDbPage === 1} className="px-3 py-1.5 rounded text-[11px] font-bold bg-white border border-[#CBA563]/50 text-[#1C3F60] shadow-sm disabled:opacity-50 hover:bg-[#FDF4E3] transition-colors cursor-pointer">Trang trước</button>
+                      <span className="text-[12px] font-bold text-[#1C3F60]">{validDbPage} / {totalDbPages}</span>
+                      <button onClick={() => setDbPage(p => Math.min(totalDbPages, p + 1))} disabled={validDbPage === totalDbPages} className="px-3 py-1.5 rounded text-[11px] font-bold bg-white border border-[#CBA563]/50 text-[#1C3F60] shadow-sm disabled:opacity-50 hover:bg-[#FDF4E3] transition-colors cursor-pointer">Trang sau</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
+          };
+
+          const renderOverview = () => {
+            return (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div>
+                  <h2 className="text-lg font-bold text-[#1C3F60] mb-4 uppercase flex items-center gap-2 border-b border-[#CBA563]/30 pb-2"><TrendingUp size={20} className="text-[#A91E22]" /> Chỉ số trọng yếu (Key Metrics)</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-xl border border-[#CBA563]/50 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1C3F60]"></div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mục tiêu năm 2026</p>
+                        <div className="flex items-baseline gap-1 mt-1"><h3 className="text-2xl font-bold text-[#1C3F60]">{kpi2026.toLocaleString()}</h3><span className="text-xs text-gray-500 font-medium">SKU</span></div>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-full text-gray-400 group-hover:bg-[#1C3F60]/10 group-hover:text-[#1C3F60] transition-colors"><TrendingUp size={22} /></div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-[#CBA563]/50 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#CBA563]"></div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Đã mượn hàng</p>
+                        <div className="flex items-baseline gap-1 mt-1"><h3 className="text-2xl font-bold text-[#A6823F]">{metrics.totalDone.toLocaleString()}</h3><span className="text-xs text-gray-500 font-medium">SKU</span></div>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-full text-gray-400 group-hover:bg-[#CBA563]/20 group-hover:text-[#A6823F] transition-colors"><Package size={22} /></div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-[#CBA563]/50 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#4D7B85]"></div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Đã chụp & Retouch</p>
+                        <div className="flex items-baseline gap-1 mt-1"><h3 className="text-2xl font-bold text-[#4D7B85]">{metrics.prod.totalRetouched.toLocaleString()}</h3><span className="text-xs text-gray-500 font-medium">SKU</span></div>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-full text-gray-400 group-hover:bg-[#4D7B85]/10 group-hover:text-[#4D7B85] transition-colors"><Camera size={22} /></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="bg-white p-6 rounded-xl border border-[#CBA563]/50 shadow-sm lg:col-span-2">
+                    <h3 className="text-lg font-bold text-[#1C3F60] mb-6 flex items-center gap-2"><BarChart3 size={20} className="text-[#CBA563]" /> Tiến độ Phễu Sản Xuất (Production Funnel)</h3>
+                    <div className="px-2">
+                      <ProgressBar label="1. Đã mượn & Nhận hàng" value={metrics.prod.totalReceived} max={metrics.totalDone || 1} colorClass="bg-[#1C3F60]" />
+                      <div className="flex justify-center -mt-3 mb-2 opacity-50"><ArrowRight size={16} className="rotate-90 text-[#1C3F60]" /></div>
+                      <ProgressBar label="2. Hoàn tất chụp hình" value={metrics.prod.totalShot} max={metrics.totalDone || 1} colorClass="bg-[#CBA563]" />
+                      <div className="flex justify-center -mt-3 mb-2 opacity-50"><ArrowRight size={16} className="text-[#CBA563] rotate-90" /></div>
+                      <ProgressBar label="3. Chốt file Retouch" value={metrics.prod.totalRetouched} max={metrics.totalDone || 1} colorClass="bg-[#4D7B85]" />
+                    </div>
+                  </div>
+                  <div className="bg-[#FDF4E3]/50 p-6 rounded-xl border border-[#CBA563]/50 shadow-sm flex flex-col">
+                    <h3 className="text-lg font-bold text-[#A91E22] mb-4 flex items-center gap-2"><AlertCircle size={20} /> Cảnh báo & Tác vụ</h3>
+                    <div className="flex-1 space-y-4">
+                      <div className="p-4 bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#A91E22]"></div>
+                        <div className="flex gap-3">
+                          <div className="text-[#A91E22] bg-red-50 p-2 rounded-full h-fit"><Clock size={18} /></div>
+                          <div>
+                            <h4 className="font-bold text-gray-800 text-sm mb-1">Hàng quá hạn trả kho</h4>
+                            <p className="text-xs text-gray-600 mb-2">Đang có lô hàng đã mượn vượt quá thời gian cam kết.</p>
+                            <button onClick={() => setActiveTab('borrowing')} className="text-xs font-bold text-[#A91E22] hover:underline cursor-pointer flex items-center gap-1">Xử lý ngay <ArrowRight size={12} /></button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-white border border-[#CBA563]/50 rounded-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#CBA563]"></div>
+                        <div className="flex gap-3">
+                          <div className="text-[#A6823F] bg-[#FDF4E3] p-2 rounded-full h-fit"><CheckCircle size={18} /></div>
+                          <div>
+                            <h4 className="font-bold text-gray-800 text-sm mb-1">Quản lý Tiến độ</h4>
+                            <p className="text-xs text-gray-600 mb-2">Chuyển sang tab Sản xuất hình ảnh để xem báo cáo chia gói cuốn chiếu.</p>
+                            <button onClick={() => setActiveTab('production')} className="text-xs font-bold text-[#1C3F60] hover:underline cursor-pointer flex items-center gap-1">Sang tab Sản xuất <ArrowRight size={12} /></button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-[#CBA563]/50 shadow-sm flex flex-col">
+                  <div className="flex justify-between items-center mb-5 border-b border-[#CBA563]/30 pb-2">
+                    <h3 className="text-lg font-bold text-[#1C3F60]">Tiến độ Các Bộ Sưu Tập Trọng Điểm</h3>
+                    <button onClick={handleAddCol} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1C3F60] text-white rounded-lg text-sm font-bold hover:bg-[#2A5C8C] transition-colors cursor-pointer shadow-sm"><PlusCircle size={16} /> Thêm BST</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {collections.map((col) => {
+                      if (editingColId === col.id) {
+                        return (
+                          <div key={col.id} className="bg-[#FDF4E3] p-4 rounded-lg border-2 border-[#CBA563] shadow-md flex flex-col gap-2.5">
+                            <div>
+                              <label className="text-[10px] text-gray-500 uppercase font-bold">Tên Bộ sưu tập</label>
+                              <input type="text" value={editColData.name} onChange={(e) => handleColChange(e, 'name')} className="w-full p-1.5 border border-[#CBA563]/50 rounded text-sm font-bold text-[#1C3F60] bg-white focus:outline-[#1C3F60]" />
+                            </div>
+                            <div className="flex gap-3">
+                              <div className="flex-1"><label className="text-[10px] text-gray-500 uppercase font-bold">Mục tiêu (Target)</label><input type="number" value={editColData.target} onChange={(e) => handleColChange(e, 'target')} className="w-full p-1.5 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]" /></div>
+                              <div className="flex-1"><label className="text-[10px] text-gray-500 uppercase font-bold">Đã đạt (Current)</label><input type="number" value={editColData.current} onChange={(e) => handleColChange(e, 'current')} className="w-full p-1.5 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]" /></div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-gray-500 uppercase font-bold">Trạng thái</label>
+                              <select value={editColData.status} onChange={(e) => handleColChange(e, 'status')} className="w-full p-1.5 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Hoàn thành">Hoàn thành</option><option value="Đang chạy">Đang chạy</option><option value="Dự kiến">Dự kiến</option></select>
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                              <button onClick={handleSaveColClick} className="flex-1 p-1.5 bg-[#4CAF50] text-white rounded text-xs font-bold hover:bg-[#45a049] flex items-center justify-center gap-1 cursor-pointer"><Save size={14} /> Lưu</button>
+                              <button onClick={handleCancelColEdit} className="flex-1 p-1.5 bg-gray-500 text-white rounded text-xs font-bold hover:bg-gray-600 flex items-center justify-center gap-1 cursor-pointer"><XCircle size={14} /> Hủy</button>
+                            </div>
+                          </div>
+                        );
+                      }
+                      const percent = Math.round((col.current / col.target) * 100) || 0;
+                      return (
+                        <div key={col.id} className="bg-[#FDF4E3]/30 p-4 rounded-lg border border-[#CBA563]/30 hover:border-[#CBA563]/80 transition-colors shadow-sm relative group">
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEditColClick(col)} className="p-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 hover:text-[#1C3F60] transition cursor-pointer" title="Sửa"><Edit2 size={12} /></button>
+                            <button onClick={() => handleDeleteCol(col.id)} className="p-1 bg-gray-100 text-gray-600 rounded hover:bg-red-100 hover:text-red-600 transition cursor-pointer" title="Xóa"><Trash2 size={12} /></button>
+                          </div>
+                          <div className="flex justify-between items-start mb-3 pr-12"><h4 className="font-bold text-[#1C3F60] text-sm">{col.name}</h4></div>
+                          <div className="flex justify-between items-end mb-1.5">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${getStatusColor(col.status)}`}>{col.status}</span>
+                            <span className="text-xs text-gray-600"><strong className="text-[#A91E22]">{col.current}</strong> / {col.target} SKU (<span className="font-bold">{percent}%</span>)</span>
+                          </div>
+                          <div className="w-full bg-[#EBE1CD] rounded-full h-1.5"><div className={`h-1.5 rounded-full ${percent >= 100 ? 'bg-[#CBA563]' : 'bg-[#1C3F60]'}`} style={{ width: `${Math.min(percent, 100)}%` }}></div></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderBorrowingDashboard = () => {
+            const maxChartVal = Math.max(...metrics.chartData.map(d => d.val), 600) * 1.2;
+            const chartColors = ['#8fa8c1', '#5e82a6', '#2d5c8a', '#1C3F60', '#11263c'];
+            const donePivot = metrics.groupedPivot.find(g => g.type === 'Đã mượn') || { type: 'Đã mượn', locs: [], typeTotal: 0 };
+            const expectedPivot = metrics.groupedPivot.find(g => g.type === 'Dự kiến mượn') || { type: 'Dự kiến mượn', locs: [], typeTotal: 0 };
+            const availableMonths = [...new Set(borrowData.map(r => r.month))].sort((a, b) => a - b);
+
+            return (
+              <div className="mb-8 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="w-full bg-white rounded-xl shadow-sm border border-[#CBA563]/50 overflow-hidden flex flex-col md:flex-row">
+                  <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white md:w-1/3 flex flex-col justify-center relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 opacity-10"><TrendingUp size={100} /></div>
+                    <div className="relative z-10">
+                      <p className="text-[#CBA563] text-sm font-bold uppercase tracking-wider mb-1">Mục tiêu năm 2026</p>
+                      <h2 className="text-4xl font-bold flex items-baseline gap-2">{kpi2026.toLocaleString()} <span className="text-lg font-medium text-white/70">sku</span></h2>
+                    </div>
+                  </div>
+                  <div className="flex-1 grid grid-cols-2 divide-x divide-gray-100">
+                    <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2"><CheckCircle size={18} className="text-[#108A68]" /> Done mượn</p>
+                      <div className="flex items-baseline gap-2 sm:gap-3"><span className="text-3xl sm:text-4xl font-light text-[#1C3F60]">{metrics.totalDone.toLocaleString()}</span><span className="text-sm sm:text-lg font-bold text-[#108A68] bg-[#108A68]/10 px-2 py-1 rounded-md">{metrics.percentDone}%</span></div>
+                    </div>
+                    <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2"><Clock size={18} className="text-[#A91E22]" /> Dự kiến mượn</p>
+                      <span className="text-3xl sm:text-4xl font-light text-[#A91E22]">{metrics.totalExpected.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-sm">
+                  <h3 className="text-lg font-bold text-[#1C3F60] mb-8 flex items-center gap-2"><BarChart3 size={20} className="text-[#CBA563]" /> Sản lượng thực tế theo tháng</h3>
+                  <div className="h-[200px] relative flex items-end justify-around pb-6 pt-10 px-4 mt-2">
+                     <div className="absolute inset-0 flex flex-col justify-between pb-6 text-xs text-gray-400 pointer-events-none z-0">
+                       {[100, 75, 50, 25, 0].map(percent => {
+                          const tickVal = Math.round((maxChartVal * percent) / 100);
+                          return (
+                            <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
+                               <span className="absolute -left-2 bottom-0 translate-y-1/2 bg-white pr-2 text-gray-400 font-medium">{tickVal}</span>
+                            </div>
+                          )
+                       })}
+                     </div>
+                     {metrics.chartData.map((d, i) => {
+                       const h = (d.val / maxChartVal) * 100;
+                       return (
+                         <div key={i} className="relative z-10 w-24 md:w-32 group flex flex-col items-center justify-end h-full mt-4">
+                           <div className="absolute -top-10 bg-[#1C3F60] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                             {d.val} SKU<div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1C3F60] rotate-45"></div>
+                           </div>
+                           <span className="text-[#1C3F60] font-bold mb-2 text-sm z-20 absolute -top-6 transition-transform group-hover:-translate-y-2">{d.val}</span>
+                           <div className="w-full rounded-t-md transition-all duration-500 hover:opacity-85 relative shadow-sm cursor-pointer" style={{ height: `${h}%`, backgroundColor: chartColors[i % chartColors.length] }}>
+                             <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-t-md pointer-events-none"></div>
+                           </div>
+                           <span className="absolute -bottom-7 text-sm font-bold text-gray-600">Tháng {d.month}</span>
+                         </div>
+                       )
+                     })}
+                  </div>
+                </div>
+
+                <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 shadow-sm overflow-hidden flex flex-col transition-all">
+                 <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setShowPivotTable(!showPivotTable)}>
+                    <h3 className="text-[#1C3F60] font-bold text-lg flex items-center gap-2"><Package size={20} className="text-[#CBA563]" /> Bảng Kê Chi Tiết Lô Mượn</h3>
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-xs font-bold text-gray-500 mr-1 hidden sm:inline-block">Lọc tháng:</span>
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedPivotMonths([]); if (!showPivotTable) setShowPivotTable(true); }} className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all ${selectedPivotMonths.length === 0 ? 'bg-[#1C3F60] text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>Tất cả</button>
+                        {availableMonths.map(m => (
+                          <button key={m} onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedPivotMonths.includes(Number(m))) { setSelectedPivotMonths(selectedPivotMonths.filter(x => x !== Number(m))); } else { setSelectedPivotMonths([...selectedPivotMonths, Number(m)]); }
+                              if (!showPivotTable) setShowPivotTable(true);
+                            }} className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all ${selectedPivotMonths.includes(Number(m)) ? 'bg-[#CBA563] text-white shadow-sm border border-[#CBA563]' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>Tháng {m}</button>
+                        ))}
+                      </div>
+                      <button className="text-gray-400 hover:text-[#1C3F60] transition-colors flex items-center gap-2 font-medium text-sm border-l border-gray-200 pl-4 ml-2">{showPivotTable ? 'Thu gọn' : 'Xem chi tiết'} {showPivotTable ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
+                    </div>
+                 </div>
+                 
+                 {showPivotTable && (
+                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6">
+                       <div className="flex flex-col">
+                         <div className="flex items-center justify-between mb-3"><h4 className="font-bold text-[#1C3F60] flex items-center gap-2 text-[15px]"><span className="w-2.5 h-2.5 rounded-full bg-[#1C3F60] shadow-sm"></span> ĐÃ MƯỢN</h4></div>
+                         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm flex-1">
+                           <table className="w-full text-[14px]">
+                             <thead className="bg-gray-50/80 border-b border-gray-200"><tr><th className="px-5 py-3 text-left font-medium text-gray-500 w-1/2">Nơi mượn</th><th className="px-5 py-3 text-right font-medium text-gray-500 w-1/2">SL thực tế</th></tr></thead>
+                             <tbody className="divide-y divide-gray-100">
+                               {donePivot.locs.length > 0 ? donePivot.locs.map((loc, lIdx) => (
+                                 <tr key={lIdx} className="hover:bg-[#1C3F60]/5 transition-colors group"><td className="px-5 py-3.5 text-gray-700 font-medium group-hover:text-[#1C3F60] transition-colors">{loc.loc}</td><td className="px-5 py-3.5 text-right font-bold text-[#1C3F60]">{loc.val.toLocaleString()}</td></tr>
+                               )) : (<tr><td colSpan="2" className="px-5 py-6 text-center text-gray-400 italic">Chưa có dữ liệu</td></tr>)}
+                             </tbody>
+                             <tfoot className="bg-blue-50/50 border-t border-blue-100/50"><tr><td className="px-5 py-3.5 text-right text-[#1C3F60] font-medium text-xs uppercase tracking-wider">Tổng Đã mượn</td><td className="px-5 py-3.5 text-right font-black text-[#1C3F60] text-base">{donePivot.typeTotal.toLocaleString()}</td></tr></tfoot>
+                           </table>
+                         </div>
+                       </div>
+           
+                       <div className="flex flex-col">
+                         <div className="flex items-center justify-between mb-3"><h4 className="font-bold text-[#A91E22] flex items-center gap-2 text-[15px]"><span className="w-2.5 h-2.5 rounded-full bg-[#A91E22] shadow-sm"></span> DỰ KIẾN MƯỢN</h4></div>
+                         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm flex-1">
+                           <table className="w-full text-[14px]">
+                             <thead className="bg-gray-50/80 border-b border-gray-200"><tr><th className="px-5 py-3 text-left font-medium text-gray-500 w-1/2">Nơi mượn</th><th className="px-5 py-3 text-right font-medium text-gray-500 w-1/2">SL thực tế</th></tr></thead>
+                             <tbody className="divide-y divide-gray-100">
+                               {expectedPivot.locs.length > 0 ? expectedPivot.locs.map((loc, lIdx) => (
+                                 <tr key={lIdx} className="hover:bg-[#A91E22]/5 transition-colors group"><td className="px-5 py-3.5 text-gray-700 font-medium group-hover:text-[#A91E22] transition-colors">{loc.loc}</td><td className="px-5 py-3.5 text-right font-bold text-[#A91E22]">{loc.val.toLocaleString()}</td></tr>
+                               )) : (<tr><td colSpan="2" className="px-5 py-6 text-center text-gray-400 italic">Chưa có dữ liệu</td></tr>)}
+                             </tbody>
+                             <tfoot className="bg-red-50/50 border-t border-red-100/50"><tr><td className="px-5 py-3.5 text-right text-[#A91E22] font-medium text-xs uppercase tracking-wider">Tổng Dự kiến</td><td className="px-5 py-3.5 text-right font-black text-[#A91E22] text-base">{expectedPivot.typeTotal.toLocaleString()}</td></tr></tfoot>
+                           </table>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="bg-[#1C3F60] px-6 py-5 flex items-center justify-between border-t border-[#CBA563]">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"><span className="text-[#CBA563] font-bold uppercase tracking-widest text-[15px]">Grand Total</span></div>
+                        <span className="text-3xl font-black text-white">{metrics.grandTotal.toLocaleString()}</span>
+                     </div>
+                   </div>
+                 )}
+               </div>
+              </div>
+            );
+          };
+
+          const renderBorrowing = () => {
+            const completedBorrowCount = filteredBorrowData.filter(row => row.status === 'Done').length;
+            const borrowDisplayData = filteredBorrowData.filter(row => {
+              if (hideCompletedBorrow && row.status === 'Done') return false;
+              return true;
+            });
+
+            return (
+              <div>
+                {renderBorrowingDashboard()}
+                
+                <div className="bg-white rounded-xl border border-[#CBA563]/50 shadow-sm overflow-hidden mt-8">
+                  <div className="bg-[#1C3F60] px-6 py-4 flex items-center justify-between">
+                     <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2"><Package size={18} className="text-[#CBA563]" /> Bảng theo dõi theo lô mượn</h3>
+                  </div>
+                  
+                  <div className="p-4 border-b border-[#CBA563]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FDF4E3]/50">
+                    <div className="relative max-w-md w-full">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1C3F60]/50" size={18} />
+                      <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Tìm kiếm thông tin lô mượn..." className="w-full pl-10 pr-4 py-2 bg-white border border-[#CBA563]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3F60]" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setHideCompletedBorrow(!hideCompletedBorrow)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#CBA563]/50 rounded-lg text-sm font-bold text-[#1C3F60] hover:bg-[#FDF4E3] transition-colors cursor-pointer shadow-sm whitespace-nowrap">
+                        {hideCompletedBorrow ? <Eye size={16} /> : <EyeOff size={16} />} {hideCompletedBorrow ? `Hiện lô đã xong (${completedBorrowCount})` : 'Ẩn lô đã xong'}
+                      </button>
+                      <button onClick={handleAddRow} className="flex items-center gap-1.5 px-3 py-2 bg-[#1C3F60] text-white rounded-lg text-sm font-bold hover:bg-[#2A5C8C] transition-colors cursor-pointer shadow-sm"><PlusCircle size={16} /> Thêm Lô</button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#EBE1CD] border-b border-[#CBA563]/50 text-[12px] uppercase tracking-wider text-[#1C3F60]">
+                          <th className="px-4 py-4 font-bold whitespace-nowrap">Trạng thái</th><th className="px-4 py-4 font-bold whitespace-nowrap">Tháng</th><th className="px-4 py-4 font-bold whitespace-nowrap">Lô mượn</th><th className="px-4 py-4 font-bold whitespace-nowrap">Nơi mượn</th><th className="px-4 py-4 font-bold whitespace-nowrap">Phân loại</th><th className="px-4 py-4 font-bold whitespace-nowrap text-center">Thực tế</th><th className="px-4 py-4 font-bold whitespace-nowrap">Ghi chú</th><th className="px-4 py-4 font-bold whitespace-nowrap">Bắt đầu</th><th className="px-4 py-4 font-bold whitespace-nowrap">Nhận hàng</th><th className="px-4 py-4 font-bold whitespace-nowrap text-center">Số ngày</th><th className="px-4 py-4 font-bold whitespace-nowrap text-right">Hành động</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#CBA563]/20">
+                        {borrowDisplayData.map((row) => {
+                          const isEditing = editingId === row.id;
+                          if (isEditing) {
+                            return (
+                              <tr key={row.id} className="bg-[#FDF4E3] text-[13px] border-b-2 border-[#CBA563] shadow-inner">
+                                <td className="px-2 py-2"><select value={editFormData.status} onChange={(e) => handleEditFormChange(e, 'status')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Done">Done</option><option value="Process">Process</option><option value="Dự kiến">Dự kiến</option></select></td>
+                                <td className="px-2 py-2"><input type="number" value={editFormData.month} onChange={(e) => handleEditFormChange(e, 'month')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs text-center bg-white w-12 focus:outline-[#1C3F60]" /></td>
+                                <td className="px-2 py-2"><input type="text" value={editFormData.lot} onChange={(e) => handleEditFormChange(e, 'lot')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[70px] focus:outline-[#1C3F60]" /></td>
+                                <td className="px-2 py-2"><select value={editFormData.location} onChange={(e) => handleEditFormChange(e, 'location')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[80px]"><option value="KHO">KHO</option><option value="NVT">NVT</option><option value="Sang tay">Sang tay</option></select></td>
+                                <td className="px-2 py-2"><select value={editFormData.type} onChange={(e) => handleEditFormChange(e, 'type')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[90px]"><option value="Đã mượn">Đã mượn</option><option value="Dự kiến mượn">Dự kiến mượn</option></select></td>
+                                <td className="px-2 py-2"><input type="number" value={editFormData.actual} onChange={(e) => handleEditFormChange(e, 'actual')} className="w-full p-1 border border-[#A91E22]/50 rounded text-xs text-center font-bold text-[#A91E22] bg-white w-16" /></td>
+                                <td className="px-2 py-2"><input type="text" value={editFormData.note || ''} onChange={(e) => handleEditFormChange(e, 'note')} placeholder="Ghi chú..." className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px]" /></td>
+                                <td className="px-2 py-2"><input type="text" value={editFormData.startDate} onChange={(e) => handleEditFormChange(e, 'startDate')} placeholder="MM/DD/YYYY" className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white w-20" /></td>
+                                <td className="px-2 py-2"><input type="text" value={editFormData.receiveDate} onChange={(e) => handleEditFormChange(e, 'receiveDate')} placeholder="MM/DD/YYYY" className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white w-20" /></td>
+                                <td className="px-2 py-2"><input type="text" value={editFormData.days} readOnly className="w-full p-1 border border-transparent rounded text-xs text-center bg-gray-100 text-gray-500 font-bold cursor-not-allowed w-12" /></td>
+                                <td className="px-2 py-2 whitespace-nowrap flex gap-1 justify-end"><button onClick={handleSaveClick} className="p-1.5 bg-[#4CAF50] text-white rounded hover:bg-[#45a049] transition cursor-pointer" title="Lưu"><Save size={14} /></button><button onClick={handleCancelEdit} className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 transition cursor-pointer" title="Hủy"><XCircle size={14} /></button></td>
+                              </tr>
+                            );
+                          }
+                          return (
+                            <tr key={row.id} className="hover:bg-[#CBA563]/10 transition-colors text-[13px] bg-white group">
+                              <td className="px-4 py-3.5 font-medium whitespace-nowrap">
+                                 {row.status === 'Done' && <span className="px-2.5 py-1 bg-[#A91E22]/10 text-[#A91E22] border border-[#A91E22]/20 rounded text-[11px] font-bold uppercase tracking-wide">Done</span>}
+                                 {row.status === 'Process' && <span className="px-2.5 py-1 bg-[#1C3F60]/10 text-[#1C3F60] border border-[#1C3F60]/20 rounded text-[11px] font-bold uppercase tracking-wide">Process</span>}
+                                 {row.status === 'Dự kiến' && <span className="px-2.5 py-1 bg-gray-100 text-gray-500 border border-gray-200 rounded text-[11px] font-bold uppercase tracking-wide">Dự kiến</span>}
+                              </td>
+                              <td className="px-4 py-3.5 text-center font-medium text-gray-600"><span className="bg-gray-50 text-gray-600 px-2.5 py-1 rounded text-xs border border-gray-200 shadow-sm">T{row.month}</span></td>
+                              <td className="px-4 py-3.5 whitespace-nowrap font-bold text-[#A6823F]">{row.lot}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap font-bold text-[#1C3F60]">{row.location}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide ${row.type === 'Đã mượn' ? 'bg-[#CBA563]/20 text-[#7A5C22] border border-[#CBA563]/30' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>{row.type}</span></td>
+                              <td className="px-4 py-3.5 text-center"><span className="inline-flex items-center justify-center min-w-[36px] px-2 py-1 rounded-md bg-[#FDF4E3] border border-[#CBA563]/40 font-bold text-[#A91E22] shadow-sm">{row.actual}</span></td>
+                              <td className="px-4 py-3.5 text-gray-600 text-xs max-w-[120px] truncate" title={row.note}>{row.note || '-'}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap text-gray-600 font-medium">{row.startDate}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap text-gray-600 font-medium">{row.receiveDate}</td>
+                              <td className="px-4 py-3.5 text-center font-bold text-[#1C3F60]">{row.days}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity"><button onClick={() => handleEditClick(row)} className="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 hover:text-[#1C3F60] transition cursor-pointer" title="Sửa"><Edit2 size={14} /></button><button onClick={() => handleDeleteRow(row.id)} className="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-red-100 hover:text-red-600 transition cursor-pointer" title="Xóa"><Trash2 size={14} /></button></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderProduction = () => {
+            const completedProdCount = filteredBorrowData.filter(row => row.actual > 0 && row.shootStatus === 'Đã xong' && row.retouchStatus === 'Đã xong' && row.type === 'Đã mượn').length;
+            const prodDisplayData = filteredBorrowData
+              .filter(row => row.actual > 0 && row.type === 'Đã mượn')
+              .filter(row => {
+                const isCompleted = row.shootStatus === 'Đã xong' && row.retouchStatus === 'Đã xong';
+                if (hideCompletedProd && isCompleted) return false;
+                return true;
+              });
+
+            return (
+              <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-sm">
+                  <h2 className="text-xl font-bold text-[#1C3F60] mb-6 flex items-center gap-2 border-b border-[#CBA563]/30 pb-3"><Layers size={24} className="text-[#CBA563]" /> Tiến độ Sản xuất Hình ảnh (Cuốn chiếu Gói 160)</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col"><span className="text-sm font-bold text-gray-500 uppercase mb-1">Tổng SKU đang xử lý</span><span className="text-4xl font-light text-[#1C3F60]">{metrics.prod.totalReceived.toLocaleString()}</span></div>
+                    <div className="flex flex-col border-l border-gray-200 pl-6"><span className="text-sm font-bold text-[#CBA563] uppercase mb-1">Đã chụp xong</span><span className="text-4xl font-bold text-[#A6823F]">{metrics.prod.totalShot.toLocaleString()}</span><span className="text-xs text-gray-500 mt-1">~ {Math.round((metrics.prod.totalShot/(metrics.prod.totalReceived||1))*100)}% lượng nhận</span></div>
+                    <div className="flex flex-col border-l border-gray-200 pl-6"><span className="text-sm font-bold text-[#4D7B85] uppercase mb-1">Đã Retouch</span><span className="text-4xl font-bold text-[#4D7B85]">{metrics.prod.totalRetouched.toLocaleString()}</span><span className="text-xs text-gray-500 mt-1">~ {Math.round((metrics.prod.totalRetouched/(metrics.prod.totalReceived||1))*100)}% lượng nhận</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-[#CBA563]/50 shadow-sm overflow-hidden p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="relative max-w-md w-full"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1C3F60]/50" size={18} /><input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Tìm kiếm Lô mượn..." className="w-full pl-10 pr-4 py-2 bg-white border border-[#CBA563]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3F60]" /></div>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setHideCompletedProd(!hideCompletedProd)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#CBA563]/50 rounded-lg text-sm font-bold text-[#1C3F60] hover:bg-[#FDF4E3] transition-colors cursor-pointer shadow-sm whitespace-nowrap">{hideCompletedProd ? <Eye size={16} /> : <EyeOff size={16} />} {hideCompletedProd ? `Hiện lô đã xong (${completedProdCount})` : 'Ẩn lô đã xong'}</button>
+                    <div className="text-xs text-gray-500 italic hidden lg:flex items-center gap-1"><AlertCircle size={14}/> Quy tắc: Tối đa 160 SKU/gói. Cuốn chiếu 13 ngày/gói.</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-6">
+                  {prodDisplayData.map((row) => {
+                      const isEditing = editingProdId === row.id;
+                      const batches = computeBatches(row.receiveDate, row.actual);
+                      const finalDate = batches.length > 0 ? batches[batches.length - 1].retouchEnd : null;
+                      const formattedFinalDate = formatShortDate(finalDate);
+                      const isCompletedLot = row.shootStatus === 'Đã xong' && row.retouchStatus === 'Đã xong';
+                      let totalSpanDays = 1; let minDateObj = null; let maxDateObj = null;
+                      if (batches.length > 0) { minDateObj = batches[0].photoStart; maxDateObj = batches[batches.length - 1].retouchEnd; totalSpanDays = diffDaysDates(minDateObj, maxDateObj) + 1; if (isNaN(totalSpanDays) || totalSpanDays <= 0) totalSpanDays = 1; }
+
+                      return (
+                        <div key={row.id} className={`bg-white rounded-xl shadow-sm border ${isCompletedLot ? 'border-[#108A68]' : 'border-[#CBA563]/50'} overflow-hidden flex flex-col transition-shadow hover:shadow-md relative`}>
+                          <div className={`px-5 py-4 border-b flex flex-col sm:flex-row justify-between sm:items-start gap-4 ${isCompletedLot ? 'bg-[#108A68]/5 border-[#108A68]/20' : 'bg-[#FDF4E3] border-[#CBA563]/30'}`}>
+                            <div>
+                              <div className="flex items-center gap-2"><h3 className="font-bold text-[#1C3F60] text-lg">{row.lot}</h3>{isCompletedLot && <CheckCircle size={16} className="text-[#108A68]" />}</div>
+                              <div className="text-xs text-gray-600 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                <span className="flex items-center gap-1" title="Kho gốc">Nơi mượn: <strong className="text-[#1C3F60]">{row.location}</strong></span>
+                                <span className="flex items-center gap-1">Tổng SL: <strong className="text-[#A91E22] bg-white px-2 py-0.5 rounded border border-red-100 shadow-sm">{row.actual}</strong></span>
+                                <span className="flex items-center gap-1">Ngày nhận: <strong className="text-[#1C3F60] bg-white px-2 py-0.5 rounded border border-gray-200 shadow-sm">{row.receiveDate}</strong></span>
+                              </div>
+                            </div>
+                            <div className="text-left sm:text-right">
+                              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Deadline toàn bộ Lô</div>
+                              <div className={`font-black text-xl flex items-center gap-2 sm:justify-end ${isCompletedLot ? 'text-[#108A68]' : 'text-[#A91E22]'}`}><CalendarDays size={20} /> {formattedFinalDate !== '-' ? formattedFinalDate : 'Chưa xác định'}</div>
+                            </div>
+                          </div>
+
+                          <div className="p-5 flex-1 bg-white">
+                            <div className="flex justify-between items-center mb-6">
+                              <div className="text-xs font-bold text-[#1C3F60] flex items-center gap-2"><BarChart3 size={16} className="text-[#CBA563]" /> TIMELINE CUỐN CHIẾU ({batches.length} GÓI)</div>
+                              <div className="flex items-center gap-4 text-[11px] font-bold text-gray-500 hidden sm:flex">
+                                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#CBA563]"></div> Chụp hình</div><div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#4D7B85]"></div> Retouch</div>
+                              </div>
+                            </div>
+                            {batches.length === 0 ? (
+                               <div className="text-gray-400 italic text-sm text-center py-6 border border-dashed border-gray-300 rounded-lg bg-gray-50">Chưa có ngày nhận hàng hợp lệ để tính timeline.</div>
+                            ) : (
+                              <div className="relative w-full pt-8 pb-4 px-2">
+                                 <div className="absolute top-0 left-0 text-[10px] text-gray-400 font-bold border-l-2 border-gray-300 pl-1">Bắt đầu: {formatShortDate(minDateObj)}</div>
+                                 <div className="absolute top-0 right-0 text-[10px] text-[#A91E22] font-bold border-r-2 border-[#A91E22] pr-1">Kết thúc: {formatShortDate(maxDateObj)}</div>
+                                 <div className="absolute inset-y-0 left-0 right-0 border-t border-dashed border-gray-200 mt-8 pointer-events-none"></div>
+                                 <div className="flex flex-col gap-12 mt-6 mb-4">
+                                   {batches.map((b, idx) => {
+                                      const photoLeft = (diffDaysDates(minDateObj, b.photoStart) / totalSpanDays) * 100;
+                                      const photoWidth = (b.photoDays / totalSpanDays) * 100;
+                                      const retouchLeft = (diffDaysDates(minDateObj, b.retouchStart) / totalSpanDays) * 100;
+                                      const retouchWidth = (b.retouchDays / totalSpanDays) * 100;
+                                      return (
+                                         <div key={idx} className="relative w-full h-8 bg-gray-50/50 rounded-md border border-gray-100 flex flex-col justify-center group hover:bg-gray-50 transition-colors">
+                                            <div className="absolute -top-5 left-0 text-[10px] font-bold text-gray-500 z-20 flex items-center gap-1">{b.name} <span className="font-normal bg-white border border-gray-200 px-1 rounded text-gray-400">{b.qty} SKU</span></div>
+                                            <div className="relative h-full w-full overflow-hidden rounded-md">
+                                               <div className="absolute h-full bg-[#CBA563] flex items-center justify-center text-[10px] text-white font-bold transition-all hover:brightness-110 cursor-default" style={{ left: `${photoLeft}%`, width: `${photoWidth}%` }} title={`Chụp hình: ${formatShortDate(b.photoStart)} - ${formatShortDate(b.photoEnd)} (${b.photoDays} ngày)`}>{photoWidth > 8 ? <span className="flex items-center gap-1 truncate px-1"><Camera size={10} className="hidden sm:inline-block"/> {b.photoDays}d</span> : ''}</div>
+                                               <div className="absolute h-full bg-[#4D7B85] flex items-center justify-center text-[10px] text-white font-bold transition-all hover:brightness-110 cursor-default" style={{ left: `${retouchLeft}%`, width: `${retouchWidth}%` }} title={`Retouch: ${formatShortDate(b.retouchStart)} - ${formatShortDate(b.retouchEnd)} (${b.retouchDays} ngày)`}>{retouchWidth > 15 ? (<div className="flex items-center justify-between w-full px-1.5"><span className="bg-black/20 px-1 rounded text-[9px] whitespace-nowrap hidden sm:inline-block">Bắt đầu: {formatShortDate(b.retouchStart)}</span><span className="flex items-center gap-1 truncate"><PenTool size={10} className="hidden sm:inline-block"/> {b.retouchDays}d</span></div>) : (retouchWidth > 8 ? <span className="flex items-center gap-1 truncate px-1"><PenTool size={10} className="hidden sm:inline-block"/> {b.retouchDays}d</span> : '')}</div>
+                                            </div>
+                                            <div className="absolute -bottom-8 sm:-bottom-6 left-0 text-[10px] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 w-full opacity-80 group-hover:opacity-100 transition-opacity">
+                                               <span className="text-[#CBA563] font-bold">Chụp: {formatShortDate(b.photoStart)} - {formatShortDate(b.photoEnd)}</span>
+                                               <span className="text-[#4D7B85] font-bold sm:border-l sm:border-gray-300 sm:pl-2 flex items-center gap-1">Bắt đầu Retouch: <span className="text-[#A91E22]">{formatShortDate(b.retouchStart)}</span> <ArrowRight size={10} className="text-gray-400"/> {formatShortDate(b.retouchEnd)}</span>
+                                            </div>
+                                         </div>
+                                      )
+                                   })}
+                                 </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="border-t border-gray-200 bg-gray-50 p-4">
+                            {isEditing ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <span className="text-[10px] uppercase text-[#CBA563] font-bold mb-1 flex items-center gap-1"><Camera size={12}/> Phụ trách Chụp</span>
+                                    <input type="text" value={editProdFormData.photographer} onChange={(e) => setEditProdFormData({...editProdFormData, photographer: e.target.value})} placeholder="Tên Photo..." className="w-full p-2 border border-[#CBA563]/50 rounded text-xs mb-2 shadow-sm" />
+                                    <select value={editProdFormData.shootStatus} onChange={(e) => setEditProdFormData({...editProdFormData, shootStatus: e.target.value})} className="w-full p-2 border border-[#CBA563]/50 rounded text-xs bg-white font-bold text-[#1C3F60] shadow-sm"><option>Chưa chụp</option><option>Đang xử lý</option><option>Đã xong</option></select>
+                                  </div>
+                                  <div>
+                                    <span className="text-[10px] uppercase text-[#4D7B85] font-bold mb-1 flex items-center gap-1"><PenTool size={12}/> Phụ trách Retouch</span>
+                                    <input type="text" value={editProdFormData.retoucher} onChange={(e) => setEditProdFormData({...editProdFormData, retoucher: e.target.value})} placeholder="Tên Retoucher..." className="w-full p-2 border border-[#4D7B85]/50 rounded text-xs mb-2 shadow-sm" />
+                                    <select value={editProdFormData.retouchStatus} onChange={(e) => setEditProdFormData({...editProdFormData, retouchStatus: e.target.value})} className="w-full p-2 border border-[#4D7B85]/50 rounded text-xs bg-white font-bold text-[#1C3F60] shadow-sm"><option>Chưa bắt đầu</option><option>Đang xử lý</option><option>Đã xong</option></select>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 justify-end pt-3 border-t border-gray-200">
+                                  <button onClick={() => { setBorrowData(borrowData.map(r => r.id === editingProdId ? { ...editProdFormData } : r)); setEditingProdId(null); }} className="px-5 py-2 bg-[#4CAF50] text-white rounded font-bold text-xs hover:bg-[#45a049] flex items-center gap-1 shadow-sm"><Save size={14} /> Lưu thay đổi</button>
+                                  <button onClick={() => setEditingProdId(null)} className="px-5 py-2 bg-white border border-gray-300 text-gray-600 rounded font-bold text-xs hover:bg-gray-50 flex items-center gap-1 shadow-sm"><XCircle size={14} /> Hủy</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="text-[10px] text-gray-500 uppercase font-bold flex items-center gap-1"><Camera size={12}/> Nhóm Photo</span>
+                                    <div className="flex items-center gap-2"><span className="text-[#1C3F60] font-bold text-sm">{row.photographer}</span><span className={`px-2 py-0.5 rounded text-[10px] font-bold border inline-block text-center shadow-sm ${getStatusColor(row.shootStatus)}`}>{row.shootStatus}</span></div>
+                                  </div>
+                                  <div className="w-px h-8 bg-gray-300 hidden sm:block"></div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="text-[10px] text-gray-500 uppercase font-bold flex items-center gap-1"><PenTool size={12}/> Nhóm Retouch</span>
+                                    <div className="flex items-center gap-2"><span className="text-[#1C3F60] font-bold text-sm">{row.retoucher}</span><span className={`px-2 py-0.5 rounded text-[10px] font-bold border inline-block text-center shadow-sm ${getStatusColor(row.retouchStatus)}`}>{row.retouchStatus}</span></div>
+                                  </div>
+                                </div>
+                                <button onClick={() => { setEditingProdId(row.id); setEditProdFormData({ ...row }); }} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#1C3F60] text-[#1C3F60] rounded-lg text-xs font-bold hover:bg-[#1C3F60] hover:text-white transition-colors cursor-pointer w-full sm:w-auto shadow-sm"><Edit2 size={14} /> Cập nhật Tiến độ</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                  })}
+                </div>
+              </div>
+            );
+          };
+
+          const renderVideoProduction = () => {
+            const kpiYear = 480;
+            const kpiQuarter = 120;
+            
+            const totalShot = videoData.reduce((acc, r) => acc + (Number(r.actual) || 0), 0);
+            const percentQuarter = Math.round((totalShot / kpiQuarter) * 100);
+            const percentYear = Math.round((totalShot / kpiYear) * 100);
+
+            const vMonthly = {};
+            videoData.forEach(r => {
+              vMonthly[r.month] = (vMonthly[r.month] || 0) + (Number(r.actual) || 0);
+            });
+            const vChartData = Object.entries(vMonthly).map(([m, val]) => ({ month: Number(m), val })).sort((a, b) => a.month - b.month);
+            const maxChartVal = Math.max(...vChartData.map(d => d.val), 50) * 1.2; 
+            const chartColors = ['#8fa8c1', '#5e82a6', '#2d5c8a', '#1C3F60', '#11263c'];
+
+            return (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="w-full bg-white rounded-xl shadow-sm border border-[#CBA563]/50 overflow-hidden flex flex-col md:flex-row">
+                  <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white md:w-1/3 flex flex-col justify-center relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 opacity-10"><Video size={100} /></div>
+                    <div className="relative z-10">
+                      <p className="text-[#CBA563] text-sm font-bold uppercase tracking-wider mb-1">Mục tiêu Năm 2026</p>
+                      <h2 className="text-4xl font-bold flex items-baseline gap-2">{kpiYear.toLocaleString()} <span className="text-lg font-medium text-white/70">sku</span></h2>
+                      <div className="w-full bg-white/20 rounded-full h-1.5 mt-3"><div className="bg-[#CBA563] h-1.5 rounded-full" style={{width: `${Math.min(percentYear, 100)}%`}}></div></div>
+                      <p className="text-xs text-white/80 mt-1.5">Đã đạt {percentYear}% kế hoạch năm</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 grid grid-cols-2 divide-x divide-gray-100">
+                    <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors relative">
+                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2"><CheckCircle size={18} className="text-[#108A68]" /> KPI Quý</p>
+                      <span className="text-3xl sm:text-4xl font-light text-[#1C3F60]">{kpiQuarter.toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2"><Video size={18} className="text-[#A6823F]" /> Tổng Đã Quay</p>
+                      <div className="flex items-baseline gap-2 sm:gap-3">
+                        <span className="text-3xl sm:text-4xl font-light text-[#A6823F]">{totalShot.toLocaleString()}</span>
+                        <span className="text-sm sm:text-lg font-bold text-[#A6823F] bg-[#FDF4E3] px-2 py-1 rounded-md" title="% hoàn thành Quý">{percentQuarter}% Quý</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  <div className="lg:col-span-1 bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-sm flex flex-col h-full">
+                    <h3 className="text-lg font-bold text-[#1C3F60] mb-8 flex items-center gap-2"><BarChart3 size={20} className="text-[#CBA563]" /> Đã quay theo Tháng</h3>
+                    <div className="h-[200px] relative flex items-end justify-around pb-6 pt-10 px-4 mt-2">
+                       <div className="absolute inset-0 flex flex-col justify-between pb-6 text-xs text-gray-400 pointer-events-none z-0">
+                         {[100, 75, 50, 25, 0].map(percent => {
+                            const tickVal = Math.round((maxChartVal * percent) / 100);
+                            return (
+                              <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
+                                 <span className="absolute -left-2 bottom-0 translate-y-1/2 bg-white pr-2 text-gray-400 font-medium">{tickVal}</span>
+                              </div>
+                            )
+                         })}
+                       </div>
+                       {vChartData.map((d, i) => {
+                         const h = (d.val / maxChartVal) * 100;
+                         return (
+                           <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
+                             <div className="absolute -top-10 bg-[#1C3F60] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                               {d.val} SKU<div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1C3F60] rotate-45"></div>
+                             </div>
+                             <span className="text-[#1C3F60] font-bold mb-2 text-sm z-20 absolute -top-6 transition-transform group-hover:-translate-y-2">{d.val}</span>
+                             <div className="w-full rounded-t-md transition-all duration-500 hover:opacity-85 relative shadow-sm cursor-pointer" style={{ height: `${h}%`, backgroundColor: chartColors[i % chartColors.length] }}>
+                               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-t-md pointer-events-none"></div>
+                             </div>
+                             <span className="absolute -bottom-7 text-sm font-bold text-gray-600">Tháng {d.month}</span>
+                           </div>
+                         )
+                       })}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-2 bg-white rounded-xl border border-[#CBA563]/50 shadow-sm overflow-hidden flex flex-col h-full">
+                    <div className="bg-[#1C3F60] px-6 py-4 flex items-center justify-between">
+                       <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2"><Video size={18} className="text-[#CBA563]" /> Bảng theo dõi Sản xuất Video</h3>
+                       <button onClick={handleAddVideoRow} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-white rounded-md text-xs font-bold hover:bg-white/20 transition-colors cursor-pointer shadow-sm"><PlusCircle size={14} /> Thêm Lô Video</button>
+                    </div>
+                    
+                    <div className="overflow-x-auto flex-1">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[#EBE1CD] border-b border-[#CBA563]/50 text-[12px] uppercase tracking-wider text-[#1C3F60]">
+                            <th className="px-4 py-4 font-bold whitespace-nowrap text-center">Tháng</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap">Lô Video</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap text-center">SL Thực Tế</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap">Tình trạng Quay</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap">Tình trạng Dựng</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap">Ghi chú</th>
+                            <th className="px-4 py-4 font-bold whitespace-nowrap text-right">Hành động</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#CBA563]/20">
+                          {videoData.map((row) => {
+                            const isEditing = editingVideoId === row.id;
+                            if (isEditing) {
+                              return (
+                                <tr key={row.id} className="bg-[#FDF4E3] text-[13px] border-b-2 border-[#CBA563] shadow-inner">
+                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.month} onChange={(e) => handleEditVideoFormChange(e, 'month')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs text-center bg-white w-12 focus:outline-[#1C3F60] mx-auto" /></td>
+                                  <td className="px-2 py-2"><input type="text" value={editVideoFormData.lot} onChange={(e) => handleEditVideoFormChange(e, 'lot')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px] focus:outline-[#1C3F60]" /></td>
+                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.actual} onChange={(e) => handleEditVideoFormChange(e, 'actual')} className="w-full p-1 border border-[#A91E22]/50 rounded text-xs text-center font-bold text-[#A91E22] bg-white w-16 mx-auto" /></td>
+                                  <td className="px-2 py-2"><select value={editVideoFormData.shootStatus} onChange={(e) => handleEditVideoFormChange(e, 'shootStatus')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Chưa quay">Chưa quay</option><option value="Đang quay">Đang quay</option><option value="Đã xong">Đã xong</option></select></td>
+                                  <td className="px-2 py-2"><select value={editVideoFormData.editStatus} onChange={(e) => handleEditVideoFormChange(e, 'editStatus')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Chưa dựng">Chưa dựng</option><option value="Đang dựng">Đang dựng</option><option value="Chờ duyệt">Chờ duyệt</option><option value="Đã xong">Đã xong</option></select></td>
+                                  <td className="px-2 py-2"><input type="text" value={editVideoFormData.note || ''} onChange={(e) => handleEditVideoFormChange(e, 'note')} placeholder="Ghi chú..." className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px]" /></td>
+                                  <td className="px-2 py-2 whitespace-nowrap flex gap-1 justify-end"><button onClick={handleSaveVideoClick} className="p-1.5 bg-[#4CAF50] text-white rounded hover:bg-[#45a049] transition cursor-pointer" title="Lưu"><Save size={14} /></button><button onClick={handleCancelVideoEdit} className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 transition cursor-pointer" title="Hủy"><XCircle size={14} /></button></td>
+                                </tr>
+                              );
+                            }
+                            return (
+                              <tr key={row.id} className="hover:bg-gray-50 transition-colors text-[13px] bg-white group">
+                                <td className="px-4 py-3.5 text-center font-medium text-gray-600"><span className="bg-gray-50 text-gray-600 px-2.5 py-1 rounded text-xs border border-gray-200 shadow-sm">T{row.month}</span></td>
+                                <td className="px-4 py-3.5 whitespace-nowrap font-bold text-[#1C3F60]">{row.lot}</td>
+                                <td className="px-4 py-3.5 text-center"><span className="inline-flex items-center justify-center min-w-[36px] px-2 py-1 rounded-md bg-[#FDF4E3] border border-[#CBA563]/40 font-bold text-[#A91E22] shadow-sm">{row.actual}</span></td>
+                                <td className="px-4 py-3.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-md text-[11px] font-bold border inline-block text-center shadow-sm ${row.shootStatus === 'Đã xong' ? 'bg-[#CBA563]/20 text-[#7A5C22] border-[#CBA563]/40' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>{row.shootStatus}</span></td>
+                                <td className="px-4 py-3.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-md text-[11px] font-bold border inline-block text-center shadow-sm ${row.editStatus === 'Đã xong' ? 'bg-[#CBA563]/20 text-[#7A5C22] border-[#CBA563]/40' : row.editStatus.includes('dựng') ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>{row.editStatus}</span></td>
+                                <td className="px-4 py-3.5 text-gray-600 text-xs max-w-[150px] truncate" title={row.note}>{row.note || '-'}</td>
+                                <td className="px-4 py-3.5 whitespace-nowrap flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity"><button onClick={() => handleEditVideoClick(row)} className="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 hover:text-[#1C3F60] transition cursor-pointer" title="Sửa"><Edit2 size={14} /></button><button onClick={() => handleDeleteVideoRow(row.id)} className="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-red-100 hover:text-red-600 transition cursor-pointer" title="Xóa"><Trash2 size={14} /></button></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-[#FDF4E3] font-sans">
+              <header className="bg-[#A91E22] border-b border-[#82171a] sticky top-0 z-10 shadow-md">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-between h-16">
+                    <div className="flex items-center">
+                      <div className="bg-white p-2 rounded-lg mr-3 shadow-sm">
+                        <Package className="text-[#A91E22]" size={20} />
+                      </div>
+                      <h1 className="text-xl font-bold text-white uppercase tracking-wide">Quản Lý Sản Xuất Hình Ảnh</h1>
+                    </div>
+                    
+                    {/* Logo PNJ góc phải */}
+                    <div className="flex items-center">
+                      <img 
+                        src="logoPNJ_TRANG.png" 
+                        alt="PNJ Logo" 
+                        className="h-10 object-contain"
+                        onError={(e) => { 
+                          e.target.onerror = null; 
+                          e.target.src = 'https://cdn.pnj.io/images/logo/pnj.com.vn.png'; 
+                        }} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </header>
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+                <div className="flex flex-wrap gap-1 bg-[#F0E5D1] p-1.5 rounded-xl mb-8 w-fit border border-[#CBA563]/40 shadow-inner">
+                  <button onClick={() => setActiveTab('overview')} className={`flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'overview' ? 'bg-[#1C3F60] text-white shadow-md' : 'text-[#1C3F60] hover:bg-white/50 cursor-pointer'}`}>
+                    <LayoutDashboard size={18} className="mr-2" /> Tổng quan
+                  </button>
+                  <button onClick={() => setActiveTab('borrowing')} className={`flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'borrowing' ? 'bg-[#1C3F60] text-white shadow-md' : 'text-[#1C3F60] hover:bg-white/50 cursor-pointer'}`}>
+                    <Package size={18} className="mr-2" /> Mượn hàng
+                  </button>
+                  <button onClick={() => setActiveTab('production')} className={`flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'production' ? 'bg-[#1C3F60] text-white shadow-md' : 'text-[#1C3F60] hover:bg-white/50 cursor-pointer'}`}>
+                    <Camera size={18} className="mr-2" /> Hình ảnh
+                  </button>
+                  <button onClick={() => setActiveTab('video')} className={`flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'video' ? 'bg-[#1C3F60] text-white shadow-md' : 'text-[#1C3F60] hover:bg-white/50 cursor-pointer'}`}>
+                    <Video size={18} className="mr-2" /> Sản xuất Video
+                  </button>
+                  <button onClick={() => setActiveTab('database')} className={`flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'database' ? 'bg-[#1C3F60] text-white shadow-md' : 'text-[#1C3F60] hover:bg-white/50 cursor-pointer'}`}>
+                    <Database size={18} className="mr-2" /> Database Thô
+                  </button>
+                </div>
+
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {activeTab === 'overview' && renderOverview()}
+                  {activeTab === 'borrowing' && renderBorrowing()}
+                  {activeTab === 'production' && renderProduction()}
+                  {activeTab === 'video' && renderVideoProduction()}
+                  {activeTab === 'database' && renderDatabase()}
+                </div>
+              </main>
+            </div>
+          );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
+        const root = createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
