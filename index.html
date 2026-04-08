@@ -8,10 +8,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Babel standalone để dịch JSX ngay trên trình duyệt -->
+    <!-- Babel for in-browser JSX/ESM processing -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Custom Styles -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
@@ -27,10 +26,8 @@
     </style>
 </head>
 <body>
-    <!-- React Root -->
     <div id="root"></div>
 
-    <!-- Ứng dụng chính -->
     <script type="text/babel" data-type="module">
         // Import React & ReactDOM qua ESM
         import React, { useState, useMemo, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
@@ -65,17 +62,26 @@
 
         const availableMonths = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
-        // --- UTILS ---
+        // --- UTILS SAFER ---
         const parseDateString = (str) => {
           if (!str || str === '-') return null;
           const parts = str.split(/[-/]/);
           if (parts.length >= 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            let year = parseInt(parts[2], 10);
-            if (year < 100) year += 2000;
-            const d = new Date(year, month, day);
-            if (!isNaN(d.getTime())) return d;
+            // Nhận diện thông minh: YYYY-MM-DD và DD/MM/YYYY
+            if (parts[0].length === 4) {
+              const year = parseInt(parts[0], 10);
+              const month = parseInt(parts[1], 10) - 1;
+              const day = parseInt(parts[2], 10);
+              const d = new Date(year, month, day);
+              if (!isNaN(d.getTime())) return d;
+            } else {
+              const day = parseInt(parts[0], 10);
+              const month = parseInt(parts[1], 10) - 1;
+              let year = parseInt(parts[2], 10);
+              if (year < 100) year += 2000;
+              const d = new Date(year, month, day);
+              if (!isNaN(d.getTime())) return d;
+            }
           }
           const d2 = new Date(str);
           return isNaN(d2.getTime()) ? null : d2;
@@ -94,18 +100,18 @@
           const start = parseDateString(startStr);
           const end = parseDateString(endStr);
           if (!start || !end) return '-';
-          return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+          return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
         };
 
         const diffDaysDates = (start, end) => {
-          if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+          if (!(start instanceof Date) || !(end instanceof Date) || isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
           const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
           const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-          return Math.round((e - s) / (1000 * 60 * 60 * 24));
+          return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
         };
 
         const getWorkingDays = (start, end) => {
-          if (!start || !end) return 0;
+          if (!(start instanceof Date) || !(end instanceof Date) || isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
           let count = 0;
           let cur = new Date(start);
           cur.setHours(0,0,0,0);
@@ -119,7 +125,7 @@
         };
 
         const addWorkingDays = (startDate, daysToAdd) => {
-          if (!startDate) return new Date();
+          if (!(startDate instanceof Date) || isNaN(startDate.getTime())) return new Date();
           let currentDate = new Date(startDate);
           currentDate.setHours(0,0,0,0);
           let added = 0;
@@ -134,14 +140,25 @@
           return currentDate;
         };
 
-        // --- FIREBASE SETUP ---
+        // --- FIREBASE SETUP CHO GITHUB PAGES ---
+        // CHÚ Ý: ĐỂ LƯU DỮ LIỆU VĨNH VIỄN TRÊN GITHUB, BẠN CẦN ĐIỀN THÔNG TIN FIREBASE CỦA BẠN VÀO ĐÂY
+        const GITHUB_FIREBASE_CONFIG = {
+            // apiKey: "AIzaSy...",
+            // authDomain: "your-app.firebaseapp.com",
+            // projectId: "your-app",
+            // storageBucket: "your-app.appspot.com",
+            // messagingSenderId: "123456789",
+            // appId: "1:123456789:web:abcde"
+        };
+
         let app, auth, db, appId;
         try {
-          const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // *** DÀNH CHO GITHUB PAGES ***
-            // Bạn có thể điền thông tin config Firebase của bạn vào đây nếu muốn lưu dữ liệu đám mây.
-            // Nếu để trống, Dashboard sẽ dùng dữ liệu mẫu (chạy Local).
-          };
+          let firebaseConfig = {};
+          if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+          } else if (Object.keys(GITHUB_FIREBASE_CONFIG).length > 0 && GITHUB_FIREBASE_CONFIG.apiKey) {
+            firebaseConfig = GITHUB_FIREBASE_CONFIG;
+          }
           
           if(Object.keys(firebaseConfig).length > 0) {
             app = initializeApp(firebaseConfig);
@@ -155,8 +172,9 @@
 
         // --- APP COMPONENT ---
         function App() {
-          const [activeTab, setActiveTab] = useState('formula'); // Default to formula tab
+          const [activeTab, setActiveTab] = useState('formula'); 
           const [user, setUser] = useState(null);
+          const [showDbWarning, setShowDbWarning] = useState(!db);
 
           // States Borrowing
           const [borrowData, setBorrowData] = useState(initialBorrowingData);
@@ -178,11 +196,14 @@
           const [isAddingNewVideo, setIsAddingNewVideo] = useState(false);
           
           // View States for Formula Tab
-          const [viewMode, setViewMode] = useState('gantt'); // 'table' or 'gantt'
+          const [viewMode, setViewMode] = useState('gantt'); 
           const [formulaSelectedMonths, setFormulaSelectedMonths] = useState([]);
           const [formulaSelectedLocations, setFormulaSelectedLocations] = useState([]);
           const [hideCompletedFormula, setHideCompletedFormula] = useState(false);
-          const [openFilterDropdown, setOpenFilterDropdown] = useState(null); // 'month' or 'location'
+          const [openFilterDropdown, setOpenFilterDropdown] = useState(null); 
+          
+          // Filter State for Dashboard Tab
+          const [dashboardSelectedLocations, setDashboardSelectedLocations] = useState([]);
 
           // States for Database Tab
           const [databaseData, setDatabaseData] = useState([]);
@@ -304,70 +325,100 @@
 
           // Metrics Calculations
           const kpi2026 = 6692;
+
+          // Tạo danh sách Nơi mượn khả dụng cho bộ lọc
+          const dashboardAvailableLocations = useMemo(() => {
+            if (databaseData && databaseData.length > 0) {
+              return [...new Set(databaseData.map(d => d.location?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+            }
+            return [...new Set(borrowData.map(d => d.location?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+          }, [borrowData, databaseData]);
+
           const metrics = useMemo(() => {
             let totalDone = 0; let totalExpected = 0;
-            let totalReceived = 0; let totalShot = 0; let totalRetouched = 0;
-            const monthlyData = {}; const pivot = {}; let grandTotal = 0;
-            
+            let totalShot = 0; let totalRetouched = 0;
+            const monthlyData = {};
             const monthlyPhoto = {};
             const monthlyRetouch = {};
 
-            borrowData.forEach(row => {
-              const val = Number(row.actual) || 0;
-              const pActual = Number(row.photoActual) || 0;
-              const rActual = Number(row.retouchActual) || 0;
-              const m = Number(row.month);
+            // Tính toán trực tiếp từ databaseData để đảm bảo đồng bộ 100%
+            if (databaseData && databaseData.length > 0) {
+              databaseData.forEach(item => {
+                const locName = item.location?.trim() || '';
+                // Lọc theo Nơi Mượn nếu có chọn
+                if (dashboardSelectedLocations.length > 0 && !dashboardSelectedLocations.includes(locName)) return;
 
-              if (row.type === 'Đã mượn') {
-                totalDone += val;
-                if (m) {
-                  if (!monthlyData[m]) monthlyData[m] = 0;
-                  monthlyData[m] += val;
+                const m = Number(item.month) || 0;
+
+                const bStatus = (item.borrowStatus || '').toLowerCase();
+                const pStatus = (item.photoStatus || '').toLowerCase();
+                const rStatus = (item.retouchStatus || '').toLowerCase();
+                
+                const isExpected = bStatus.includes('dự kiến') || bStatus.includes('chuẩn bị');
+                const isPhotoDone = pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong');
+                const isRetouchDone = rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong');
+
+                if (isExpected) {
+                  totalExpected += 1;
+                } else {
+                  totalDone += 1;
+                  if (m) monthlyData[m] = (monthlyData[m] || 0) + 1;
                 }
-              }
-              if (row.type === 'Dự kiến mượn') totalExpected += val;
 
-              if (selectedPivotMonths.length === 0 || selectedPivotMonths.includes(m)) {
-                const type = row.type; const loc = row.location;
-                if (!pivot[type]) pivot[type] = {};
-                if (!pivot[type][loc]) pivot[type][loc] = 0;
-                pivot[type][loc] += val;
-                grandTotal += val;
-              }
+                if (isPhotoDone) {
+                  totalShot += 1;
+                  if (m) monthlyPhoto[m] = (monthlyPhoto[m] || 0) + 1;
+                }
 
-              if (row.receiveDate && row.receiveDate !== '-' && row.type === 'Đã mượn') {
-                totalReceived += val;
-              }
+                if (isRetouchDone) {
+                  totalRetouched += 1;
+                  if (m) monthlyRetouch[m] = (monthlyRetouch[m] || 0) + 1;
+                }
+              });
+            } else {
+              // Fallback khi chưa import dữ liệu
+              borrowData.forEach(row => {
+                const locName = row.location?.trim() || '';
+                // Lọc theo Nơi Mượn nếu có chọn
+                if (dashboardSelectedLocations.length > 0 && !dashboardSelectedLocations.includes(locName)) return;
 
-              if (m) {
-                if (!monthlyPhoto[m]) monthlyPhoto[m] = 0;
-                if (!monthlyRetouch[m]) monthlyRetouch[m] = 0;
-                monthlyPhoto[m] += pActual;
-                monthlyRetouch[m] += rActual;
-              }
-              totalShot += pActual;
-              totalRetouched += rActual;
-            });
+                const val = Number(row.actual) || 0;
+                const pActual = Number(row.photoActual) || 0;
+                const rActual = Number(row.retouchActual) || 0;
+                const m = Number(row.month);
+
+                if (row.type === 'Dự kiến mượn' || row.status === 'Dự kiến') {
+                  totalExpected += val;
+                } else {
+                  totalDone += val;
+                  if (!isNaN(m)) monthlyData[m] = (monthlyData[m] || 0) + val;
+                }
+
+                if (!isNaN(m)) {
+                  monthlyPhoto[m] = (monthlyPhoto[m] || 0) + pActual;
+                  monthlyRetouch[m] = (monthlyRetouch[m] || 0) + rActual;
+                }
+                totalShot += pActual;
+                totalRetouched += rActual;
+              });
+            }
 
             const percentDone = ((totalDone / kpi2026) * 100).toFixed(2);
-            const chartData = Object.entries(monthlyData).map(([m, val]) => ({ month: Number(m), val })).sort((a, b) => a.month - b.month);
             
-            const photoData = Object.entries(monthlyPhoto).map(([m, val]) => ({ month: Number(m), val })).sort((a, b) => a.month - b.month);
-            const retouchData = Object.entries(monthlyRetouch).map(([m, val]) => ({ month: Number(m), val })).sort((a, b) => a.month - b.month);
-
-            const groupedPivot = Object.entries(pivot).map(([type, locsObj]) => {
-              const locs = Object.entries(locsObj).map(([loc, val]) => ({ loc, val }));
-              const typeTotal = locs.reduce((sum, l) => sum + l.val, 0);
-              return { type, locs, typeTotal };
-            });
-            groupedPivot.sort((a, b) => b.type.localeCompare(a.type));
+            // Gộp tất cả các tháng xuất hiện để vẽ biểu đồ liền mạch (ngay cả khi có hạng mục = 0)
+            const allMonths = new Set([...Object.keys(monthlyData), ...Object.keys(monthlyPhoto), ...Object.keys(monthlyRetouch)]);
+            const sortedMonths = Array.from(allMonths).map(Number).sort((a, b) => a - b);
+            
+            const chartData = sortedMonths.map(m => ({ month: m, val: monthlyData[m] || 0 }));
+            const photoData = sortedMonths.map(m => ({ month: m, val: monthlyPhoto[m] || 0 }));
+            const retouchData = sortedMonths.map(m => ({ month: m, val: monthlyRetouch[m] || 0 }));
 
             return { 
-              totalDone, totalExpected, percentDone, chartData, groupedPivot, grandTotal, 
-              photoData, totalPhoto: totalShot, retouchData, totalRetouch: totalRetouched,
-              prod: { totalReceived, totalShot, totalRetouched } 
+              totalDone, totalExpected, percentDone, 
+              chartData, photoData, retouchData, 
+              totalPhoto: totalShot, totalRetouch: totalRetouched
             };
-          }, [borrowData, selectedPivotMonths]);
+          }, [borrowData, databaseData, dashboardSelectedLocations]);
 
           // --- THAY ĐỔI NGÀY BẮT ĐẦU TRỰC TIẾP TRÊN FORMULA TAB ---
           const handleFormulaStartDateChange = (lot, newStartDate) => {
@@ -409,22 +460,22 @@
           const formulaData = useMemo(() => {
             const dbAggregated = {};
             databaseData.forEach(item => {
-              const lot = item.lot?.trim();
-              if (!lot) return;
+              const rawLot = item.lot?.trim();
+              if (!rawLot) return;
+              
+              const loc = (item.location || 'KHO').trim();
+              const lotKey = `${rawLot}_${loc}`; // Nhóm bằng cả Lô và Nơi mượn để tránh gộp sai
 
-              const bStatus = (item.borrowStatus || '').toLowerCase();
               const pStatus = (item.photoStatus || '').toLowerCase();
               const rStatus = (item.retouchStatus || '').toLowerCase();
-              
-              const isPreparing = bStatus.includes('chuẩn bị mượn');
 
-              if (!dbAggregated[lot]) {
-                dbAggregated[lot] = { 
-                   id: lot,
-                   lot: lot, 
+              if (!dbAggregated[lotKey]) {
+                dbAggregated[lotKey] = { 
+                   id: lotKey,
+                   lot: rawLot, 
                    month: item.month || '',
                    receiveDate: item.receiveDate || '', 
-                   location: item.location || 'KHO',
+                   location: loc,
                    actual: 0, 
                    photoPlan: 0, 
                    photoActual: 0,
@@ -433,29 +484,28 @@
                 };
               }
 
-              if (item.receiveDate && item.receiveDate !== '-' && (!dbAggregated[lot].receiveDate || dbAggregated[lot].receiveDate === '-')) {
-                dbAggregated[lot].receiveDate = item.receiveDate;
+              if (item.receiveDate && item.receiveDate !== '-' && (!dbAggregated[lotKey].receiveDate || dbAggregated[lotKey].receiveDate === '-')) {
+                dbAggregated[lotKey].receiveDate = item.receiveDate;
               }
 
-              dbAggregated[lot].actual += 1;
+              dbAggregated[lotKey].actual += 1;
               
-              if (!isPreparing) {
-                if (pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong')) {
-                  dbAggregated[lot].photoActual += 1;
-                } else {
-                  dbAggregated[lot].photoPlan += 1;
-                }
+              // Đếm chính xác bất kể loại mượn nào để Gantt không bị lỗi bỏ sót
+              if (pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong')) {
+                dbAggregated[lotKey].photoActual += 1;
+              } else {
+                dbAggregated[lotKey].photoPlan += 1;
+              }
 
-                if (rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong')) {
-                  dbAggregated[lot].retouchActual += 1;
-                } else {
-                  dbAggregated[lot].retouchPlan += 1;
-                }
+              if (rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong')) {
+                dbAggregated[lotKey].retouchActual += 1;
+              } else {
+                dbAggregated[lotKey].retouchPlan += 1;
               }
             });
 
             const formatD = (d) => {
-               if (!d) return '-';
+               if (!(d instanceof Date) || isNaN(d.getTime())) return '-';
                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
             };
 
@@ -468,7 +518,7 @@
                      parsed = parseDateString(rDateStr);
                  }
 
-                 if (!parsed || isNaN(parsed.getTime())) {
+                 if (!parsed || isNaN(parsed?.getTime())) {
                      const parts = d.lot.split('_');
                      const datePart = parts[parts.length - 1]; 
                      if (datePart && datePart.length === 9 && datePart.includes('.')) {
@@ -485,17 +535,22 @@
                  }
                  
                  let startDate = '';
-                 const bRow = borrowData.find(b => b.lot === d.lot);
+                 // Map chính xác bằng Lô và Location
+                 const bRow = borrowData.find(b => b.lot === d.lot && b.location === d.location);
                  if (bRow) {
                     startDate = bRow.startDate || '';
-                    if (!parsed || isNaN(parsed.getTime())) {
+                    if (!parsed || isNaN(parsed?.getTime())) {
                        if (bRow.receiveDate && bRow.receiveDate !== '-') {
                           parsed = parseDateString(bRow.receiveDate);
-                          if (parsed) {
+                          if (parsed && !isNaN(parsed.getTime())) {
                             rDateStr = `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth()+1).padStart(2, '0')}/${parsed.getFullYear()}`;
                           }
                        }
                     }
+                 }
+
+                 if (!parsed || isNaN(parsed?.getTime())) {
+                     parsed = new Date(); // Fallback an toàn tránh sập biểu đồ
                  }
 
                  return {
@@ -511,10 +566,10 @@
                     computedRetouchActual: d.retouchActual
                  };
               })
-              .filter(d => d.parsedDate && !isNaN(d.parsedDate.getTime()) && d.computedActual > 0)
+              .filter(d => d.computedActual > 0)
               .sort((a, b) => {
-                 const dateA = a.parsedDate ? a.parsedDate.getTime() : Number.MAX_SAFE_INTEGER;
-                 const dateB = b.parsedDate ? b.parsedDate.getTime() : Number.MAX_SAFE_INTEGER;
+                 const dateA = a.parsedDate instanceof Date && !isNaN(a.parsedDate.getTime()) ? a.parsedDate.getTime() : Number.MAX_SAFE_INTEGER;
+                 const dateB = b.parsedDate instanceof Date && !isNaN(b.parsedDate.getTime()) ? b.parsedDate.getTime() : Number.MAX_SAFE_INTEGER;
                  
                  if (dateA !== dateB) {
                      return dateA - dateB;
@@ -539,6 +594,7 @@
 
               let currentBaseStart = addWorkingDays(lot.parsedDate, 1);
 
+              // Ngăn chặn Infinity Loop
               while (remainingActual > 0 || remainingPhoto > 0 || remainingRetouch > 0) {
                 const chunkActual = Math.min(160, remainingActual > 0 ? remainingActual : 160);
                 const chunkPhoto = Math.min(chunkActual, remainingPhoto);
@@ -579,7 +635,9 @@
                 }
 
                 currentBaseStart = addWorkingDays(pDays > 0 ? pEnd : pStart, 1); 
-                if (chunkActual === 0 && chunkPhoto === 0 && chunkRetouch === 0) break;
+                
+                // Break khẩn cấp
+                if (chunkActual <= 0 && chunkPhoto <= 0 && chunkRetouch <= 0) break;
               }
 
               let displayLotName = lot.lot;
@@ -614,13 +672,16 @@
           }, [borrowData, databaseData]);
           // ----------------------------------------------------
 
-          const handleSyncFromDatabase = () => {
-            if (!databaseData || databaseData.length === 0) return;
+          const handleSyncFromDatabase = (sourceData = databaseData) => {
+            if (!sourceData || sourceData.length === 0) return;
 
             const lotsMap = {};
-            databaseData.forEach(item => {
-              const lot = item.lot?.trim();
-              if (!lot) return;
+            sourceData.forEach(item => {
+              const rawLot = item.lot?.trim();
+              if (!rawLot) return;
+
+              const loc = (item.location || 'KHO').trim();
+              const lotKey = `${rawLot}_${loc}`; // Gom nhóm bằng Lô + Vị trí
 
               const bStatus = (item.borrowStatus || '').toLowerCase();
               const pStatus = (item.photoStatus || '').toLowerCase();
@@ -628,14 +689,14 @@
               
               const isPreparing = bStatus.includes('chuẩn bị mượn');
 
-              if (!lotsMap[lot]) {
+              if (!lotsMap[lotKey]) {
                 let type = 'Đã mượn';
                 if (bStatus.includes('dự kiến') || isPreparing) type = 'Dự kiến mượn';
 
-                lotsMap[lot] = {
-                  lot: lot,
+                lotsMap[lotKey] = {
+                  lot: rawLot,
                   month: Number(item.month) || new Date().getMonth() + 1,
-                  location: item.location || 'KHO',
+                  location: loc,
                   receiveDate: item.receiveDate || '', // Capture DB date
                   type: type,
                   actual: 0,
@@ -646,24 +707,23 @@
                 };
               }
 
-              if (item.receiveDate && item.receiveDate !== '-' && (!lotsMap[lot].receiveDate || lotsMap[lot].receiveDate === '-')) {
-                 lotsMap[lot].receiveDate = item.receiveDate;
+              if (item.receiveDate && item.receiveDate !== '-' && (!lotsMap[lotKey].receiveDate || lotsMap[lotKey].receiveDate === '-')) {
+                 lotsMap[lotKey].receiveDate = item.receiveDate;
               }
 
-              lotsMap[lot].actual += 1;
+              lotsMap[lotKey].actual += 1;
 
-              if (!isPreparing) {
-                if (pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong')) {
-                  lotsMap[lot].photoActual += 1;
-                } else {
-                  lotsMap[lot].photoPlan += 1;
-                }
+              // Ghi nhận kế hoạch bất kể chuẩn bị mượn hay đã mượn
+              if (pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong')) {
+                lotsMap[lotKey].photoActual += 1;
+              } else {
+                lotsMap[lotKey].photoPlan += 1;
+              }
 
-                if (rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong')) {
-                  lotsMap[lot].retouchActual += 1;
-                } else {
-                  lotsMap[lot].retouchPlan += 1;
-                }
+              if (rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong')) {
+                lotsMap[lotKey].retouchActual += 1;
+              } else {
+                lotsMap[lotKey].retouchPlan += 1;
               }
             });
 
@@ -672,7 +732,8 @@
               const newData = [...prev];
 
               Object.values(lotsMap).forEach(aggLot => {
-                const existingIndex = newData.findIndex(r => r.lot === aggLot.lot);
+                // Ánh xạ bằng cả tên Lô và Vị trí mượn
+                const existingIndex = newData.findIndex(r => r.lot === aggLot.lot && r.location === aggLot.location);
                 
                 let shootStatus = 'Chưa chụp';
                 const totalPhoto = aggLot.photoPlan + aggLot.photoActual;
@@ -794,7 +855,7 @@
           };
 
           const handleSaveVideoClick = () => {
-            const newData = videoData.map(row => row.id === editingVideoId ? { ...editVideoFormData, actual: Number(editVideoFormData.actual) || 0 } : row);
+            const newData = videoData.map(row => row.id === editingVideoId ? { ...editVideoFormData, month: Number(editVideoFormData.month) || 1, actual: Number(editVideoFormData.actual) || 0 } : row);
             setVideoData(newData);
             syncToCloud('videoData', newData);
             setEditingVideoId(null);
@@ -828,6 +889,9 @@
                     if (cc === ',' && !quote) { arr.push(val.trim()); val = ''; continue; }
                     val += cc;
                 }
+                
+                arr.push(val.trim()); 
+
                 if (arr.length > 0) {
                   parsedData.push({
                     id: 'D' + Date.now() + i,
@@ -835,7 +899,7 @@
                     sku: arr[0] || '',
                     month: arr[1] || '',
                     lot: arr[2] || '',
-                    receiveDate: arr[3] || '', // Nhận dữ liệu ngày từ cột thứ 4 của CSV
+                    receiveDate: arr[3] || '',
                     location: arr[4] || '',
                     borrowStatus: arr[5] || '',
                     photoStatus: arr[6] || '',
@@ -846,23 +910,16 @@
               }
               
               setDatabaseData(prevData => {
-                const newData = [...prevData];
-                parsedData.forEach(newItem => {
-                  if (newItem.sku) {
-                    const existingIdx = newData.findIndex(x => x.sku === newItem.sku);
-                    if (existingIdx >= 0) {
-                       // Update existing record
-                       newData[existingIdx] = { ...newData[existingIdx], ...newItem, id: newData[existingIdx].id };
-                    } else {
-                       // Add new record
-                       newData.push(newItem);
-                    }
-                  } else {
-                    newData.push(newItem);
-                  }
-                });
+                // Thay thế hoàn toàn bằng dữ liệu mới từ file CSV, giữ nguyên mọi dòng (kể cả trùng SKU)
+                const newData = [...parsedData];
                 syncToCloud('databaseData', newData);
                 setDbPage(1); // Reset to page 1 after import
+                
+                // Tự động đồng bộ sang bảng Kế hoạch Timeline sau khi import
+                setTimeout(() => {
+                    handleSyncFromDatabase(newData);
+                }, 500);
+
                 return newData;
               });
               
@@ -888,8 +945,6 @@
           const renderBorrowingDashboard = () => {
             const maxChartVal = Math.max(...metrics.chartData.map(d => d.val), 600) * 1.2;
             const chartColors = ['#8fa8c1', '#5e82a6', '#2d5c8a', '#1C3F60', '#11263c'];
-            const donePivot = metrics.groupedPivot.find(g => g.type === 'Đã mượn') || { type: 'Đã mượn', locs: [], typeTotal: 0 };
-            const expectedPivot = metrics.groupedPivot.find(g => g.type === 'Dự kiến mượn') || { type: 'Dự kiến mượn', locs: [], typeTotal: 0 };
 
             const photoData = metrics.photoData;
             const totalPhoto = metrics.totalPhoto;
@@ -897,10 +952,61 @@
             const retouchData = metrics.retouchData;
             const totalRetouch = metrics.totalRetouch;
             
-            const maxImgChartY = Math.max(...photoData.map(d=>d.val), ...retouchData.map(d=>d.val), 500) * 1.2;
+            const photoVals = photoData.map(d=>d.val);
+            const retouchVals = retouchData.map(d=>d.val);
+            const maxImgChartY = Math.max(...(photoVals.length ? photoVals : [0]), ...(retouchVals.length ? retouchVals : [0]), 500) * 1.2;
 
             return (
               <div className="mb-8 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                
+                {/* LỌC NƠI MƯỢN */}
+                <div className="flex items-center gap-3 relative z-40">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenFilterDropdown(openFilterDropdown === 'dashboardLocation' ? null : 'dashboardLocation')}
+                      className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm text-sm font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
+                    >
+                      <Filter size={16} className="text-[#CBA563]" />
+                      <span>Nơi mượn: {dashboardSelectedLocations.length === 0 ? 'Tất cả' : (dashboardSelectedLocations.length > 2 ? `${dashboardSelectedLocations.length} nơi` : dashboardSelectedLocations.join(', '))}</span>
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${openFilterDropdown === 'dashboardLocation' ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {openFilterDropdown === 'dashboardLocation' && (
+                      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl w-72 z-[100] py-2 max-h-[400px] overflow-y-auto">
+                        <label className="flex items-center gap-3 px-4 py-3 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-[#1C3F60] transition-colors border-b border-gray-100">
+                          <input 
+                            type="checkbox" 
+                            checked={dashboardSelectedLocations.length === 0} 
+                            onChange={() => setDashboardSelectedLocations([])}
+                            className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
+                          />
+                          <span className="font-bold">Tất cả Nơi mượn</span>
+                        </label>
+                        {dashboardAvailableLocations.map(loc => (
+                          <label key={loc} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-gray-700 transition-colors">
+                            <input 
+                              type="checkbox" 
+                              checked={dashboardSelectedLocations.includes(loc)} 
+                              onChange={() => {
+                                if (dashboardSelectedLocations.includes(loc)) {
+                                  setDashboardSelectedLocations(dashboardSelectedLocations.filter(x => x !== loc));
+                                } else {
+                                  setDashboardSelectedLocations([...dashboardSelectedLocations, loc]);
+                                }
+                              }}
+                              className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300 flex-shrink-0"
+                            />
+                            <span className="truncate block w-full" title={loc}>{loc}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {openFilterDropdown === 'dashboardLocation' && (
+                    <div className="fixed inset-0 z-30" onClick={() => setOpenFilterDropdown(null)}></div>
+                  )}
+                </div>
+
                 <div className="w-full bg-white rounded-xl shadow-md border border-[#CBA563]/50 overflow-hidden flex flex-col md:flex-row">
                   <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white md:w-1/3 flex flex-col justify-center relative overflow-hidden">
                     <div className="absolute -right-4 -bottom-4 opacity-10"><TrendingUp size={100} /></div>
@@ -952,7 +1058,7 @@
                        })}
                      </div>
                      {metrics.chartData.map((d, i) => {
-                       const h = (d.val / maxChartVal) * 100;
+                       const h = maxChartVal > 0 ? (d.val / maxChartVal) * 100 : 0;
                        return (
                          <div key={i} className="relative z-10 w-24 md:w-32 group flex flex-col items-center justify-end h-full mt-4">
                            <div className="absolute -top-10 bg-[#1C3F60] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
@@ -997,7 +1103,7 @@
                          })}
                        </div>
                        {photoData.map((d, i) => {
-                         const h = (d.val / maxImgChartY) * 100;
+                         const h = maxImgChartY > 0 ? (d.val / maxImgChartY) * 100 : 0;
                          return (
                            <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
                              <div className="absolute -top-10 bg-[#CBA563] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
@@ -1041,7 +1147,7 @@
                          })}
                        </div>
                        {retouchData.map((d, i) => {
-                         const h = (d.val / maxImgChartY) * 100;
+                         const h = maxImgChartY > 0 ? (d.val / maxImgChartY) * 100 : 0;
                          return (
                            <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
                              <div className="absolute -top-10 bg-[#4D7B85] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
@@ -1059,160 +1165,10 @@
                     </div>
                   </div>
                 </div>
-
-                <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 shadow-md overflow-hidden flex flex-col transition-all mt-6">
-                 <div 
-                   className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 cursor-pointer hover:bg-[#FDF4E3] transition-colors"
-                   onClick={() => setShowPivotTable(!showPivotTable)}
-                 >
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      <h3 className="text-[#1C3F60] font-pnj-serif font-bold text-xl flex items-center gap-2 whitespace-nowrap">
-                        <Package size={20} className="text-[#CBA563]" /> Bảng Kê Chi Tiết Lô Mượn
-                      </h3>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleSyncFromDatabase(); }} 
-                        disabled={databaseData.length === 0}
-                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#108A68]/10 text-[#108A68] border border-[#108A68]/30 rounded-lg text-xs font-bold hover:bg-[#108A68] hover:text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50 w-fit whitespace-nowrap"
-                      >
-                        <Database size={14} /> Đồng bộ DB
-                      </button>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 overflow-x-auto max-w-full shadow-inner">
-                        <div className="flex items-center gap-1.5 pl-2 pr-3 text-gray-500 border-r border-gray-300">
-                          <Filter size={14} />
-                          <span className="text-[11px] font-bold uppercase tracking-wider">Tháng</span>
-                        </div>
-                        <div className="flex items-center gap-1 pl-1">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedPivotMonths([]); if (!showPivotTable) setShowPivotTable(true); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPivotMonths.length === 0 ? 'bg-white text-[#1C3F60] shadow-sm' : 'text-gray-500 hover:text-[#1C3F60]'}`}
-                          >
-                            Tất cả
-                          </button>
-                          {availableMonths.map(m => (
-                            <button
-                              key={m}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (selectedPivotMonths.includes(Number(m))) {
-                                  setSelectedPivotMonths(selectedPivotMonths.filter(x => x !== Number(m)));
-                                } else {
-                                  setSelectedPivotMonths([...selectedPivotMonths, Number(m)]);
-                                }
-                                if (!showPivotTable) setShowPivotTable(true);
-                              }}
-                              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPivotMonths.includes(Number(m)) ? 'bg-[#CBA563] text-white shadow-sm' : 'text-gray-500 hover:text-[#CBA563]'}`}
-                            >
-                              T{m}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <button className="text-[#CBA563] hover:text-[#1C3F60] transition-colors flex items-center justify-between gap-1.5 font-bold text-xs sm:border-l sm:border-[#CBA563]/30 sm:pl-4">
-                        <span>{showPivotTable ? 'Thu gọn' : 'Xem chi tiết'}</span>
-                        {showPivotTable ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </button>
-                    </div>
-                 </div>
-                 
-                 {showPivotTable && (
-                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FDF4E3]/50 p-6">
-                       <div className="flex flex-col">
-                         <div className="flex items-center justify-between mb-3">
-                           <h4 className="font-bold font-pnj-sans text-[#1C3F60] flex items-center gap-2 text-[15px]">
-                             <span className="w-2.5 h-2.5 rounded-full bg-[#1C3F60] shadow-sm"></span> ĐÃ MƯỢN
-                           </h4>
-                         </div>
-                         <div className="bg-white border border-[#CBA563]/30 rounded-lg overflow-hidden shadow-sm flex-1">
-                           <table className="w-full text-[14px]">
-                             <thead className="bg-[#EBE1CD] border-b border-[#CBA563]/30">
-                               <tr>
-                                 <th className="px-5 py-3 text-left font-semibold text-[#1C3F60] w-1/2">Nơi mượn</th>
-                                 <th className="px-5 py-3 text-right font-semibold text-[#1C3F60] w-1/2">SL thực tế</th>
-                               </tr>
-                             </thead>
-                             <tbody className="divide-y divide-gray-100">
-                               {donePivot.locs.length > 0 ? donePivot.locs.map((loc, lIdx) => (
-                                 <tr key={lIdx} className="hover:bg-[#FDF4E3] transition-colors group">
-                                   <td className="px-5 py-3.5 text-gray-700 font-medium group-hover:text-[#1C3F60] transition-colors">{loc.loc}</td>
-                                   <td className="px-5 py-3.5 text-right font-bold text-[#1C3F60]">{loc.val.toLocaleString()}</td>
-                                 </tr>
-                               )) : (
-                                 <tr><td colSpan="2" className="px-5 py-6 text-center text-gray-400 italic">Chưa có dữ liệu</td></tr>
-                               )}
-                             </tbody>
-                             <tfoot className="bg-[#1C3F60] text-white border-t border-[#CBA563]/30">
-                               <tr>
-                                 <td className="px-5 py-3.5 text-right font-medium text-xs uppercase tracking-wider text-[#CBA563]">Tổng Đã mượn</td>
-                                 <td className="px-5 py-3.5 text-right font-pnj-serif font-bold text-lg">{donePivot.typeTotal.toLocaleString()}</td>
-                               </tr>
-                             </tfoot>
-                           </table>
-                         </div>
-                       </div>
-           
-                       <div className="flex flex-col">
-                         <div className="flex items-center justify-between mb-3">
-                           <h4 className="font-bold font-pnj-sans text-[#A91E22] flex items-center gap-2 text-[15px]">
-                             <span className="w-2.5 h-2.5 rounded-full bg-[#A91E22] shadow-sm"></span> DỰ KIẾN MƯỢN
-                           </h4>
-                         </div>
-                         <div className="bg-white border border-[#A91E22]/30 rounded-lg overflow-hidden shadow-sm flex-1">
-                           <table className="w-full text-[14px]">
-                             <thead className="bg-red-50 border-b border-[#A91E22]/20">
-                               <tr>
-                                 <th className="px-5 py-3 text-left font-semibold text-[#A91E22] w-1/2">Nơi mượn</th>
-                                 <th className="px-5 py-3 text-right font-semibold text-[#A91E22] w-1/2">SL thực tế</th>
-                               </tr>
-                             </thead>
-                             <tbody className="divide-y divide-gray-100">
-                               {expectedPivot.locs.length > 0 ? expectedPivot.locs.map((loc, lIdx) => (
-                                 <tr key={lIdx} className="hover:bg-red-50/50 transition-colors group">
-                                   <td className="px-5 py-3.5 text-gray-700 font-medium group-hover:text-[#A91E22] transition-colors">{loc.loc}</td>
-                                   <td className="px-5 py-3.5 text-right font-bold text-[#A91E22]">{loc.val.toLocaleString()}</td>
-                                 </tr>
-                               )) : (
-                                 <tr><td colSpan="2" className="px-5 py-6 text-center text-gray-400 italic">Chưa có dữ liệu</td></tr>
-                               )}
-                             </tbody>
-                             <tfoot className="bg-[#A91E22] text-white border-t border-[#A91E22]/30">
-                               <tr>
-                                 <td className="px-5 py-3.5 text-right font-medium text-xs uppercase tracking-wider text-[#FDF4E3]">Tổng Dự kiến</td>
-                                 <td className="px-5 py-3.5 text-right font-pnj-serif font-bold text-lg">{expectedPivot.typeTotal.toLocaleString()}</td>
-                               </tr>
-                             </tfoot>
-                           </table>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="bg-gradient-to-r from-[#1C3F60] to-[#2A5C8C] px-6 py-5 flex items-center justify-between border-t border-[#CBA563]">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                           <span className="text-[#CBA563] font-bold uppercase tracking-widest text-[15px]">Grand Total Mượn</span>
-                        </div>
-                        <span className="text-4xl font-pnj-serif font-bold text-white">{metrics.grandTotal.toLocaleString()}</span>
-                     </div>
-                   </div>
-                 )}
-               </div>
               </div>
             );
           };
 
-          const renderBorrowing = () => {
-            return (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                {renderBorrowingDashboard()}
-              </div>
-            );
-          };
-
-          // -----------------------------------------------------
-          // RENDER 2: VIDEO PRODUCTION TAB
-          // -----------------------------------------------------
           const renderVideoProduction = () => {
             const kpiYear = 480;
             const kpiQuarter = 120;
@@ -1280,7 +1236,7 @@
                          })}
                        </div>
                        {vChartData.map((d, i) => {
-                         const h = (d.val / maxChartVal) * 100;
+                         const h = maxChartVal > 0 ? (d.val / maxChartVal) * 100 : 0;
                          return (
                            <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
                              <div className="absolute -top-10 bg-[#1C3F60] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
@@ -1321,15 +1277,15 @@
                             <th className="px-4 py-4 font-bold whitespace-nowrap text-right">Hành động</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#CBA563]/20">
+                        <tbody className="divide-y-[#CBA563]/20">
                           {videoData.map((row) => {
                             const isEditing = editingVideoId === row.id;
                             if (isEditing) {
                               return (
                                 <tr key={row.id} className="bg-[#FDF4E3] text-[13px] border-b-2 border-[#CBA563] shadow-inner">
-                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.month} onChange={(e) => handleEditVideoFormChange(e, 'month')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs text-center bg-white w-12 focus:outline-[#1C3F60]" /></td>
-                                  <td className="px-2 py-2"><input type="text" value={editVideoFormData.lot} onChange={(e) => handleEditVideoFormChange(e, 'lot')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px] focus:outline-[#1C3F60]" /></td>
-                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.actual} onChange={(e) => handleEditVideoFormChange(e, 'actual')} className="w-full p-1 border border-[#A91E22]/50 rounded text-xs text-center font-bold text-[#A91E22] bg-white w-16 mx-auto" /></td>
+                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.month} onChange={(e) => handleEditVideoFormChange(e, 'month')} className="p-1 border border-[#CBA563]/50 rounded text-xs text-center bg-white focus:outline-[#1C3F60]" /></td>
+                                  <td className="px-2 py-2"><input type="text" value={editVideoFormData.lot} onChange={(e) => handleEditVideoFormChange(e, 'lot')} className="p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px] focus:outline-[#1C3F60]" /></td>
+                                  <td className="px-2 py-2"><input type="number" value={editVideoFormData.actual} onChange={(e) => handleEditVideoFormChange(e, 'actual')} className="p-1 border border-[#A91E22]/50 rounded text-xs text-center font-bold text-[#A91E22] bg-white mx-auto" /></td>
                                   <td className="px-2 py-2"><select value={editVideoFormData.shootStatus} onChange={(e) => handleEditVideoFormChange(e, 'shootStatus')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Chưa quay">Chưa quay</option><option value="Đang quay">Đang quay</option><option value="Đã xong">Đã xong</option></select></td>
                                   <td className="px-2 py-2"><select value={editVideoFormData.editStatus} onChange={(e) => handleEditVideoFormChange(e, 'editStatus')} className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white focus:outline-[#1C3F60]"><option value="Chưa dựng">Chưa dựng</option><option value="Đang dựng">Đang dựng</option><option value="Chờ duyệt">Chờ duyệt</option><option value="Đã xong">Đã xong</option></select></td>
                                   <td className="px-2 py-2"><input type="text" value={editVideoFormData.note || ''} onChange={(e) => handleEditVideoFormChange(e, 'note')} placeholder="Ghi chú..." className="w-full p-1 border border-[#CBA563]/50 rounded text-xs bg-white min-w-[100px]" /></td>
@@ -1341,7 +1297,7 @@
                               );
                             }
                             return (
-                              <tr key={row.id} className="hover:bg-[#FDF4E3] transition-colors text-[13px] bg-white group">
+                              <tr key={row.id} className="hover:bg-[#FDF4E3] transition-colors text-[13px] bg-white group border-b border-[#CBA563]/20">
                                 <td className="px-4 py-3.5 text-center font-medium text-gray-600"><span className="bg-[#EBE1CD] text-[#1C3F60] px-2.5 py-1 rounded text-xs font-bold border border-[#CBA563]/30 shadow-sm">T{row.month}</span></td>
                                 <td className="px-4 py-3.5 whitespace-nowrap font-bold text-[#1C3F60]">{row.lot}</td>
                                 <td className="px-4 py-3.5 text-center"><span className="inline-flex items-center justify-center min-w-[36px] px-2 py-1 rounded-md bg-[#FDF4E3] border border-[#CBA563]/40 font-bold text-[#A91E22] shadow-sm">{row.actual}</span></td>
@@ -1368,9 +1324,6 @@
             );
           };
 
-          // -----------------------------------------------------
-          // RENDER 3: FORMULA TAB
-          // -----------------------------------------------------
           const renderFormula = () => {
             const addDays = (date, days) => {
               const result = new Date(date);
@@ -1379,7 +1332,7 @@
             };
 
             const completedFormulaCount = formulaData.filter(r => r.isDone).length;
-            const availableFormulaMonths = [...new Set(formulaData.map(r => String(r.month)))].filter(m => m !== 'undefined' && m !== '?').sort((a, b) => Number(a) - Number(b));
+            const availableFormulaMonths = [...new Set(formulaData.map(r => String(r.month)))].filter(m => m !== 'undefined' && m !== '?' && m !== 'NaN' && m !== '').sort((a, b) => Number(a) - Number(b));
             const availableFormulaLocations = [...new Set(formulaData.map(r => r.location))].filter(Boolean).sort((a, b) => a.localeCompare(b));
 
             const displayFormulaData = formulaData.filter(row => {
@@ -1389,13 +1342,12 @@
               return true;
             });
 
-            // Gantt Calculations
             let minDate = new Date(2026, 0, 1);
             let maxDate = new Date(2026, 0, 31);
             
-            const validPhotoStarts = displayFormulaData.map(d => d.photoStartObj).filter(d => d);
-            const validRetouchEnds = displayFormulaData.map(d => d.retouchEndObj).filter(d => d);
-            const validReceiveDates = displayFormulaData.map(d => d.parsedDate).filter(d => d);
+            const validPhotoStarts = displayFormulaData.map(d => d.photoStartObj).filter(d => d instanceof Date && !isNaN(d.getTime()));
+            const validRetouchEnds = displayFormulaData.map(d => d.retouchEndObj).filter(d => d instanceof Date && !isNaN(d.getTime()));
+            const validReceiveDates = displayFormulaData.map(d => d.parsedDate).filter(d => d instanceof Date && !isNaN(d.getTime()));
 
             if (validPhotoStarts.length > 0 || validRetouchEnds.length > 0 || validReceiveDates.length > 0) {
               const minArr = [...validPhotoStarts, ...validReceiveDates];
@@ -1435,15 +1387,20 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // --- NEW SUMMARY CALCULATIONS ---
             let f_totalBorrowed = 0;
             let f_totalPhotoPlan = 0;
             let f_totalRetouchPlan = 0;
             let f_totalRetouchActual = 0;
-            let f_expectedDone = 0;
+            let f_expectedUntilYesterday = 0; 
+            let f_expectedToday = 0; 
             let f_baselineDeadline = null;
+            
+            const isTodayWorkingDay = today.getDay() !== 0 && today.getDay() !== 6;
+            
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            yesterday.setHours(0, 0, 0, 0);
 
-            // Lọc dữ liệu riêng cho phần Summary (Chỉ áp dụng bộ lọc Tháng và Nơi mượn, bỏ qua bộ lọc Ẩn lô đã xong)
             const summaryFormulaData = formulaData.filter(row => {
               if (formulaSelectedMonths.length > 0 && !formulaSelectedMonths.includes(String(row.month))) return false;
               if (formulaSelectedLocations.length > 0 && !formulaSelectedLocations.includes(row.location)) return false;
@@ -1451,39 +1408,50 @@
             });
 
             summaryFormulaData.forEach(lot => {
-                f_totalBorrowed += lot.computedActual || 0;
-                f_totalPhotoPlan += lot.computedPhotoPlan || 0;
-                f_totalRetouchPlan += lot.computedRetouchPlan || 0;
-                f_totalRetouchActual += lot.computedRetouchActual || 0;
+                const bRow = borrowData.find(b => b.lot === lot.lot);
+                const isExpected = bRow && (bRow.type === 'Dự kiến mượn' || bRow.status === 'Dự kiến');
 
-                if (lot.retouchEndObj) {
-                    if (!f_baselineDeadline || lot.retouchEndObj > f_baselineDeadline) {
-                        f_baselineDeadline = lot.retouchEndObj;
-                    }
+                if (!isExpected) {
+                    f_totalBorrowed += lot.computedActual || 0;
+                    f_totalPhotoPlan += lot.computedPhotoPlan || 0;
+                    f_totalRetouchPlan += lot.computedRetouchPlan || 0;
+                    f_totalRetouchActual += lot.computedRetouchActual || 0;
 
-                    if (today.getTime() > lot.retouchEndObj.getTime()) {
-                        // Đã qua hạn chót của lô này -> Lẽ ra phải xong 100% lô
-                        f_expectedDone += lot.computedActual;
-                    } else if (today.getTime() >= lot.retouchStartObj.getTime() && today.getTime() <= lot.retouchEndObj.getTime()) {
-                        // Lô đang trong quá trình thực hiện: Tính số lượng kỳ vọng phải xong tới hôm nay
-                        const totalDays = getWorkingDays(lot.retouchStartObj, lot.retouchEndObj);
-                        const daysPassed = getWorkingDays(lot.retouchStartObj, today);
-                        const expectedRatio = totalDays > 0 ? (daysPassed / totalDays) : 1;
-                        const expectedForLot = Math.round(lot.computedActual * expectedRatio);
-                        f_expectedDone += expectedForLot;
+                    if (lot.retouchEndObj && lot.retouchStartObj) {
+                        if (!f_baselineDeadline || lot.retouchEndObj > f_baselineDeadline) {
+                            f_baselineDeadline = lot.retouchEndObj;
+                        }
+
+                        if (yesterday.getTime() > lot.retouchEndObj.getTime()) {
+                            f_expectedUntilYesterday += lot.computedActual;
+                        } else if (yesterday.getTime() >= lot.retouchStartObj.getTime() && yesterday.getTime() <= lot.retouchEndObj.getTime()) {
+                            const totalDays = getWorkingDays(lot.retouchStartObj, lot.retouchEndObj);
+                            const daysPassed = getWorkingDays(lot.retouchStartObj, yesterday);
+                            const expectedRatio = totalDays > 0 ? (daysPassed / totalDays) : 0;
+                            f_expectedUntilYesterday += Math.round(lot.computedActual * expectedRatio);
+                        }
+
+                        if (today.getTime() >= lot.retouchStartObj.getTime() && today.getTime() <= lot.retouchEndObj.getTime()) {
+                            const totalDays = getWorkingDays(lot.retouchStartObj, lot.retouchEndObj);
+                            if (isTodayWorkingDay && totalDays > 0) {
+                                f_expectedToday += (lot.computedActual / totalDays);
+                            }
+                        }
                     }
                 }
             });
 
+            f_expectedToday = Math.round(f_expectedToday); 
+            
             const f_totalProduced = f_totalRetouchActual; 
             const f_totalRemaining = f_totalBorrowed - f_totalProduced;
             const f_percentProduced = f_totalBorrowed > 0 ? Math.round((f_totalProduced / f_totalBorrowed) * 100) : 0;
             const f_inRetouchOnly = Math.max(0, f_totalRetouchPlan - f_totalPhotoPlan);
             
-            // Đã trễ = Số lượng kỳ vọng lũy kế - số lượng thực tế đã xong
-            const f_lateSkus = Math.max(0, f_expectedDone - f_totalProduced);
+            const f_lateSkus = Math.max(0, f_expectedUntilYesterday - f_totalProduced);
 
-            // Tính hạn chót dự kiến sát thực tế nhất (Dựa vào số lượng CÒN LẠI cần giải quyết từ hôm nay)
+            f_expectedToday = f_expectedToday + f_lateSkus;
+
             let f_realisticDeadline = null;
             if (f_totalRemaining > 0) {
                 const remainingDays = Math.ceil(f_totalRemaining / 32) + 2; 
@@ -1496,149 +1464,183 @@
             }
 
             const formatDateVN = (d) => {
-                if (!d) return '--/--/----';
+                if (!(d instanceof Date) || isNaN(d.getTime())) return '--/--/----';
                 return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
             };
-            // --- END SUMMARY CALCULATIONS ---
+
+            const localPivot = { done: {}, expected: {}, doneTotal: 0, expectedTotal: 0 };
+            summaryFormulaData.forEach(row => {
+                const loc = row.location || 'Chưa xác định';
+                const val = row.computedActual || 0;
+                
+                const bRow = borrowData.find(b => b.lot === row.lot);
+                const isExpected = bRow && (bRow.type === 'Dự kiến mượn' || bRow.status === 'Dự kiến');
+
+                if (isExpected) {
+                    localPivot.expected[loc] = (localPivot.expected[loc] || 0) + val;
+                    localPivot.expectedTotal += val;
+                } else {
+                    localPivot.done[loc] = (localPivot.done[loc] || 0) + val;
+                    localPivot.doneTotal += val;
+                }
+            });
+            const donePivotLocs = Object.entries(localPivot.done).map(([loc, val]) => ({ loc, val })).sort((a,b)=>b.val - a.val);
+            const expectedPivotLocs = Object.entries(localPivot.expected).map(([loc, val]) => ({ loc, val })).sort((a,b)=>b.val - a.val);
 
             return (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                 <div className="bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4 border-b border-[#CBA563]/30 pb-4 relative z-30">
-                      <div className="flex flex-col gap-3 min-w-0 flex-1">
+                 <div className="bg-white rounded-xl border border-[#CBA563]/50 p-5 shadow-md">
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3">
                         <h2 className="text-xl font-pnj-serif font-bold text-[#1C3F60] flex items-center gap-2">
-                          <Calculator size={24} className="text-[#CBA563]" /> Kế hoạch Timeline Sản Xuất Tổng Hợp
+                          <Calculator size={24} className="text-[#CBA563]" /> Kế hoạch Timeline Sản Xuất
                         </h2>
-                        
-                        <div className="flex flex-wrap items-center gap-3 relative z-30">
-                          {/* Dropdown Tháng */}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleSyncFromDatabase(); }} 
+                          disabled={databaseData.length === 0}
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#108A68]/10 text-[#108A68] border border-[#108A68]/30 rounded-lg text-xs font-bold hover:bg-[#108A68] hover:text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                        >
+                          <Database size={14} /> Đồng bộ DB
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200 mb-6">
+                      
+                      <div className="flex flex-wrap items-center gap-3 relative z-50">
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenFilterDropdown(openFilterDropdown === 'month' ? null : 'month')}
+                            className="flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-200 shadow-sm text-xs font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
+                          >
+                            <Filter size={14} className="text-[#CBA563]" />
+                            <span>Tháng: {formulaSelectedMonths.length === 0 ? 'Tất cả' : (formulaSelectedMonths.length > 2 ? `${formulaSelectedMonths.length} tháng` : formulaSelectedMonths.map(m => `T${m}`).join(', '))}</span>
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${openFilterDropdown === 'month' ? 'rotate-180' : ''}`} />
+                          </button>
+                          
+                          {openFilterDropdown === 'month' && (
+                            <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 shadow-xl rounded-lg w-48 z-[100] py-1.5 max-h-[300px] overflow-y-auto">
+                              <label className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-[#1C3F60] transition-colors">
+                                <input 
+                                  type="checkbox" 
+                                  checked={formulaSelectedMonths.length === 0} 
+                                  onChange={() => setFormulaSelectedMonths([])}
+                                  className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
+                                />
+                                Tất cả
+                              </label>
+                              <div className="h-px w-full bg-gray-100 my-1"></div>
+                              {availableFormulaMonths.map(m => (
+                                <label key={m} className="flex items-center gap-2.5 px-4 py-2 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-gray-700 transition-colors">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={formulaSelectedMonths.includes(m)} 
+                                    onChange={() => {
+                                      if (formulaSelectedMonths.includes(m)) {
+                                        setFormulaSelectedMonths(formulaSelectedMonths.filter(x => x !== m));
+                                      } else {
+                                        setFormulaSelectedMonths([...formulaSelectedMonths, m]);
+                                      }
+                                    }}
+                                    className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
+                                  />
+                                  Tháng {m}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {availableFormulaLocations.length > 0 && (
                           <div className="relative">
                             <button
-                              onClick={() => setOpenFilterDropdown(openFilterDropdown === 'month' ? null : 'month')}
-                              className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-xs font-bold text-[#1C3F60] hover:bg-gray-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#CBA563]"
+                              onClick={() => setOpenFilterDropdown(openFilterDropdown === 'location' ? null : 'location')}
+                              className="flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-200 shadow-sm text-xs font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
                             >
                               <Filter size={14} className="text-[#CBA563]" />
-                              <span>Tháng: {formulaSelectedMonths.length === 0 ? 'Tất cả' : (formulaSelectedMonths.length > 2 ? `${formulaSelectedMonths.length} tháng` : formulaSelectedMonths.map(m => `T${m}`).join(', '))}</span>
-                              <ChevronDown size={14} className={`text-gray-400 transition-transform ${openFilterDropdown === 'month' ? 'rotate-180' : ''}`} />
+                              <span>Nơi mượn: {formulaSelectedLocations.length === 0 ? 'Tất cả' : (formulaSelectedLocations.length > 2 ? `${formulaSelectedLocations.length} nơi` : formulaSelectedLocations.join(', '))}</span>
+                              <ChevronDown size={14} className={`text-gray-400 transition-transform ${openFilterDropdown === 'location' ? 'rotate-180' : ''}`} />
                             </button>
                             
-                            {openFilterDropdown === 'month' && (
-                              <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 shadow-xl rounded-lg w-48 z-50 py-1.5 max-h-[300px] overflow-y-auto">
+                            {openFilterDropdown === 'location' && (
+                              <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 shadow-xl rounded-lg w-52 z-[100] py-1.5 max-h-[300px] overflow-y-auto">
                                 <label className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-[#1C3F60] transition-colors">
                                   <input 
                                     type="checkbox" 
-                                    checked={formulaSelectedMonths.length === 0} 
-                                    onChange={() => setFormulaSelectedMonths([])}
+                                    checked={formulaSelectedLocations.length === 0} 
+                                    onChange={() => setFormulaSelectedLocations([])}
                                     className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
                                   />
                                   Tất cả
                                 </label>
                                 <div className="h-px w-full bg-gray-100 my-1"></div>
-                                {availableFormulaMonths.map(m => (
-                                  <label key={m} className="flex items-center gap-2.5 px-4 py-2 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-gray-700 transition-colors">
+                                {availableFormulaLocations.map(loc => (
+                                  <label key={loc} className="flex items-center gap-2.5 px-4 py-2 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-gray-700 transition-colors">
                                     <input 
                                       type="checkbox" 
-                                      checked={formulaSelectedMonths.includes(m)} 
+                                      checked={formulaSelectedLocations.includes(loc)} 
                                       onChange={() => {
-                                        if (formulaSelectedMonths.includes(m)) {
-                                          setFormulaSelectedMonths(formulaSelectedMonths.filter(x => x !== m));
+                                        if (formulaSelectedLocations.includes(loc)) {
+                                          setFormulaSelectedLocations(formulaSelectedLocations.filter(x => x !== loc));
                                         } else {
-                                          setFormulaSelectedMonths([...formulaSelectedMonths, m]);
+                                          setFormulaSelectedLocations([...formulaSelectedLocations, loc]);
                                         }
                                       }}
                                       className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
                                     />
-                                    Tháng {m}
+                                    {loc}
                                   </label>
                                 ))}
                               </div>
                             )}
                           </div>
+                        )}
 
-                          {/* Dropdown Nơi Mượn */}
-                          {availableFormulaLocations.length > 0 && (
-                            <div className="relative">
-                              <button
-                                onClick={() => setOpenFilterDropdown(openFilterDropdown === 'location' ? null : 'location')}
-                                className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-xs font-bold text-[#1C3F60] hover:bg-gray-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#CBA563]"
-                              >
-                                <Filter size={14} className="text-[#CBA563]" />
-                                <span>Nơi mượn: {formulaSelectedLocations.length === 0 ? 'Tất cả' : (formulaSelectedLocations.length > 2 ? `${formulaSelectedLocations.length} nơi` : formulaSelectedLocations.join(', '))}</span>
-                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${openFilterDropdown === 'location' ? 'rotate-180' : ''}`} />
-                              </button>
-                              
-                              {openFilterDropdown === 'location' && (
-                                <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 shadow-xl rounded-lg w-52 z-50 py-1.5 max-h-[300px] overflow-y-auto">
-                                  <label className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-[#1C3F60] transition-colors">
-                                    <input 
-                                      type="checkbox" 
-                                      checked={formulaSelectedLocations.length === 0} 
-                                      onChange={() => setFormulaSelectedLocations([])}
-                                      className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
-                                    />
-                                    Tất cả
-                                  </label>
-                                  <div className="h-px w-full bg-gray-100 my-1"></div>
-                                  {availableFormulaLocations.map(loc => (
-                                    <label key={loc} className="flex items-center gap-2.5 px-4 py-2 hover:bg-[#FDF4E3] cursor-pointer text-xs font-medium text-gray-700 transition-colors">
-                                      <input 
-                                        type="checkbox" 
-                                        checked={formulaSelectedLocations.includes(loc)} 
-                                        onChange={() => {
-                                          if (formulaSelectedLocations.includes(loc)) {
-                                            setFormulaSelectedLocations(formulaSelectedLocations.filter(x => x !== loc));
-                                          } else {
-                                            setFormulaSelectedLocations([...formulaSelectedLocations, loc]);
-                                          }
-                                        }}
-                                        className="w-3.5 h-3.5 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
-                                      />
-                                      {loc}
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Nút đóng dropdown (click outside) */}
-                          {openFilterDropdown && (
-                            <div 
-                              className="fixed inset-0 z-40" 
-                              onClick={() => setOpenFilterDropdown(null)}
-                            ></div>
-                          )}
-                        </div>
+                        {openFilterDropdown && (
+                          <div className="fixed inset-0 z-40" onClick={() => setOpenFilterDropdown(null)}></div>
+                        )}
                       </div>
 
-                      <div className="flex flex-col sm:items-end gap-3 shrink-0 relative z-10">
-                        <div className="flex items-center gap-2 bg-[#FDF4E3] p-1 rounded-lg border border-[#CBA563]/20 w-fit shadow-inner">
+                      <div className="flex flex-wrap items-center gap-3 relative z-10">
+                        <button 
+                          onClick={() => setShowPivotTable(!showPivotTable)}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold transition-all border ${showPivotTable ? 'bg-[#1C3F60] text-white border-[#1C3F60] shadow-sm' : 'bg-white text-[#1C3F60] border-gray-200 hover:border-[#CBA563]'}`}
+                        >
+                          <Package size={14} className={showPivotTable ? 'text-[#CBA563]' : ''} /> 
+                          {showPivotTable ? 'Đóng Bảng kê' : 'Xem Bảng kê'}
+                        </button>
+
+                        <div className="w-px h-5 bg-gray-300 hidden sm:block"></div>
+
+                        <div className="flex items-center bg-white p-0.5 rounded-md border border-gray-200 shadow-sm">
                           <button 
                             onClick={() => setViewMode('gantt')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'gantt' ? 'bg-white text-[#1C3F60] shadow border border-[#CBA563]/30' : 'text-[#1C3F60]/70 hover:text-[#1C3F60]'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold transition-all ${viewMode === 'gantt' ? 'bg-[#FDF4E3] text-[#1C3F60]' : 'text-gray-500 hover:text-[#1C3F60]'}`}
                           >
-                            <CalendarDays size={14} /> Sơ đồ Gantt
+                            <CalendarDays size={14} /> Timeline
                           </button>
                           <button 
                             onClick={() => setViewMode('table')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'table' ? 'bg-white text-[#1C3F60] shadow border border-[#CBA563]/30' : 'text-[#1C3F60]/70 hover:text-[#1C3F60]'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold transition-all ${viewMode === 'table' ? 'bg-[#FDF4E3] text-[#1C3F60]' : 'text-gray-500 hover:text-[#1C3F60]'}`}
                           >
-                            <LayoutList size={14} /> Bảng dữ liệu
+                            <LayoutList size={14} /> Dữ liệu
                           </button>
                         </div>
+
+                        <div className="w-px h-5 bg-gray-300 hidden sm:block"></div>
+
                         <button 
                           onClick={() => setHideCompletedFormula(!hideCompletedFormula)} 
-                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-[#CBA563]/50 rounded-lg text-xs font-bold text-[#1C3F60] hover:bg-[#FDF4E3] transition-colors cursor-pointer shadow-sm whitespace-nowrap w-fit"
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold transition-all border ${hideCompletedFormula ? 'bg-white text-gray-500 border-gray-200' : 'bg-white text-[#1C3F60] border-[#CBA563]/50 shadow-sm'}`}
                         >
-                          {hideCompletedFormula ? <Eye size={14} className="text-[#CBA563]"/> : <EyeOff size={14} className="text-[#CBA563]"/>}
-                          {hideCompletedFormula ? `Hiện lô đã xong (${completedFormulaCount})` : 'Ẩn lô đã xong'}
+                          {hideCompletedFormula ? <EyeOff size={14}/> : <Eye size={14} className="text-[#CBA563]"/>}
+                          {hideCompletedFormula ? 'Hiện lô đã xong' : 'Ẩn lô đã xong'}
                         </button>
                       </div>
                     </div>
                     
-                    {/* --- NEW SUMMARY UI BLOCK --- */}
                     <div className="bg-white border border-[#CBA563]/30 rounded-xl mb-6 shadow-sm flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
-                        {/* Tổng mượn */}
                         <div className="p-4 sm:px-5 lg:px-6 w-full lg:w-auto flex-1 flex flex-col justify-center hover:bg-gray-50/50 transition-colors">
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                 <Package size={12} className="text-[#CBA563]" /> Tổng mượn
@@ -1646,7 +1648,6 @@
                             <p className="text-3xl font-pnj-sans font-bold text-[#1C3F60] leading-none">{f_totalBorrowed.toLocaleString()}</p>
                         </div>
 
-                        {/* Đã sản xuất */}
                         <div className="p-4 sm:px-5 lg:px-6 w-full lg:w-auto flex-1 flex flex-col justify-center hover:bg-gray-50/50 transition-colors">
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Đã sản xuất</p>
                             <div className="flex items-end gap-2">
@@ -1655,7 +1656,6 @@
                             </div>
                         </div>
 
-                        {/* Còn lại */}
                         <div className="p-4 sm:px-5 lg:px-6 w-full lg:w-auto flex-[1.2] flex flex-col justify-center hover:bg-gray-50/50 transition-colors">
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Còn lại</p>
                             <div className="flex items-center gap-3">
@@ -1667,29 +1667,27 @@
                             </div>
                         </div>
 
-                        {/* Tracking */}
                         <div className="p-4 sm:px-5 lg:px-6 w-full lg:w-auto flex-[1.2] flex flex-col justify-center bg-gradient-to-r from-transparent to-gray-50/50">
                             <div className="flex justify-between items-start mb-1.5">
                                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap">
-                                    <TrendingUp size={12} className="text-[#CBA563]" /> Tracking lũy kế
+                                    <TrendingUp size={12} className="text-[#CBA563]" /> Mục tiêu hôm nay
                                 </p>
                                 {f_lateSkus > 0 ? (
-                                    <span className="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100 flex items-center gap-1 whitespace-nowrap">
+                                    <span className="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100 flex items-center gap-1 whitespace-nowrap" title="Tính theo tiến độ lũy kế đến hết hôm qua">
                                         <TrendingUp size={10} className="rotate-180" /> Trễ {f_lateSkus.toLocaleString()}
                                     </span>
                                 ) : (
-                                    <span className="text-[9px] bg-green-50 text-[#108A68] px-1.5 py-0.5 rounded font-bold border border-green-100 flex items-center gap-1 whitespace-nowrap">
+                                    <span className="text-[9px] bg-green-50 text-[#108A68] px-1.5 py-0.5 rounded font-bold border border-green-100 flex items-center gap-1 whitespace-nowrap" title="Đảm bảo tiến độ lũy kế đến hết hôm qua">
                                         <CheckCircle size={10} /> Đúng tiến độ
                                     </span>
                                 )}
                             </div>
                             <div className="flex items-end gap-1.5">
-                                <p className="text-3xl font-pnj-sans font-bold text-[#1C3F60] leading-none">{f_expectedDone.toLocaleString()}</p>
-                                <span className="text-[9px] font-medium text-gray-400 mb-1 uppercase whitespace-nowrap">SKU Cần Xong ({formatDateVN(today)})</span>
+                                <p className="text-3xl font-pnj-sans font-bold text-[#1C3F60] leading-none">{f_expectedToday.toLocaleString()}</p>
+                                <span className="text-[9px] font-medium text-gray-400 mb-1 uppercase whitespace-nowrap">SKU CẦN XONG ({formatDateVN(today)})</span>
                             </div>
                         </div>
 
-                        {/* Hạn chót */}
                         <div className="p-4 sm:px-5 lg:px-6 w-full lg:w-auto flex-1 flex flex-col justify-center bg-[#FDF4E3]/40 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-16 h-16 bg-[#CBA563]/10 rounded-bl-full pointer-events-none"></div>
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 relative z-10">Hạn chót</p>
@@ -1697,7 +1695,89 @@
                             <p className="text-[10px] font-medium text-gray-500 relative z-10 whitespace-nowrap">Cần HT: <strong className="text-[#A91E22]">{f_totalRemaining.toLocaleString()}</strong> SKU</p>
                         </div>
                     </div>
-                    {/* --- END SUMMARY UI BLOCK --- */}
+
+                    {showPivotTable && (
+                       <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-6 border border-[#CBA563]/50 rounded-xl overflow-hidden shadow-md">
+                         <div className="bg-gradient-to-r from-[#FDF4E3] to-white px-5 py-3 border-b border-[#CBA563]/30 flex items-center justify-between">
+                            <h3 className="font-pnj-serif font-bold text-[#1C3F60] text-lg flex items-center gap-2">
+                                <Package size={18} className="text-[#CBA563]" /> Bảng Kê Chi Tiết Theo Nơi Mượn
+                            </h3>
+                         </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-white divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                           <div className="flex flex-col p-5">
+                             <div className="flex items-center justify-between mb-3">
+                               <h4 className="font-bold font-pnj-sans text-[#1C3F60] flex items-center gap-2 text-[14px] uppercase tracking-wider">
+                                 <span className="w-2.5 h-2.5 rounded-full bg-[#1C3F60] shadow-sm"></span> ĐÃ MƯỢN
+                               </h4>
+                             </div>
+                             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden flex-1 shadow-sm">
+                               <table className="w-full text-sm">
+                                 <thead className="bg-gray-50 border-b border-gray-200">
+                                   <tr>
+                                     <th className="px-4 py-3 text-left font-bold text-gray-600">Nơi mượn</th>
+                                     <th className="px-4 py-3 text-right font-bold text-gray-600 w-32">SL thực tế</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-gray-100">
+                                   {donePivotLocs.length > 0 ? donePivotLocs.map((loc, lIdx) => (
+                                     <tr key={lIdx} className="hover:bg-[#FDF4E3]/50 transition-colors group">
+                                       <td className="px-4 py-3 text-gray-700 font-medium group-hover:text-[#1C3F60]">{loc.loc}</td>
+                                       <td className="px-4 py-3 text-right font-bold text-[#1C3F60]">{loc.val.toLocaleString()}</td>
+                                     </tr>
+                                   )) : (
+                                     <tr><td colSpan="2" className="px-4 py-6 text-center text-gray-400 italic text-xs">Chưa có dữ liệu</td></tr>
+                                   )}
+                                 </tbody>
+                                 <tfoot className="bg-[#1C3F60] text-white">
+                                   <tr>
+                                     <td className="px-4 py-3 text-right font-medium text-[11px] uppercase tracking-wider text-[#CBA563]">Tổng Đã mượn</td>
+                                     <td className="px-4 py-3 text-right font-bold text-base">{localPivot.doneTotal.toLocaleString()}</td>
+                                   </tr>
+                                 </tfoot>
+                               </table>
+                             </div>
+                           </div>
+                
+                           <div className="flex flex-col p-5">
+                             <div className="flex items-center justify-between mb-3">
+                               <h4 className="font-bold font-pnj-sans text-[#A91E22] flex items-center gap-2 text-[14px] uppercase tracking-wider">
+                                 <span className="w-2.5 h-2.5 rounded-full bg-[#A91E22] shadow-sm"></span> DỰ KIẾN MƯỢN
+                               </h4>
+                             </div>
+                             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden flex-1 shadow-sm">
+                               <table className="w-full text-sm">
+                                 <thead className="bg-red-50/50 border-b border-red-100">
+                                   <tr>
+                                     <th className="px-4 py-3 text-left font-bold text-gray-600">Nơi mượn</th>
+                                     <th className="px-4 py-3 text-right font-bold text-gray-600 w-32">SL thực tế</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-gray-100">
+                                   {expectedPivotLocs.length > 0 ? expectedPivotLocs.map((loc, lIdx) => (
+                                     <tr key={lIdx} className="hover:bg-red-50/30 transition-colors group">
+                                       <td className="px-4 py-3 text-gray-700 font-medium group-hover:text-[#A91E22]">{loc.loc}</td>
+                                       <td className="px-4 py-3 text-right font-bold text-[#A91E22]">{loc.val.toLocaleString()}</td>
+                                     </tr>
+                                   )) : (
+                                     <tr><td colSpan="2" className="px-4 py-6 text-center text-gray-400 italic text-xs">Chưa có dữ liệu</td></tr>
+                                   )}
+                                 </tbody>
+                                 <tfoot className="bg-[#A91E22] text-white">
+                                   <tr>
+                                     <td className="px-4 py-3 text-right font-medium text-[11px] uppercase tracking-wider text-red-200">Tổng Dự kiến</td>
+                                     <td className="px-4 py-3 text-right font-bold text-base">{localPivot.expectedTotal.toLocaleString()}</td>
+                                   </tr>
+                                 </tfoot>
+                               </table>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="bg-[#11263c] px-6 py-3.5 flex items-center justify-between">
+                            <span className="text-[#CBA563] font-bold uppercase tracking-widest text-xs">Grand Total Mượn</span>
+                            <span className="text-2xl font-pnj-serif font-bold text-white">{(localPivot.doneTotal + localPivot.expectedTotal).toLocaleString()}</span>
+                         </div>
+                       </div>
+                    )}
 
                     <div className="bg-[#FDF4E3] border border-[#CBA563]/30 p-4 rounded-lg mb-6 shadow-sm">
                       <h4 className="font-bold text-[#A91E22] text-sm mb-2">Quy tắc tự động phân bổ:</h4>
@@ -1712,9 +1792,9 @@
                          Chưa có dữ liệu lô mượn hợp lệ (Vui lòng nhập ngày nhận hàng và SL Thực tế hoặc Dự kiến &gt; 0).
                        </div>
                     ) : viewMode === 'table' ? (
-                      <div className="overflow-x-auto border border-[#CBA563]/30 rounded-lg shadow-sm">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
+                      <div className="overflow-auto max-h-[600px] border border-[#CBA563]/30 rounded-lg shadow-sm">
+                        <table className="w-full text-left border-collapse relative">
+                          <thead className="sticky top-0 z-30 shadow-sm">
                             <tr className="bg-[#EBE1CD] border-b border-[#CBA563]/50 text-[11px] font-pnj-sans uppercase tracking-wider text-[#1C3F60]">
                               <th className="px-4 py-3 font-bold whitespace-nowrap">Trạng thái</th>
                               <th className="px-4 py-3 font-bold whitespace-nowrap">Lô mượn</th>
@@ -1794,16 +1874,14 @@
                         </table>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto border border-[#CBA563]/30 rounded-lg relative pb-4 shadow-inner">
+                      <div className="overflow-auto max-h-[600px] border border-[#CBA563]/30 rounded-lg relative pb-4 shadow-inner">
                         <div style={{ width: `${stickyWidth + (totalSpanDays * cellWidth)}px` }} className="min-w-full bg-white relative">
                           
-                          {/* Timeline Header */}
-                          <div className="flex border-b border-[#CBA563]/30 bg-[#FDF4E3] sticky top-0 z-20">
-                            <div className="sticky left-0 bg-[#FDF4E3] border-r border-[#CBA563]/30 z-30 flex items-center justify-center font-bold text-[#1C3F60] text-xs shadow-[2px_0_5px_rgba(203,165,99,0.15)]" style={{ width: stickyWidth, minWidth: stickyWidth }}>
+                          <div className="flex border-b border-[#CBA563]/30 bg-[#FDF4E3] sticky top-0 z-40 shadow-sm">
+                            <div className="sticky left-0 bg-[#FDF4E3] border-r border-[#CBA563]/30 z-50 flex items-center justify-center font-bold text-[#1C3F60] text-xs shadow-[2px_0_5px_rgba(203,165,99,0.15)]" style={{ width: stickyWidth, minWidth: stickyWidth }}>
                               Thông tin Lô
                             </div>
                             <div className="flex flex-col">
-                              {/* Months Row */}
                               <div className="flex border-b border-[#CBA563]/30 text-xs font-bold text-[#1C3F60] bg-[#EBE1CD]">
                                 {monthsGroup.map((mg, idx) => (
                                   <div key={idx} className="border-r border-[#CBA563]/30 py-1.5 px-2 text-center truncate" style={{ width: mg.count * cellWidth }}>
@@ -1811,7 +1889,6 @@
                                   </div>
                                 ))}
                               </div>
-                              {/* Days Row */}
                               <div className="flex text-[10px] font-semibold text-gray-600 bg-white">
                                 {daysArray.map((d, i) => {
                                   const isToday = d.getTime() === today.getTime();
@@ -1825,9 +1902,7 @@
                             </div>
                           </div>
 
-                          {/* Timeline Body Grid */}
                           <div className="relative">
-                             {/* Cột dọc (Grid lines) */}
                              <div className="absolute top-0 bottom-0 flex pointer-events-none" style={{ left: stickyWidth }}>
                                 {daysArray.map((d, i) => {
                                   const isToday = d.getTime() === today.getTime();
@@ -1838,7 +1913,6 @@
                                 })}
                              </div>
 
-                             {/* Rows */}
                              {displayFormulaData.map((row, rIdx) => {
                                 const pStartDiff = diffDaysDates(minDate, row.photoStartObj);
                                 const pSpan = row.photoStartObj && row.photoEndObj ? diffDaysDates(row.photoStartObj, row.photoEndObj) + 1 : 0;
@@ -1860,7 +1934,6 @@
 
                                 return (
                                   <div key={row.id} className="flex relative border-b border-gray-100 hover:bg-[#FDF4E3]/70 transition-colors h-16 group">
-                                    {/* Sticky Left Column */}
                                     <div className="sticky left-0 bg-white group-hover:bg-[#FDF4E3] border-r border-[#CBA563]/30 z-20 flex flex-col justify-center px-4 shadow-[2px_0_5px_rgba(203,165,99,0.1)] transition-colors" style={{ width: stickyWidth, minWidth: stickyWidth }}>
                                       <div className="font-bold text-[#1C3F60] text-sm truncate flex items-center gap-2">
                                         {row.displayLotName} 
@@ -1874,9 +1947,7 @@
                                       </div>
                                     </div>
                                     
-                                    {/* Gantt Bars Area */}
                                     <div className="relative flex-1">
-                                       {/* Photo Bar */}
                                        {row.photoStartObj && pWidth > 0 && (
                                          <div 
                                            className="absolute top-2 h-4 rounded-md shadow-sm bg-[#CBA563] flex items-center justify-center text-[9px] font-bold text-white overflow-hidden hover:brightness-110 cursor-pointer"
@@ -1887,7 +1958,6 @@
                                          </div>
                                        )}
                                        
-                                       {/* Retouch Bar */}
                                        {row.retouchStartObj && rWidth > 0 && (
                                          <div 
                                            className="absolute top-8 h-4 rounded-md shadow-sm bg-[#4D7B85] flex items-center justify-center text-[9px] font-bold text-white overflow-hidden hover:brightness-110 cursor-pointer"
@@ -1904,7 +1974,6 @@
                           </div>
                         </div>
                         
-                        {/* Chú thích màu sắc */}
                         <div className="flex items-center gap-6 mt-4 ml-6">
                           <div className="flex items-center gap-2 text-xs font-bold text-gray-600"><div className="w-4 h-4 rounded bg-[#CBA563] shadow-sm"></div> Thời gian Chụp hình</div>
                           <div className="flex items-center gap-2 text-xs font-bold text-gray-600"><div className="w-4 h-4 rounded bg-[#4D7B85] shadow-sm"></div> Thời gian Retouch</div>
@@ -1919,9 +1988,6 @@
             );
           };
 
-          // -----------------------------------------------------
-          // RENDER 4: DATABASE TAB
-          // -----------------------------------------------------
           const renderDatabase = () => {
             return (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -2032,6 +2098,15 @@
           // --- MAIN RENDER ---
           return (
             <div className="min-h-screen bg-[#FDF4E3] font-pnj-sans pb-10">
+              {showDbWarning && (
+                <div className="bg-[#A91E22] text-white px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center justify-between">
+                  <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
+                    <Database size={16} className="flex-shrink-0" />
+                    <span><strong>Cảnh báo lưu trữ Github:</strong> Cơ sở dữ liệu (Firebase) chưa được cấu hình. Dữ liệu bạn Import sẽ bị mất khi tải lại trang. Vui lòng mở mã nguồn và điền <code>GITHUB_FIREBASE_CONFIG</code>.</span>
+                    <button onClick={() => setShowDbWarning(false)} className="ml-auto p-1 bg-white/20 hover:bg-white/30 rounded"><XCircle size={14} /></button>
+                  </div>
+                </div>
+              )}
               <header className="bg-gradient-to-r from-[#A91E22] to-[#801317] sticky top-0 z-30 shadow-md border-b-4 border-[#CBA563]">
                 <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between text-white">
                   <div className="flex items-center gap-3">
@@ -2047,7 +2122,7 @@
                   {[
                     { id: 'borrowing', icon: Package, label: 'Product Air Onsite' },
                     { id: 'video', icon: Video, label: 'Sản xuất Video' },
-                    { id: 'formula', icon: Calculator, label: 'Bảng công thức' },
+                    { id: 'formula', icon: Calculator, label: 'Sản xuất hình ảnh' },
                     { id: 'database', icon: Database, label: 'Database' }
                   ].map(tab => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center px-5 py-2.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-[#1C3F60] text-[#CBA563] shadow-md border border-[#1C3F60]' : 'text-[#1C3F60] hover:bg-white/60 border border-transparent'}`}>
@@ -2057,7 +2132,7 @@
                 </nav>
 
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {activeTab === 'borrowing' && renderBorrowing()}
+                  {activeTab === 'borrowing' && renderBorrowingDashboard()}
                   {activeTab === 'video' && renderVideoProduction()}
                   {activeTab === 'formula' && renderFormula()}
                   {activeTab === 'database' && renderDatabase()}
