@@ -195,6 +195,7 @@
           const [editingVideoId, setEditingVideoId] = useState(null);
           const [editVideoFormData, setEditVideoFormData] = useState({});
           const [isAddingNewVideo, setIsAddingNewVideo] = useState(false);
+          const [videoQuarter, setVideoQuarter] = useState(Math.ceil((new Date().getMonth() + 1) / 3)); // Tự động lấy Quý hiện tại
           
           // View States for Formula Tab
           const [viewMode, setViewMode] = useState('gantt'); 
@@ -213,6 +214,7 @@
           const [dbPage, setDbPage] = useState(1);
           const dbItemsPerPage = 100;
           const [isImportingDb, setIsImportingDb] = useState(false);
+          const [showClearConfirm, setShowClearConfirm] = useState(false);
           const dbFileInputRef = useRef(null);
 
           // 1. Firebase Authentication
@@ -947,8 +949,8 @@
               }
               
               setDatabaseData(prevData => {
-                // Thay thế hoàn toàn bằng dữ liệu mới từ file CSV, giữ nguyên mọi dòng (kể cả trùng SKU)
-                const newData = [...parsedData];
+                // Giữ nguyên dữ liệu cũ, nối thêm dữ liệu mới từ file CSV vừa import vào
+                const newData = [...prevData, ...parsedData];
                 syncToCloud('databaseData', newData);
                 setDbPage(1); // Reset to page 1 after import
                 
@@ -1329,9 +1331,20 @@
           const renderVideoProduction = () => {
             const kpiYear = 480;
             const kpiQuarter = 120;
-            const totalShot = videoData.reduce((acc, r) => acc + (Number(r.actual) || 0), 0);
-            const percentQuarter = Math.round((totalShot / kpiQuarter) * 100);
-            const percentYear = Math.round((totalShot / kpiYear) * 100);
+            
+            // Lọc ra các tháng thuộc Quý đang chọn
+            const quarterMonths = [videoQuarter * 3 - 2, videoQuarter * 3 - 1, videoQuarter * 3];
+            
+            // Tính tổng nguyên năm
+            const totalShotYear = videoData.reduce((acc, r) => acc + (Number(r.actual) || 0), 0);
+            
+            // Tính tổng riêng cho Quý đang chọn
+            const totalShotQuarter = videoData
+              .filter(r => quarterMonths.includes(Number(r.month)))
+              .reduce((acc, r) => acc + (Number(r.actual) || 0), 0);
+
+            const percentQuarter = Math.round((totalShotQuarter / kpiQuarter) * 100);
+            const percentYear = Math.round((totalShotYear / kpiYear) * 100);
 
             const vMonthly = {};
             videoData.forEach(r => { vMonthly[r.month] = (vMonthly[r.month] || 0) + (Number(r.actual) || 0); });
@@ -1356,20 +1369,30 @@
                   
                   <div className="flex-1 grid grid-cols-2 divide-x divide-gray-100">
                     <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors relative">
-                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <CheckCircle size={18} className="text-[#108A68]" /> KPI Quý
-                      </p>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <CheckCircle size={18} className="text-[#108A68]" />
+                        <select 
+                          value={videoQuarter} 
+                          onChange={(e) => setVideoQuarter(Number(e.target.value))}
+                          className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider bg-transparent cursor-pointer focus:outline-none hover:text-[#1C3F60]"
+                        >
+                          <option value={1}>KPI QUÝ 1</option>
+                          <option value={2}>KPI QUÝ 2</option>
+                          <option value={3}>KPI QUÝ 3</option>
+                          <option value={4}>KPI QUÝ 4</option>
+                        </select>
+                      </div>
                       <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#1C3F60]">{kpiQuarter.toLocaleString()}</span>
                     </div>
                     
                     <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
                       <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <Video size={18} className="text-[#A6823F]" /> Tổng Đã Quay
+                        <Video size={18} className="text-[#A6823F]" /> Tổng Đã Quay (Q{videoQuarter})
                       </p>
                       <div className="flex items-baseline gap-2 sm:gap-3">
-                        <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#A6823F]">{totalShot.toLocaleString()}</span>
-                        <span className="text-sm sm:text-lg font-bold text-[#A6823F] bg-[#FDF4E3] px-2 py-1 rounded-md" title="% hoàn thành Quý">
-                          {percentQuarter}% Quý
+                        <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#A6823F]">{totalShotQuarter.toLocaleString()}</span>
+                        <span className="text-sm sm:text-lg font-bold text-[#A6823F] bg-[#FDF4E3] px-2 py-1 rounded-md" title={`% hoàn thành Quý ${videoQuarter}`}>
+                          {percentQuarter}% Quý {videoQuarter}
                         </span>
                       </div>
                     </div>
@@ -2172,6 +2195,22 @@
                     </div>
                     
                     <div className="flex items-center gap-3">
+                      {showClearConfirm ? (
+                        <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
+                          <span className="text-xs text-red-600 font-bold whitespace-nowrap">Xóa toàn bộ?</span>
+                          <button onClick={() => { setDatabaseData([]); syncToCloud('databaseData', []); setShowClearConfirm(false); }} className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700">Có</button>
+                          <button onClick={() => setShowClearConfirm(false)} className="px-2.5 py-1 bg-white text-gray-600 border border-gray-300 rounded text-xs font-bold hover:bg-gray-100">Hủy</button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setShowClearConfirm(true)}
+                          disabled={databaseData.length === 0}
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors shadow-sm cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          <Trash2 size={16} /> Xóa DB
+                        </button>
+                      )}
+
                       <input type="file" accept=".csv" ref={dbFileInputRef} onChange={handleImportDatabaseCSV} className="hidden" />
                       <button 
                         onClick={() => dbFileInputRef.current?.click()} 
