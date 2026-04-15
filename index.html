@@ -341,6 +341,11 @@
             const monthlyPhoto = {};
             const monthlyRetouch = {};
 
+            // Các biến track dữ liệu Dự kiến tổng (cho biểu đồ tròn)
+            let expectedBorrowTotal = 0;
+            let expectedPhotoTotal = 0;
+            let expectedRetouchTotal = 0;
+
             // Tính toán trực tiếp từ databaseData để đảm bảo đồng bộ 100%
             if (databaseData && databaseData.length > 0) {
               databaseData.forEach(item => {
@@ -356,10 +361,13 @@
                 
                 const isExpected = bStatus.includes('dự kiến') || bStatus.includes('chuẩn bị');
                 const isPhotoDone = pStatus.includes('đã') || pStatus.includes('done') || pStatus.includes('xong');
+                const isExpectedPhoto = pStatus.includes('dự kiến');
                 const isRetouchDone = rStatus.includes('đã') || rStatus.includes('done') || rStatus.includes('xong');
+                const isExpectedRetouch = rStatus.includes('dự kiến');
 
                 if (isExpected) {
                   totalExpected += 1;
+                  expectedBorrowTotal += 1;
                 } else {
                   totalDone += 1;
                   if (m) monthlyData[m] = (monthlyData[m] || 0) + 1;
@@ -368,11 +376,15 @@
                 if (isPhotoDone) {
                   totalShot += 1;
                   if (m) monthlyPhoto[m] = (monthlyPhoto[m] || 0) + 1;
+                } else if (isExpectedPhoto) {
+                  expectedPhotoTotal += 1;
                 }
 
                 if (isRetouchDone) {
                   totalRetouched += 1;
                   if (m) monthlyRetouch[m] = (monthlyRetouch[m] || 0) + 1;
+                } else if (isExpectedRetouch) {
+                  expectedRetouchTotal += 1;
                 }
               });
             } else {
@@ -384,11 +396,17 @@
 
                 const val = Number(row.actual) || 0;
                 const pActual = Number(row.photoActual) || 0;
+                const pPlan = Number(row.photoPlan) || 0;
                 const rActual = Number(row.retouchActual) || 0;
+                const rPlan = Number(row.retouchPlan) || 0;
                 const m = Number(row.month);
+                
+                const pStatus = (row.shootStatus || '').toLowerCase();
+                const rStatus = (row.retouchStatus || '').toLowerCase();
 
                 if (row.type === 'Dự kiến mượn' || row.status === 'Dự kiến') {
                   totalExpected += val;
+                  expectedBorrowTotal += val;
                 } else {
                   totalDone += val;
                   if (!isNaN(m)) monthlyData[m] = (monthlyData[m] || 0) + val;
@@ -400,12 +418,15 @@
                 }
                 totalShot += pActual;
                 totalRetouched += rActual;
+                
+                if (pStatus.includes('dự kiến')) expectedPhotoTotal += pPlan;
+                if (rStatus.includes('dự kiến')) expectedRetouchTotal += rPlan;
               });
             }
 
             const percentDone = ((totalDone / kpi2026) * 100).toFixed(2);
             
-            // Gộp tất cả các tháng xuất hiện để vẽ biểu đồ liền mạch (ngay cả khi có hạng mục = 0)
+            // Gộp tất cả các tháng xuất hiện để vẽ biểu đồ liền mạch (Thực tế)
             const allMonths = new Set([...Object.keys(monthlyData), ...Object.keys(monthlyPhoto), ...Object.keys(monthlyRetouch)]);
             const sortedMonths = Array.from(allMonths).map(Number).sort((a, b) => a - b);
             
@@ -416,6 +437,7 @@
             return { 
               totalDone, totalExpected, percentDone, 
               chartData, photoData, retouchData, 
+              expectedBorrowTotal, expectedPhotoTotal, expectedRetouchTotal,
               totalPhoto: totalShot, totalRetouch: totalRetouched
             };
           }, [borrowData, databaseData, dashboardSelectedLocations]);
@@ -943,18 +965,13 @@
           // RENDER 1: BORROWING TAB
           // -----------------------------------------------------
           const renderBorrowingDashboard = () => {
-            const maxChartVal = Math.max(...metrics.chartData.map(d => d.val), 600) * 1.2;
-            const chartColors = ['#8fa8c1', '#5e82a6', '#2d5c8a', '#1C3F60', '#11263c'];
-
-            const photoData = metrics.photoData;
-            const totalPhoto = metrics.totalPhoto;
-
-            const retouchData = metrics.retouchData;
-            const totalRetouch = metrics.totalRetouch;
-            
-            const photoVals = photoData.map(d=>d.val);
-            const retouchVals = retouchData.map(d=>d.val);
-            const maxImgChartY = Math.max(...(photoVals.length ? photoVals : [0]), ...(retouchVals.length ? retouchVals : [0]), 500) * 1.2;
+            // Lấy tất cả giá trị để tìm ra mốc cao nhất cho trục Y của biểu đồ gộp
+            const allVals = [
+              ...metrics.chartData.map(d => d.val),
+              ...metrics.photoData.map(d => d.val),
+              ...metrics.retouchData.map(d => d.val)
+            ];
+            const maxMergedVal = Math.max(...(allVals.length ? allVals : [0]), 100) * 1.2;
 
             return (
               <div className="mb-8 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -1007,8 +1024,9 @@
                   )}
                 </div>
 
-                <div className="w-full bg-white rounded-xl shadow-md border border-[#CBA563]/50 overflow-hidden flex flex-col md:flex-row">
-                  <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white md:w-1/3 flex flex-col justify-center relative overflow-hidden">
+                {/* KHỐI TỔNG QUAN KPI */}
+                <div className="w-full bg-white rounded-xl shadow-md border border-[#CBA563]/50 overflow-hidden flex flex-col lg:flex-row">
+                  <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white lg:w-1/4 flex flex-col justify-center relative overflow-hidden">
                     <div className="absolute -right-4 -bottom-4 opacity-10"><TrendingUp size={100} /></div>
                     <div className="relative z-10">
                       <p className="text-[#CBA563] text-sm font-pnj-sans font-bold uppercase tracking-wider mb-1">Mục tiêu năm 2026</p>
@@ -1018,7 +1036,7 @@
                     </div>
                   </div>
                   
-                  <div className="flex-1 grid grid-cols-2 divide-x divide-gray-100">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100">
                     <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
                       <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                         <CheckCircle size={18} className="text-[#108A68]" /> Done mượn
@@ -1033,138 +1051,165 @@
                     
                     <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
                       <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <Clock size={18} className="text-[#A91E22]" /> Dự kiến mượn
+                        <Camera size={18} className="text-[#CBA563]" /> Done Chụp
                       </p>
-                      <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#A91E22]">{metrics.totalExpected.toLocaleString()}</span>
+                      <div className="flex items-baseline gap-2 sm:gap-3">
+                        <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#1C3F60]">{metrics.totalPhoto.toLocaleString()}</span>
+                        <span className="text-xs font-pnj-sans text-gray-400 font-medium">SKU</span>
+                      </div>
+                    </div>
+
+                    <div className="p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                      <p className="text-gray-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <PenTool size={18} className="text-[#4D7B85]" /> Done Retouch
+                      </p>
+                      <div className="flex items-baseline gap-2 sm:gap-3">
+                        <span className="text-3xl sm:text-4xl font-pnj-serif font-bold text-[#1C3F60]">{metrics.totalRetouch.toLocaleString()}</span>
+                        <span className="text-xs font-pnj-sans text-gray-400 font-medium">SKU</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md">
-                  <h3 className="text-xl font-pnj-serif font-bold text-[#1C3F60] mb-8 flex items-center gap-2">
-                    <BarChart3 size={20} className="text-[#CBA563]" /> Số lượng mượn thực tế theo tháng
-                  </h3>
-                  <div className="h-[200px] relative flex items-end justify-around pb-6 pt-10 px-4 mt-2">
-                     <div className="absolute inset-0 flex flex-col justify-between pb-6 text-xs text-gray-400 pointer-events-none z-0">
-                       {[100, 75, 50, 25, 0].map(percent => {
-                          const tickVal = Math.round((maxChartVal * percent) / 100);
-                          return (
-                            <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
-                               <span className="absolute -left-2 bottom-0 translate-y-1/2 bg-white pr-2 text-gray-400 font-medium">
-                                 {tickVal}
-                               </span>
+                {/* HAI BIỂU ĐỒ GỘP (THỰC TẾ VÀ DỰ KIẾN) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* BIỂU ĐỒ 1: THỰC TẾ */}
+                  <div className="lg:col-span-2 w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                      <h3 className="text-lg sm:text-xl font-pnj-serif font-bold text-[#1C3F60] flex items-center gap-2">
+                        <BarChart3 size={20} className="text-[#CBA563] flex-shrink-0" /> Tiến trình Thực tế theo tháng
+                      </h3>
+                      <div className="flex items-center gap-3 text-[10px] sm:text-xs font-bold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#1C3F60] shadow-sm"></div> Mượn</div>
+                        <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#CBA563] shadow-sm"></div> Chụp</div>
+                        <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#4D7B85] shadow-sm"></div> Retouch</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 h-[250px] sm:h-[300px] relative flex items-end justify-around pb-8 pt-10 px-2 sm:px-4 mt-2 border-t border-gray-100">
+                       <div className="absolute inset-0 flex flex-col justify-between pb-8 text-xs text-gray-400 pointer-events-none z-0">
+                         {[100, 75, 50, 25, 0].map(percent => {
+                            const tickVal = Math.round((maxMergedVal * percent) / 100);
+                            return (
+                              <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
+                                 <span className="absolute -left-1 sm:-left-2 bottom-0 translate-y-1/2 bg-white pr-1 sm:pr-2 text-gray-400 font-medium text-[10px] sm:text-xs">
+                                   {tickVal}
+                                 </span>
+                              </div>
+                            )
+                         })}
+                       </div>
+                       
+                       {metrics.chartData.map((d, i) => {
+                         const borrowVal = d.val;
+                         const photoVal = metrics.photoData.find(x => x.month === d.month)?.val || 0;
+                         const retouchVal = metrics.retouchData.find(x => x.month === d.month)?.val || 0;
+
+                         const hBorrow = maxMergedVal > 0 ? (borrowVal / maxMergedVal) * 100 : 0;
+                         const hPhoto = maxMergedVal > 0 ? (photoVal / maxMergedVal) * 100 : 0;
+                         const hRetouch = maxMergedVal > 0 ? (retouchVal / maxMergedVal) * 100 : 0;
+
+                         return (
+                           <div key={i} className="relative z-10 flex flex-col items-center h-full w-full max-w-[100px] sm:max-w-[120px] justify-end group">
+                             <div className="flex items-end justify-center w-full h-full gap-0.5 sm:gap-1.5">
+                               <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
+                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1C3F60] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                   {borrowVal}
+                                   <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1C3F60] rotate-45"></div>
+                                 </div>
+                                 <div className="w-full bg-[#1C3F60] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative" style={{ height: `${hBorrow}%` }}>
+                                   <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                 </div>
+                               </div>
+                               <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
+                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#CBA563] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                   {photoVal}
+                                   <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#CBA563] rotate-45"></div>
+                                 </div>
+                                 <div className="w-full bg-[#CBA563] rounded-t-sm transition-all duration-500 hover:brightness-110 hover:shadow-lg relative" style={{ height: `${hPhoto}%` }}>
+                                   <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                 </div>
+                               </div>
+                               <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
+                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#4D7B85] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                   {retouchVal}
+                                   <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#4D7B85] rotate-45"></div>
+                                 </div>
+                                 <div className="w-full bg-[#4D7B85] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative" style={{ height: `${hRetouch}%` }}>
+                                   <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                 </div>
+                               </div>
+                             </div>
+                             <span className="absolute -bottom-7 sm:-bottom-8 text-[11px] sm:text-sm font-bold text-gray-600 bg-white px-1 sm:px-2 py-0.5 whitespace-nowrap">T{d.month}</span>
+                           </div>
+                         )
+                       })}
+                    </div>
+                  </div>
+
+                  {/* BIỂU ĐỒ 2: DỰ KIẾN (PIE CHART) */}
+                  <div className="lg:col-span-1 w-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col items-center">
+                    <div className="flex w-full items-center gap-2 mb-8 border-b border-gray-100 pb-4">
+                      <Clock size={20} className="text-gray-400 flex-shrink-0" />
+                      <h3 className="text-lg font-pnj-serif font-bold text-gray-600">Tổng quan Dự kiến</h3>
+                    </div>
+                    
+                    {(() => {
+                      const totalPie = metrics.expectedBorrowTotal + metrics.expectedPhotoTotal + metrics.expectedRetouchTotal;
+                      const pctBorrow = totalPie > 0 ? (metrics.expectedBorrowTotal / totalPie) * 100 : 0;
+                      const pctPhoto = totalPie > 0 ? (metrics.expectedPhotoTotal / totalPie) * 100 : 0;
+                      
+                      const stop1 = pctBorrow;
+                      const stop2 = pctBorrow + pctPhoto;
+
+                      // Tông màu pastel nhẹ hơn một chút cho các chỉ số Dự kiến để dễ phân biệt
+                      const cBorrow = "#5C7894";
+                      const cPhoto = "#D5B886";
+                      const cRetouch = "#789CA4";
+
+                      // Tính toán độ rộng của các mảnh trong biểu đồ tròn
+                      const pieGradient = totalPie > 0 
+                        ? `conic-gradient(${cBorrow} 0% ${stop1}%, ${cPhoto} ${stop1}% ${stop2}%, ${cRetouch} ${stop2}% 100%)` 
+                        : 'conic-gradient(#f3f4f6 0% 100%)';
+
+                      return (
+                        <div className="flex flex-col items-center w-full flex-1 justify-center">
+                          <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-105 duration-500" style={{ background: pieGradient }}>
+                            {/* Khoảng trống ở giữa để tạo thành Donut Chart */}
+                            <div className="absolute inset-0 m-auto w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-full shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center">
+                              <span className="text-2xl font-pnj-serif font-bold text-gray-700">{totalPie.toLocaleString()}</span>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Tổng SKU</span>
                             </div>
-                          )
-                       })}
-                     </div>
-                     {metrics.chartData.map((d, i) => {
-                       const h = maxChartVal > 0 ? (d.val / maxChartVal) * 100 : 0;
-                       return (
-                         <div key={i} className="relative z-10 w-24 md:w-32 group flex flex-col items-center justify-end h-full mt-4">
-                           <div className="absolute -top-10 bg-[#1C3F60] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
-                             {d.val} SKU
-                             <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1C3F60] rotate-45"></div>
-                           </div>
-                           <span className="text-[#1C3F60] font-bold mb-2 text-sm z-20 absolute -top-6 transition-transform group-hover:-translate-y-2">{d.val}</span>
-                           <div className="w-full rounded-t-md transition-all duration-500 hover:opacity-85 relative shadow-sm cursor-pointer" style={{ height: `${h}%`, backgroundColor: chartColors[i % chartColors.length] }}>
-                             <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-t-md pointer-events-none"></div>
-                           </div>
-                           <span className="absolute -bottom-7 text-sm font-bold text-gray-600">Tháng {d.month}</span>
-                         </div>
-                       )
-                     })}
+                          </div>
+
+                          {/* Chú giải thông số */}
+                          <div className="mt-8 w-full flex flex-col gap-3">
+                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-sm transition-shadow">
+                              <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
+                                <div className="w-3 h-3 rounded-sm shadow-sm" style={{backgroundColor: cBorrow}}></div> Chuẩn bị mượn
+                              </div>
+                              <span className="font-bold text-sm" style={{color: cBorrow}}>{metrics.expectedBorrowTotal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-sm transition-shadow">
+                              <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
+                                <div className="w-3 h-3 rounded-sm shadow-sm" style={{backgroundColor: cPhoto}}></div> Dự kiến chụp
+                              </div>
+                              <span className="font-bold text-sm" style={{color: cPhoto}}>{metrics.expectedPhotoTotal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-sm transition-shadow">
+                              <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
+                                <div className="w-3 h-3 rounded-sm shadow-sm" style={{backgroundColor: cRetouch}}></div> Dự kiến retouch
+                              </div>
+                              <span className="font-bold text-sm" style={{color: cRetouch}}>{metrics.expectedRetouchTotal.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className="text-xl font-pnj-serif font-bold text-[#1C3F60] flex items-center gap-2">
-                          <Camera size={20} className="text-[#CBA563]" /> Sản xuất Hình ảnh - CHỤP HÌNH
-                        </h3>
-                        <p className="text-xs font-bold text-gray-400 mt-1 uppercase">Dữ liệu hoàn thành (Done chụp)</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-3xl font-pnj-serif font-bold text-[#CBA563]">{totalPhoto.toLocaleString()}</span>
-                        <p className="text-[10px] text-gray-500 font-bold">TỔNG SKU</p>
-                      </div>
-                    </div>
-                    
-                    <div className="h-[180px] relative flex items-end justify-around pb-6 pt-10 px-2 mt-2 border-t border-gray-100">
-                       <div className="absolute inset-0 flex flex-col justify-between pb-6 text-xs text-gray-400 pointer-events-none z-0">
-                         {[100, 75, 50, 25, 0].map(percent => {
-                            const tickVal = Math.round((maxImgChartY * percent) / 100);
-                            return (
-                              <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
-                                 <span className="absolute -left-2 bottom-0 translate-y-1/2 bg-white pr-2 text-gray-400 font-medium">{tickVal}</span>
-                              </div>
-                            )
-                         })}
-                       </div>
-                       {photoData.map((d, i) => {
-                         const h = maxImgChartY > 0 ? (d.val / maxImgChartY) * 100 : 0;
-                         return (
-                           <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
-                             <div className="absolute -top-10 bg-[#CBA563] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
-                               {d.val} SKU
-                               <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#CBA563] rotate-45"></div>
-                             </div>
-                             <span className="text-[#CBA563] font-bold mb-2 text-sm z-20 absolute -top-6 transition-transform group-hover:-translate-y-2">{d.val}</span>
-                             <div className="w-full bg-[#CBA563] rounded-t-md transition-all duration-500 hover:opacity-85 relative shadow-sm cursor-pointer" style={{ height: `${h}%` }}>
-                               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-t-md pointer-events-none"></div>
-                             </div>
-                             <span className="absolute -bottom-7 text-xs font-bold text-gray-600">Tháng {d.month}</span>
-                           </div>
-                         )
-                       })}
-                    </div>
-                  </div>
-
-                  <div className="w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className="text-xl font-pnj-serif font-bold text-[#1C3F60] flex items-center gap-2">
-                          <PenTool size={20} className="text-[#4D7B85]" /> Sản xuất Hình ảnh - RETOUCH
-                        </h3>
-                        <p className="text-xs font-bold text-gray-400 mt-1 uppercase">Dữ liệu hoàn thành (Done Retouch)</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-3xl font-pnj-serif font-bold text-[#4D7B85]">{totalRetouch.toLocaleString()}</span>
-                        <p className="text-[10px] text-gray-500 font-bold">TỔNG SKU</p>
-                      </div>
-                    </div>
-                    
-                    <div className="h-[180px] relative flex items-end justify-around pb-6 pt-10 px-2 mt-2 border-t border-gray-100">
-                       <div className="absolute inset-0 flex flex-col justify-between pb-6 text-xs text-gray-400 pointer-events-none z-0">
-                         {[100, 75, 50, 25, 0].map(percent => {
-                            const tickVal = Math.round((maxImgChartY * percent) / 100);
-                            return (
-                              <div key={percent} className="w-full border-b border-gray-100 flex items-end relative h-0">
-                                 <span className="absolute -left-2 bottom-0 translate-y-1/2 bg-white pr-2 text-gray-400 font-medium">{tickVal}</span>
-                              </div>
-                            )
-                         })}
-                       </div>
-                       {retouchData.map((d, i) => {
-                         const h = maxImgChartY > 0 ? (d.val / maxImgChartY) * 100 : 0;
-                         return (
-                           <div key={i} className="relative z-10 w-16 md:w-20 group flex flex-col items-center justify-end h-full mt-4">
-                             <div className="absolute -top-10 bg-[#4D7B85] text-white text-xs px-2.5 py-1.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
-                               {d.val} SKU
-                               <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#4D7B85] rotate-45"></div>
-                             </div>
-                             <span className="text-[#4D7B85] font-bold mb-2 text-sm z-20 absolute -top-6 transition-transform group-hover:-translate-y-2">{d.val}</span>
-                             <div className="w-full bg-[#4D7B85] rounded-t-md transition-all duration-500 hover:opacity-85 relative shadow-sm cursor-pointer" style={{ height: `${h}%` }}>
-                               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-t-md pointer-events-none"></div>
-                             </div>
-                             <span className="absolute -bottom-7 text-xs font-bold text-gray-600">Tháng {d.month}</span>
-                           </div>
-                         )
-                       })}
-                    </div>
-                  </div>
-                </div>
               </div>
             );
           };
