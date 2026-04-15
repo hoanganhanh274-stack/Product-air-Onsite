@@ -188,6 +188,7 @@
           const [searchQuery, setSearchQuery] = useState('');
           const [showPivotTable, setShowPivotTable] = useState(true);
           const [selectedPivotMonths, setSelectedPivotMonths] = useState([]);
+          const [showActualDataTable, setShowActualDataTable] = useState(false);
           
           // States for Video Production
           const [videoData, setVideoData] = useState(initialVideoData);
@@ -204,6 +205,7 @@
           
           // Filter State for Dashboard Tab
           const [dashboardSelectedLocations, setDashboardSelectedLocations] = useState([]);
+          const [dashboardSelectedMonths, setDashboardSelectedMonths] = useState([]);
 
           // States for Database Tab
           const [databaseData, setDatabaseData] = useState([]);
@@ -334,6 +336,14 @@
             return [...new Set(borrowData.map(d => d.location?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
           }, [borrowData, databaseData]);
 
+          // Tạo danh sách Tháng khả dụng cho bộ lọc
+          const dashboardAvailableMonths = useMemo(() => {
+            if (databaseData && databaseData.length > 0) {
+              return [...new Set(databaseData.map(d => String(d.month)).filter(m => m !== 'undefined' && m !== ''))].sort((a, b) => Number(a) - Number(b));
+            }
+            return [...new Set(borrowData.map(d => String(d.month)).filter(m => m !== 'undefined' && m !== ''))].sort((a, b) => Number(a) - Number(b));
+          }, [borrowData, databaseData]);
+
           const metrics = useMemo(() => {
             let totalDone = 0; let totalExpected = 0;
             let totalShot = 0; let totalRetouched = 0;
@@ -354,6 +364,8 @@
                 if (dashboardSelectedLocations.length > 0 && !dashboardSelectedLocations.includes(locName)) return;
 
                 const m = Number(item.month) || 0;
+                // Lọc theo Tháng nếu có chọn
+                if (dashboardSelectedMonths.length > 0 && !dashboardSelectedMonths.includes(String(m))) return;
 
                 const bStatus = (item.borrowStatus || '').toLowerCase();
                 const pStatus = (item.photoStatus || '').toLowerCase();
@@ -394,12 +406,15 @@
                 // Lọc theo Nơi Mượn nếu có chọn
                 if (dashboardSelectedLocations.length > 0 && !dashboardSelectedLocations.includes(locName)) return;
 
+                const m = Number(row.month);
+                // Lọc theo Tháng nếu có chọn
+                if (dashboardSelectedMonths.length > 0 && (!m || !dashboardSelectedMonths.includes(String(m)))) return;
+
                 const val = Number(row.actual) || 0;
                 const pActual = Number(row.photoActual) || 0;
                 const pPlan = Number(row.photoPlan) || 0;
                 const rActual = Number(row.retouchActual) || 0;
                 const rPlan = Number(row.retouchPlan) || 0;
-                const m = Number(row.month);
                 
                 const pStatus = (row.shootStatus || '').toLowerCase();
                 const rStatus = (row.retouchStatus || '').toLowerCase();
@@ -440,7 +455,7 @@
               expectedBorrowTotal, expectedPhotoTotal, expectedRetouchTotal,
               totalPhoto: totalShot, totalRetouch: totalRetouched
             };
-          }, [borrowData, databaseData, dashboardSelectedLocations]);
+          }, [borrowData, databaseData, dashboardSelectedLocations, dashboardSelectedMonths]);
 
           // --- THAY ĐỔI NGÀY BẮT ĐẦU TRỰC TIẾP TRÊN FORMULA TAB ---
           const handleFormulaStartDateChange = (lot, newStartDate) => {
@@ -709,7 +724,7 @@
               const pStatus = (item.photoStatus || '').toLowerCase();
               const rStatus = (item.retouchStatus || '').toLowerCase();
               
-              const isPreparing = bStatus.includes('chuẩn bị mượn');
+              const isPreparing = bStatus.includes('Dự kiến mượn');
 
               if (!lotsMap[lotKey]) {
                 let type = 'Đã mượn';
@@ -976,54 +991,6 @@
             return (
               <div className="mb-8 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
                 
-                {/* LỌC NƠI MƯỢN */}
-                <div className="flex items-center gap-3 relative z-40">
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenFilterDropdown(openFilterDropdown === 'dashboardLocation' ? null : 'dashboardLocation')}
-                      className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm text-sm font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
-                    >
-                      <Filter size={16} className="text-[#CBA563]" />
-                      <span>Nơi mượn: {dashboardSelectedLocations.length === 0 ? 'Tất cả' : (dashboardSelectedLocations.length > 2 ? `${dashboardSelectedLocations.length} nơi` : dashboardSelectedLocations.join(', '))}</span>
-                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${openFilterDropdown === 'dashboardLocation' ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {openFilterDropdown === 'dashboardLocation' && (
-                      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl w-72 z-[100] py-2 max-h-[400px] overflow-y-auto">
-                        <label className="flex items-center gap-3 px-4 py-3 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-[#1C3F60] transition-colors border-b border-gray-100">
-                          <input 
-                            type="checkbox" 
-                            checked={dashboardSelectedLocations.length === 0} 
-                            onChange={() => setDashboardSelectedLocations([])}
-                            className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
-                          />
-                          <span className="font-bold">Tất cả Nơi mượn</span>
-                        </label>
-                        {dashboardAvailableLocations.map(loc => (
-                          <label key={loc} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-gray-700 transition-colors">
-                            <input 
-                              type="checkbox" 
-                              checked={dashboardSelectedLocations.includes(loc)} 
-                              onChange={() => {
-                                if (dashboardSelectedLocations.includes(loc)) {
-                                  setDashboardSelectedLocations(dashboardSelectedLocations.filter(x => x !== loc));
-                                } else {
-                                  setDashboardSelectedLocations([...dashboardSelectedLocations, loc]);
-                                }
-                              }}
-                              className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300 flex-shrink-0"
-                            />
-                            <span className="truncate block w-full" title={loc}>{loc}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {openFilterDropdown === 'dashboardLocation' && (
-                    <div className="fixed inset-0 z-30" onClick={() => setOpenFilterDropdown(null)}></div>
-                  )}
-                </div>
-
                 {/* KHỐI TỔNG QUAN KPI */}
                 <div className="w-full bg-white rounded-xl shadow-md border border-[#CBA563]/50 overflow-hidden flex flex-col lg:flex-row">
                   <div className="bg-gradient-to-br from-[#1C3F60] to-[#2A5C8C] p-6 text-white lg:w-1/4 flex flex-col justify-center relative overflow-hidden">
@@ -1071,12 +1038,105 @@
                   </div>
                 </div>
 
+                {/* BỘ LỌC DASHBOARD (NƠI MƯỢN & THÁNG) NẰM TRÊN BIỂU ĐỒ */}
+                <div className="flex flex-wrap items-center gap-4 relative z-40 mt-2 mb-2">
+                  {/* LỌC NƠI MƯỢN */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenFilterDropdown(openFilterDropdown === 'dashboardLocation' ? null : 'dashboardLocation')}
+                      className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg border border-gray-200 shadow-sm text-sm font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
+                    >
+                      <Filter size={16} className="text-[#CBA563]" />
+                      <span>Nơi mượn: {dashboardSelectedLocations.length === 0 ? 'Tất cả' : (dashboardSelectedLocations.length > 2 ? `${dashboardSelectedLocations.length} nơi` : dashboardSelectedLocations.join(', '))}</span>
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${openFilterDropdown === 'dashboardLocation' ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {openFilterDropdown === 'dashboardLocation' && (
+                      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl w-72 z-[100] py-2 max-h-[400px] overflow-y-auto">
+                        <label className="flex items-center gap-3 px-4 py-3 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-[#1C3F60] transition-colors border-b border-gray-100">
+                          <input 
+                            type="checkbox" 
+                            checked={dashboardSelectedLocations.length === 0} 
+                            onChange={() => setDashboardSelectedLocations([])}
+                            className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
+                          />
+                          <span className="font-bold">Tất cả Nơi mượn</span>
+                        </label>
+                        {dashboardAvailableLocations.map(loc => (
+                          <label key={loc} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-gray-700 transition-colors">
+                            <input 
+                              type="checkbox" 
+                              checked={dashboardSelectedLocations.includes(loc)} 
+                              onChange={() => {
+                                if (dashboardSelectedLocations.includes(loc)) {
+                                  setDashboardSelectedLocations(dashboardSelectedLocations.filter(x => x !== loc));
+                                } else {
+                                  setDashboardSelectedLocations([...dashboardSelectedLocations, loc]);
+                                }
+                              }}
+                              className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300 flex-shrink-0"
+                            />
+                            <span className="truncate block w-full" title={loc}>{loc}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LỌC THÁNG */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenFilterDropdown(openFilterDropdown === 'dashboardMonth' ? null : 'dashboardMonth')}
+                      className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg border border-gray-200 shadow-sm text-sm font-bold text-[#1C3F60] hover:border-[#CBA563] transition-colors focus:outline-none"
+                    >
+                      <Filter size={16} className="text-[#CBA563]" />
+                      <span>Tháng: {dashboardSelectedMonths.length === 0 ? 'Tất cả' : (dashboardSelectedMonths.length > 2 ? `${dashboardSelectedMonths.length} tháng` : dashboardSelectedMonths.map(m => `T${m}`).join(', '))}</span>
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${openFilterDropdown === 'dashboardMonth' ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {openFilterDropdown === 'dashboardMonth' && (
+                      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl w-48 z-[100] py-2 max-h-[300px] overflow-y-auto">
+                        <label className="flex items-center gap-3 px-4 py-3 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-[#1C3F60] transition-colors border-b border-gray-100">
+                          <input 
+                            type="checkbox" 
+                            checked={dashboardSelectedMonths.length === 0} 
+                            onChange={() => setDashboardSelectedMonths([])}
+                            className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300"
+                          />
+                          <span className="font-bold">Tất cả Tháng</span>
+                        </label>
+                        {dashboardAvailableMonths.map(m => (
+                          <label key={m} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#FDF4E3] cursor-pointer text-sm font-medium text-gray-700 transition-colors">
+                            <input 
+                              type="checkbox" 
+                              checked={dashboardSelectedMonths.includes(m)} 
+                              onChange={() => {
+                                if (dashboardSelectedMonths.includes(m)) {
+                                  setDashboardSelectedMonths(dashboardSelectedMonths.filter(x => x !== m));
+                                } else {
+                                  setDashboardSelectedMonths([...dashboardSelectedMonths, m]);
+                                }
+                              }}
+                              className="w-4 h-4 accent-[#CBA563] cursor-pointer rounded-sm border-gray-300 flex-shrink-0"
+                            />
+                            <span className="truncate block w-full" title={`Tháng ${m}`}>Tháng {m}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {openFilterDropdown && (
+                    <div className="fixed inset-0 z-30" onClick={() => setOpenFilterDropdown(null)}></div>
+                  )}
+                </div>
+
                 {/* HAI BIỂU ĐỒ GỘP (THỰC TẾ VÀ DỰ KIẾN) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
                   {/* BIỂU ĐỒ 1: THỰC TẾ */}
-                  <div className="lg:col-span-2 w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md flex flex-col">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                  <div className="lg:col-span-2 w-full bg-white rounded-xl border border-[#CBA563]/50 p-6 shadow-md flex flex-col h-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                       <h3 className="text-lg sm:text-xl font-pnj-serif font-bold text-[#1C3F60] flex items-center gap-2">
                         <BarChart3 size={20} className="text-[#CBA563] flex-shrink-0" /> Tiến trình Thực tế theo tháng
                       </h3>
@@ -1087,7 +1147,7 @@
                       </div>
                     </div>
                     
-                    <div className="flex-1 h-[250px] sm:h-[300px] relative flex items-end justify-around pb-8 pt-10 px-2 sm:px-4 mt-2 border-t border-gray-100">
+                    <div className="w-full h-[300px] sm:h-[350px] relative flex items-end justify-around pb-8 pt-10 px-2 sm:px-4 mt-2 border-t border-gray-100">
                        <div className="absolute inset-0 flex flex-col justify-between pb-8 text-xs text-gray-400 pointer-events-none z-0">
                          {[100, 75, 50, 25, 0].map(percent => {
                             const tickVal = Math.round((maxMergedVal * percent) / 100);
@@ -1114,30 +1174,33 @@
                            <div key={i} className="relative z-10 flex flex-col items-center h-full w-full max-w-[100px] sm:max-w-[120px] justify-end group">
                              <div className="flex items-end justify-center w-full h-full gap-0.5 sm:gap-1.5">
                                <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
-                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1C3F60] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                 <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#1C3F60] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
                                    {borrowVal}
                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1C3F60] rotate-45"></div>
                                  </div>
-                                 <div className="w-full bg-[#1C3F60] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative" style={{ height: `${hBorrow}%` }}>
+                                 <div className="w-full bg-[#1C3F60] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative flex justify-center" style={{ height: `${hBorrow}%` }}>
                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                   {borrowVal > 0 && <span className="absolute -top-4 sm:-top-5 text-[8px] sm:text-[10px] font-bold text-[#1C3F60] tracking-tighter">{borrowVal}</span>}
                                  </div>
                                </div>
                                <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
-                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#CBA563] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                 <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#CBA563] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
                                    {photoVal}
                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#CBA563] rotate-45"></div>
                                  </div>
-                                 <div className="w-full bg-[#CBA563] rounded-t-sm transition-all duration-500 hover:brightness-110 hover:shadow-lg relative" style={{ height: `${hPhoto}%` }}>
+                                 <div className="w-full bg-[#CBA563] rounded-t-sm transition-all duration-500 hover:brightness-110 hover:shadow-lg relative flex justify-center" style={{ height: `${hPhoto}%` }}>
                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                   {photoVal > 0 && <span className="absolute -top-4 sm:-top-5 text-[8px] sm:text-[10px] font-bold text-[#A6823F] tracking-tighter">{photoVal}</span>}
                                  </div>
                                </div>
                                <div className="relative h-full flex items-end w-1/3 max-w-[28px] group/bar">
-                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#4D7B85] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
+                                 <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#4D7B85] text-white text-[10px] px-1.5 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity z-30 pointer-events-none shadow-md">
                                    {retouchVal}
                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#4D7B85] rotate-45"></div>
                                  </div>
-                                 <div className="w-full bg-[#4D7B85] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative" style={{ height: `${hRetouch}%` }}>
+                                 <div className="w-full bg-[#4D7B85] rounded-t-sm transition-all duration-500 hover:brightness-125 hover:shadow-lg relative flex justify-center" style={{ height: `${hRetouch}%` }}>
                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-sm pointer-events-none"></div>
+                                   {retouchVal > 0 && <span className="absolute -top-4 sm:-top-5 text-[8px] sm:text-[10px] font-bold text-[#4D7B85] tracking-tighter">{retouchVal}</span>}
                                  </div>
                                </div>
                              </div>
@@ -1146,6 +1209,55 @@
                          )
                        })}
                     </div>
+
+                    {/* BẢNG CHI TIẾT SỐ LIỆU DƯỚI BIỂU ĐỒ */}
+                    <div className="mt-8 sm:mt-6 flex flex-col items-center">
+                      <button
+                        onClick={() => setShowActualDataTable(!showActualDataTable)}
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all border bg-gray-50 text-gray-500 border-gray-200 hover:border-[#CBA563] hover:text-[#CBA563] mb-2 shadow-sm"
+                      >
+                        {showActualDataTable ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {showActualDataTable ? 'Ẩn bảng số liệu' : 'Xem chi tiết số liệu'}
+                      </button>
+
+                      {showActualDataTable && (
+                        <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-3xl w-full mt-2">
+                          <table className="w-full text-center text-[10px] sm:text-xs">
+                            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider">
+                              <tr>
+                                <th className="py-1.5 px-3 font-bold">Tháng</th>
+                                <th className="py-1.5 px-3 font-bold text-[#1C3F60]">Mượn</th>
+                                <th className="py-1.5 px-3 font-bold text-[#CBA563]">Chụp</th>
+                                <th className="py-1.5 px-3 font-bold text-[#4D7B85]">Retouch</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {metrics.chartData.map((d, i) => {
+                                const photoVal = metrics.photoData.find(x => x.month === d.month)?.val || 0;
+                                const retouchVal = metrics.retouchData.find(x => x.month === d.month)?.val || 0;
+                                return (
+                                  <tr key={i} className="hover:bg-[#FDF4E3]/50 transition-colors">
+                                    <td className="py-1.5 px-3 font-bold text-gray-600">T{d.month}</td>
+                                    <td className="py-1.5 px-3 font-medium text-[#1C3F60]">{d.val.toLocaleString()}</td>
+                                    <td className="py-1.5 px-3 font-medium text-[#CBA563]">{photoVal.toLocaleString()}</td>
+                                    <td className="py-1.5 px-3 font-medium text-[#4D7B85]">{retouchVal.toLocaleString()}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                            <tfoot className="bg-[#FDF4E3]/70 border-t border-[#CBA563]/30 font-bold text-[#1C3F60]">
+                               <tr>
+                                 <td className="py-1.5 px-3 text-center uppercase tracking-wider">Tổng</td>
+                                 <td className="py-1.5 px-3 text-[#1C3F60]">{metrics.totalDone.toLocaleString()}</td>
+                                 <td className="py-1.5 px-3 text-[#CBA563]">{metrics.totalPhoto.toLocaleString()}</td>
+                                 <td className="py-1.5 px-3 text-[#4D7B85]">{metrics.totalRetouch.toLocaleString()}</td>
+                               </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
 
                   {/* BIỂU ĐỒ 2: DỰ KIẾN (PIE CHART) */}
@@ -1187,7 +1299,7 @@
                           <div className="mt-8 w-full flex flex-col gap-3">
                             <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-sm transition-shadow">
                               <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
-                                <div className="w-3 h-3 rounded-sm shadow-sm" style={{backgroundColor: cBorrow}}></div> Chuẩn bị mượn
+                                <div className="w-3 h-3 rounded-sm shadow-sm" style={{backgroundColor: cBorrow}}></div> Dự kiến mượn
                               </div>
                               <span className="font-bold text-sm" style={{color: cBorrow}}>{metrics.expectedBorrowTotal.toLocaleString()}</span>
                             </div>
