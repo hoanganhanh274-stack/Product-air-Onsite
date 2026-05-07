@@ -3,434 +3,1604 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNJ Tracking & Report Dashboard</title>
-    <!-- Tailwind CSS & Google Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Chart.js & Lucide Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>PNJ - Hệ Thống Quản Lý Nhận/Mượn Hàng</title>
     
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Tailwind Config for PNJ Brand Colors -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        pnj: {
-                            blue: '#004E98',
-                            gold: '#D4AF37',
-                            deep: '#002D5A',
-                            light: '#F8FAFC'
-                        }
+                        pnjBlue: '#003366', // Xanh Navy PNJ
+                        pnjBlueLight: '#004A8F',
+                        pnjGold: '#D4AF37', // Vàng kim PNJ
+                        pnjGoldLight: '#E5C973',
+                        pnjBg: '#F5F7FA', // Nền xám nhạt sang trọng
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
+
     <style>
+        /* Tùy chỉnh thanh cuộn cho bảng tinh tế hơn */
         .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f1f1; }
-        .table-container::-webkit-scrollbar-thumb { background: #004E9844; border-radius: 10px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #004E98; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #003366; }
         
+        /* Style cho input và select trong table */
         input, select {
             width: 100%;
             background: transparent;
             border: 1px solid transparent;
-            padding: 4px 6px;
-            border-radius: 4px;
+            padding: 8px 10px;
+            border-radius: 6px;
             outline: none;
-            transition: all 0.2s;
+            text-overflow: ellipsis;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+        input:hover, select:hover {
+            background: #f8fafc;
+            border-color: #e2e8f0;
         }
         input:focus, select:focus {
-            border-color: #004E98;
+            border-color: #D4AF37;
             background: white;
-            box-shadow: 0 0 0 3px rgba(0, 78, 152, 0.1);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
         }
-        .active-tab {
-            background-color: #D4AF37 !important;
-            color: #004E98 !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        
+        /* Sticky columns */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+        th.sticky-col {
+            background-color: #003366;
+            z-index: 20;
+        }
+
+        /* Glassmorphism hiệu ứng nhẹ cho Header */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* Checkbox style */
+        input[type="checkbox"] {
+            width: auto;
+            accent-color: #003366;
         }
     </style>
 </head>
-<body class="bg-pnj-light text-slate-800 font-sans min-h-screen">
+<body class="bg-pnjBg text-gray-800 font-sans min-h-screen">
 
-    <!-- Header Navigation -->
-    <header class="bg-pnj-blue text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-[1600px] mx-auto px-4 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center gap-4">
-                    <div class="bg-pnj-gold p-2 rounded-lg">
-                        <i data-lucide="layout-dashboard" class="text-pnj-blue w-8 h-8"></i>
-                    </div>
-                    <div class="leading-tight">
-                        <h1 class="text-xl font-extrabold tracking-tight uppercase">PNJ Dashboard</h1>
-                        <p class="text-[10px] text-pnj-gold font-bold uppercase tracking-widest opacity-90">Progress Tracking & Reporting</p>
-                    </div>
-                </div>
-                
-                <nav class="hidden xl:flex space-x-2">
-                    <button onclick="switchTab('report')" id="tab-btn-report" class="active-tab px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm transition-all hover:bg-white/10">
-                        <i data-lucide="line-chart" class="w-4 h-4"></i> 1. Báo Cáo
-                    </button>
-                    <button onclick="switchTab('summary')" id="tab-btn-summary" class="px-5 py-2.5 text-white/70 rounded-xl flex items-center gap-2 font-bold text-sm transition-all hover:bg-white/10">
-                        <i data-lucide="layers" class="w-4 h-4"></i> 2. Tổng Hợp
-                    </button>
-                    <button onclick="switchTab('image')" id="tab-btn-image" class="px-5 py-2.5 text-white/70 rounded-xl flex items-center gap-2 font-bold text-sm transition-all hover:bg-white/10">
-                        <i data-lucide="image" class="w-4 h-4"></i> 3. Hình Ảnh
-                    </button>
-                    <button onclick="switchTab('database')" id="tab-btn-database" class="px-5 py-2.5 text-white/70 rounded-xl flex items-center gap-2 font-bold text-sm transition-all hover:bg-white/10">
-                        <i data-lucide="database" class="w-4 h-4"></i> 4. Database
-                    </button>
-                </nav>
-
-                <div id="toast" class="hidden absolute top-24 right-8 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 z-50 animate-bounce">
-                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-                    <span class="font-bold">Đã lưu thành công!</span>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button onclick="saveData()" class="bg-pnj-gold hover:scale-105 active:scale-95 text-pnj-blue px-6 py-2.5 rounded-xl font-black transition-all shadow-md flex items-center gap-2 uppercase text-xs">
-                        <i data-lucide="save" class="w-4 h-4"></i> Lưu Dữ Liệu
-                    </button>
-                </div>
+    <!-- Header cố định trên cùng -->
+    <header class="glass-header sticky top-0 z-40 px-4 md:px-6 py-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <!-- Giả lập Logo PNJ -->
+            <div class="w-12 h-12 bg-pnjBlue text-pnjGold rounded-lg flex items-center justify-center font-bold text-2xl shadow-md border border-pnjGold/30">
+                P
             </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-pnjBlue uppercase tracking-wide">Quản Lý Nhận/Mượn Hàng</h1>
+                <p class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud text-pnjGold mr-1"></i>Đã tích hợp lưu trữ Firebase Cloud (product-air-onsite)</p>
+            </div>
+        </div>
+        <!-- Thông báo lưu thành công -->
+        <div id="toast" class="bg-emerald-500 text-white px-5 py-2.5 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-[-10px] flex items-center gap-2 font-medium text-sm">
+            <i class="fas fa-check-circle text-lg"></i> Dữ liệu đã được đồng bộ lên Cloud!
         </div>
     </header>
 
-    <main class="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+    <div class="w-full px-4 md:px-6 py-6 mx-auto max-w-[1600px]">
         
-        <!-- SECTION 1: REPORT -->
-        <section id="section-report" class="space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm flex items-center gap-6">
-                    <div class="bg-blue-50 p-4 rounded-2xl text-blue-600"><i data-lucide="box" class="w-10 h-10"></i></div>
-                    <div>
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total Đã Mượn</p>
-                        <p id="kpi-muon" class="text-4xl font-black text-blue-700 tracking-tighter">0</p>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-green-100 shadow-sm flex items-center gap-6">
-                    <div class="bg-green-50 p-4 rounded-2xl text-green-600"><i data-lucide="camera" class="w-10 h-10"></i></div>
-                    <div>
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total Đã Chụp</p>
-                        <p id="kpi-chup" class="text-4xl font-black text-green-700 tracking-tighter">0</p>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm flex items-center gap-6">
-                    <div class="bg-purple-50 p-4 rounded-2xl text-purple-600"><i data-lucide="wand-2" class="w-10 h-10"></i></div>
-                    <div>
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total Đã Retouch</p>
-                        <p id="kpi-retouch" class="text-4xl font-black text-purple-700 tracking-tighter">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-black text-pnj-blue flex items-center gap-2"><i data-lucide="pie-chart" class="w-5 h-5"></i> THỐNG KÊ TIẾN ĐỘ THÁNG</h3>
-                    </div>
-                    <div class="p-8 h-[400px]">
-                        <canvas id="mainChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden p-8 space-y-6">
-                    <h3 class="font-black text-pnj-blue flex items-center gap-2 mb-4"><i data-lucide="clipboard-list" class="w-5 h-5 text-pnj-gold"></i> TỔNG HỢP DỰ KIẾN</h3>
-                    <div class="bg-amber-50 rounded-2xl p-6 border border-amber-200">
-                        <div class="flex justify-between items-center text-amber-900 font-bold mb-4">
-                            <span class="text-lg">Dự kiến mượn (Chưa Done)</span>
-                            <span id="pending-total" class="text-4xl font-black text-amber-600">0</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-amber-200">
-                            <div><p class="text-xs text-amber-700 opacity-60">Kho:</p><p id="pending-kho" class="text-xl font-bold">0</p></div>
-                            <div><p class="text-xs text-amber-700 opacity-60">NVT:</p><p id="pending-nvt" class="text-xl font-bold">0</p></div>
-                        </div>
-                    </div>
-                    <div class="bg-emerald-50 rounded-2xl p-6 border border-emerald-200 flex justify-between items-center">
-                        <span class="text-emerald-900 font-bold text-lg">Dự kiến SL chụp</span>
-                        <span id="pending-chup" class="text-4xl font-black text-emerald-600">0</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION: DATABASE -->
-        <section id="section-database" class="hidden space-y-6">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center">
-                <button onclick="addRow()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold hover:bg-slate-900 transition-all">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Thêm Dòng Mới
+        <!-- Navigation Tabs Style PNJ -->
+        <div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-2 overflow-x-auto">
+            <nav class="flex space-x-2 min-w-max" aria-label="Tabs">
+                <button onclick="switchTab('tab-report')" id="btn-tab-report" class="bg-pnjBlue text-white py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-md">
+                    <i class="fas fa-chart-pie text-pnjGold"></i> Report Onsite
                 </button>
-                <div class="h-8 w-px bg-slate-200 mx-2"></div>
-                <label class="cursor-pointer bg-white text-pnj-blue border border-pnj-blue px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-pnj-light transition-all shadow-sm">
-                    <i data-lucide="file-up" class="w-4 h-4"></i> Nhập CSV
-                    <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="importCSV(event)">
-                </label>
-                <button onclick="exportCSV()" class="bg-pnj-blue text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-pnj-deep transition-all shadow-md">
-                    <i data-lucide="file-down" class="w-4 h-4"></i> Xuất CSV
+                <button onclick="switchTab('tab-summary')" id="btn-tab-summary" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-layer-group text-gray-400"></i> Tổng hợp mượn hàng
+                </button>
+                <button onclick="switchTab('tab-image')" id="btn-tab-image" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-image text-gray-400"></i> Tiến độ hình ảnh
+                </button>
+                <button onclick="switchTab('tab-video')" id="btn-tab-video" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-video text-gray-400"></i> Tiến độ video
+                </button>
+                <div class="w-px bg-gray-300 my-2 mx-1"></div>
+                <button onclick="switchTab('tab-database')" id="btn-tab-database" class="text-gray-600 hover:bg-pnjGold/20 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-database text-pnjGold"></i> Database Gốc
+                </button>
+            </nav>
+        </div>
+
+        <!-- ==================== TAB 1: REPORT DASHBOARD ==================== -->
+        <div id="tab-report">
+            <!-- Filter Bar -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
+                <span class="font-bold text-pnjBlue text-sm uppercase tracking-wider"><i class="fas fa-filter text-pnjGold mr-2"></i> Lọc Báo Cáo:</span>
+                
+                <!-- Dropdown Report Tháng -->
+                <div class="relative inline-block text-left" id="wrap-filter-report-month">
+                    <button onclick="toggleFilterDropdown('dropdown-report-month')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-pnjGold/50 outline-none flex items-center justify-between min-w-[150px] transition-all">
+                        <span id="label-report-month" class="truncate font-medium">Tất cả Tháng</span>
+                        <i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    </button>
+                    <div id="dropdown-report-month" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-xl rounded-lg border border-gray-100 top-full left-0">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+                            <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer">
+                                <input type="checkbox" id="selectAll-report-month" checked onchange="toggleAllCheckboxes('report-month', this.checked)">
+                                <span>Chọn tất cả</span>
+                            </label>
+                        </div>
+                        <div id="list-report-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                    </div>
+                </div>
+
+                <!-- Dropdown Report Nơi mượn -->
+                <div class="relative inline-block text-left" id="wrap-filter-report-noiMuon">
+                    <button onclick="toggleFilterDropdown('dropdown-report-noiMuon')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-pnjGold/50 outline-none flex items-center justify-between min-w-[170px] transition-all">
+                        <span id="label-report-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span>
+                        <i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    </button>
+                    <div id="dropdown-report-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-xl rounded-lg border border-gray-100 top-full left-0">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+                            <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer">
+                                <input type="checkbox" id="selectAll-report-noiMuon" checked onchange="toggleAllCheckboxes('report-noiMuon', this.checked)">
+                                <span>Chọn tất cả</span>
+                            </label>
+                        </div>
+                        <div id="list-report-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                    </div>
+                </div>
+
+                <div class="flex-grow"></div>
+                <button onclick="clearReportFilters()" class="text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium px-4 py-2 transition-colors border border-red-100">
+                    <i class="fas fa-sync-alt mr-1"></i> Đặt lại
                 </button>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto table-container max-h-[600px]">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-pnj-blue text-white sticky top-0 z-20 text-[11px] uppercase tracking-wider font-bold">
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-2 h-full bg-pnjBlue transition-all group-hover:w-3"></div>
+                    <div class="p-4 rounded-xl bg-pnjBlue/5 text-pnjBlue mr-5">
+                        <i class="fas fa-box-open fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Mượn</p>
+                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-muon">0</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-2 h-full bg-pnjGold transition-all group-hover:w-3"></div>
+                    <div class="p-4 rounded-xl bg-pnjGold/10 text-pnjGold mr-5">
+                        <i class="fas fa-camera fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Chụp</p>
+                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-chup">0</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-2 h-full bg-gray-800 transition-all group-hover:w-3"></div>
+                    <div class="p-4 rounded-xl bg-gray-100 text-gray-800 mr-5">
+                        <i class="fas fa-magic fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Retouch</p>
+                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-retouch">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboards Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Dashboard 1: Đã Hoàn Thành -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between">
+                        <span class="font-bold text-pnjBlue text-lg"><i class="fas fa-chart-bar mr-2 text-pnjGold"></i> Thực tế hoàn thành</span>
+                    </div>
+                    <div class="p-5 relative h-[380px] w-full flex-grow">
+                        <canvas id="chartDone"></canvas>
+                        <div id="emptyChartDone" class="hidden absolute inset-0 flex items-center justify-center text-gray-500 italic bg-white/90">Không có dữ liệu phù hợp với bộ lọc.</div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 2: Dự Kiến -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between">
+                        <span class="font-bold text-pnjBlue text-lg"><i class="fas fa-clipboard-list mr-2 text-pnjGold"></i> Thống kê dự kiến</span>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col gap-5 justify-center bg-gray-50/50">
+                        
+                        <!-- Item 1: Mượn -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm transition-all hover:shadow-md cursor-pointer" onclick="togglePendingDetails()">
+                            <div class="flex justify-between items-center select-none">
+                                <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-pnjBlue rounded mr-3"></div>Dự kiến mượn</div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-3xl font-black text-pnjBlue" id="val-pending-m-total">-</span>
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="icon-pending-details"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Hidden details -->
+                            <div id="pending-m-details" class="hidden mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3 pl-5 text-sm">
+                                <div class="flex justify-between items-center text-gray-600">
+                                    <span class="font-medium"><i class="fas fa-warehouse mr-2 text-gray-400"></i>Từ KHO:</span>
+                                    <span class="font-bold text-lg text-pnjBlue" id="val-pending-m-kho">-</span>
+                                </div>
+                                <div class="flex justify-between items-center text-gray-600">
+                                    <span class="font-medium"><i class="fas fa-store mr-2 text-gray-400"></i>Từ NVT:</span>
+                                    <span class="font-bold text-lg text-pnjBlue" id="val-pending-m-nvt">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 2: Chụp -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex justify-between items-center hover:shadow-md transition-all">
+                            <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-pnjGold rounded mr-3"></div>Dự kiến chụp</div>
+                            <span class="text-3xl font-black text-pnjGold" id="val-pending-c">-</span>
+                        </div>
+
+                        <!-- Item 3: Retouch -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex justify-between items-center hover:shadow-md transition-all">
+                            <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-gray-400 rounded mr-3"></div>Dự kiến retouch</div>
+                            <span class="text-3xl font-black text-gray-600" id="val-pending-r">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: SUMMARY ==================== -->
+        <div id="tab-summary" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                
+                <div class="bg-white p-5 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Tổng hợp mượn hàng</span>
+                    <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm w-fit">
+                        <i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo
+                    </button>
+                </div>
+                
+                <!-- Thanh Lọc -->
+                <div class="bg-gray-50 p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
+                    <span class="text-sm font-bold text-pnjBlue uppercase"><i class="fas fa-filter text-pnjGold mr-1"></i> Lọc dữ liệu:</span>
+                    
+                    <!-- Dropdowns lọc -->
+                    <div class="relative inline-block text-left" id="wrap-filter-month">
+                        <button onclick="toggleFilterDropdown('dropdown-month')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[140px]">
+                            <span id="label-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-month" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-month" checked onchange="toggleAllCheckboxes('month', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative inline-block text-left" id="wrap-filter-noiMuon">
+                        <button onclick="toggleFilterDropdown('dropdown-noiMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[160px]">
+                            <span id="label-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-noiMuon" checked onchange="toggleAllCheckboxes('noiMuon', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative inline-block text-left" id="wrap-filter-ttMuon">
+                        <button onclick="toggleFilterDropdown('dropdown-ttMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[160px]">
+                            <span id="label-ttMuon" class="truncate font-medium">Tất cả TT Mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-ttMuon" class="hidden absolute z-50 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-ttMuon" checked onchange="toggleAllCheckboxes('ttMuon', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-ttMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <button onclick="clearSummaryFilters()" class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 transition-colors ml-auto">
+                        <i class="fas fa-times-circle"></i> Xóa lọc
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto table-container max-h-[65vh]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
                             <tr>
-                                <th class="px-4 py-5 w-12 text-center">Xóa</th>
-                                <th class="px-6 py-5 min-w-[200px]">Mã SKU</th>
-                                <th class="px-4 py-5 text-center">Tháng</th>
-                                <th class="px-6 py-5">Nơi Mượn</th>
-                                <th class="px-6 py-5">Lô Mượn</th>
-                                <th class="px-6 py-5">TT Mượn</th>
-                                <th class="px-6 py-5">TT Chụp</th>
-                                <th class="px-6 py-5">TT Retouch</th>
-                                <th class="px-6 py-5">BĐ Mượn</th>
-                                <th class="px-6 py-5">Nhận Hàng</th>
-                                <th class="px-6 py-5">Trả Hàng</th>
-                                <th class="px-6 py-5 min-w-[200px]">Ghi Chú</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center rounded-tl-lg">Tháng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight">Nơi mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Bắt đầu mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Nhận hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Số ngày</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight">Tình trạng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Ghi chú</th>
+                                <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-body" class="divide-y divide-slate-100 font-medium"></tbody>
+                        <tbody id="summaryBody" class="divide-y divide-gray-200">
+                            <!-- Rows generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end text-gray-800 text-base font-bold">
+                    <div>Tổng tất cả SKU: <span id="summaryGrandTotal" class="text-pnjBlue text-2xl ml-2 font-black">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: HÌNH ẢNH ==================== -->
+        <div id="tab-image" class="hidden">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
+                <span class="font-bold text-pnjBlue text-sm uppercase tracking-wider"><i class="fas fa-filter text-pnjGold mr-2"></i> Lọc Tiến Độ:</span>
+                
+                <!-- Dropdown Image Tháng -->
+                <div class="relative inline-block text-left" id="wrap-filter-img-month">
+                    <button onclick="toggleFilterDropdown('dropdown-img-month')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[140px] flex justify-between items-center">
+                        <span id="label-img-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    </button>
+                    <div id="dropdown-img-month" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-xl rounded-lg border border-gray-200 top-full left-0">
+                        <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-img-month" checked onchange="toggleAllCheckboxes('img-month', this.checked)"><span>Chọn tất cả</span></label></div>
+                        <div id="list-img-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                    </div>
+                </div>
+                
+                <!-- Dropdown Image Nơi mượn -->
+                <div class="relative inline-block text-left" id="wrap-filter-img-noiMuon">
+                    <button onclick="toggleFilterDropdown('dropdown-img-noiMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[160px] flex justify-between items-center">
+                        <span id="label-img-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    </button>
+                    <div id="dropdown-img-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-xl rounded-lg border border-gray-200 top-full left-0">
+                        <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-img-noiMuon" checked onchange="toggleAllCheckboxes('img-noiMuon', this.checked)"><span>Chọn tất cả</span></label></div>
+                        <div id="list-img-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                    </div>
+                </div>
+                
+                <!-- Dropdown Image Lô mượn -->
+                <div class="relative inline-block text-left" id="wrap-filter-img-loMuon">
+                    <button onclick="toggleFilterDropdown('dropdown-img-loMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[200px] flex justify-between items-center">
+                        <span id="label-img-loMuon" class="truncate font-medium">Tất cả Lô mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    </button>
+                    <div id="dropdown-img-loMuon" class="hidden absolute z-50 mt-1 w-72 bg-white shadow-xl rounded-lg border border-gray-200 top-full left-0">
+                        <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg flex flex-col gap-2">
+                            <input type="text" id="search-img-loMuon" placeholder="Nhập để tìm lô mượn..." class="w-full text-sm border border-gray-300 rounded p-1.5 focus:border-pnjBlue focus:ring-1 focus:ring-pnjBlue outline-none transition-all" onkeyup="filterDropdownList('img-loMuon', this.value)" onclick="event.stopPropagation()">
+                            <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-img-loMuon" checked onchange="toggleAllCheckboxes('img-loMuon', this.checked)"><span>Chọn tất cả</span></label>
+                        </div>
+                        <div id="list-img-loMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                    </div>
+                </div>
+                
+                <div class="flex-grow"></div>
+                <button onclick="clearImageFilters()" class="text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium px-4 py-2 transition-colors border border-red-100">Xóa lọc</button>
+            </div>
+
+            <!-- START: MODULE BẢNG TÍNH NGÀY DỰ KIẾN -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
+                <h3 class="font-bold text-pnjBlue text-lg uppercase mb-4"><i class="fas fa-calculator mr-2 text-pnjGold"></i> Bảng Tính Ngày Dự Kiến</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nơi mượn (Để ktra trùng lịch)</label>
+                        <select id="calc-noi" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
+                            <option value="">-- Bỏ qua kiểm tra --</option>
+                            <option value="KHO">KHO</option>
+                            <option value="NVT">NVT</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ngày nhận hàng</label>
+                        <input type="date" id="calc-ngay" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tổng số lượng SKU</label>
+                        <input type="number" id="calc-sku" placeholder="VD: 160" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="calculateSimulation()" class="w-full bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-2 rounded-lg font-bold transition-colors shadow-sm flex justify-center items-center gap-2 h-[38px]">
+                            <i class="fas fa-magic"></i> Tính Toán
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vùng hiển thị kết quả -->
+                <div id="calc-result-area" class="hidden bg-pnjBg p-4 rounded-lg border border-gray-200 mt-4">
+                    <div id="calc-warning" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium leading-relaxed">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> <span id="calc-warning-text"></span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-pnjGold"></div>
+                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu chụp</p>
+                            <p class="text-xl font-black text-pnjBlue" id="res-bd-c">-</p>
+                        </div>
+                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-pnjGold"></div>
+                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc chụp</p>
+                            <p class="text-xl font-black text-pnjBlue" id="res-kt-c">-</p>
+                        </div>
+                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gray-500"></div>
+                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu Retouch</p>
+                            <p class="text-xl font-black text-gray-700" id="res-bd-r">-</p>
+                        </div>
+                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gray-500"></div>
+                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc Retouch</p>
+                            <p class="text-xl font-black text-gray-700" id="res-kt-r">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END: MODULE BẢNG TÍNH -->
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center">
+                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-calendar-alt mr-2 text-pnjGold"></i> Bảng Theo Dõi Tiến Độ</span>
+                    <button onclick="clearImageManualDates()" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                        <i class="fas fa-sync-alt"></i> Reset ngày thủ công
+                    </button>
+                </div>
+                <div class="p-4 bg-pnjGold/10 text-pnjBlue text-sm border-b border-pnjGold/20 font-medium">
+                    <i class="fas fa-info-circle mr-1 text-pnjGold"></i> <b>Quy tắc:</b> Tính tự động loại trừ T7, CN. Năng suất: ~32 SKU/ngày. Retouch bắt đầu sau chụp 2 ngày. Có thể click vào ô ngày để chỉnh sửa thủ công.
+                </div>
+                <div class="overflow-x-auto table-container max-h-[60vh]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
+                            <tr>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Lô mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tháng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tổng SKU</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Nhận hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">BĐ Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">KT Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Ngày<br>Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">BĐ Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">KT Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Ngày<br>Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
+                                <th class="px-4 py-4 text-center">Tiến độ Retouch</th>
+                            </tr>
+                        </thead>
+                        <tbody id="imageTrackingBody" class="divide-y divide-gray-200">
+                            <!-- Tracking Rows -->
+                        </tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- (Các Tab Summary & Image được build tương tự dựa trên Database) -->
-        <section id="section-summary" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-                <h2 class="text-xl font-black text-pnj-blue mb-6">TỔNG HỢP LÔ HÀNG CHI TIẾT</h2>
-                <div id="summary-content" class="overflow-x-auto"></div>
-            </div>
-        </section>
+        <!-- ==================== TAB 4: VIDEO ==================== -->
+        <div id="tab-video" class="hidden">
+            
+            <!-- START: VIDEO DASHBOARD (NEW) -->
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- KPI Năm -->
+                <div class="bg-[#1C3B5E] text-white rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute right-[-20px] bottom-[-20px] opacity-10"><i class="fas fa-video fa-6x"></i></div>
+                    <div>
+                        <h3 class="text-xs font-bold text-pnjGold uppercase tracking-wider mb-2">Mục Tiêu Năm 2026</h3>
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span class="text-5xl font-black">480</span>
+                            <span class="text-lg font-medium text-gray-300">sku</span>
+                        </div>
+                    </div>
+                    <div>
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-[#112640] rounded-full h-1.5 mb-2">
+                            <div id="kpi-video-year-bar" class="bg-pnjGold h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p id="kpi-video-year-pct" class="text-xs text-gray-300">Đã đạt 0% kế hoạch năm</p>
+                    </div>
+                </div>
 
-        <section id="section-image" class="hidden space-y-6">
-            <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 flex items-center gap-4 mb-6">
-                <i data-lucide="info" class="text-amber-500 w-8 h-8"></i>
-                <div class="text-sm">
-                    <p class="font-black text-amber-900">Quy tắc thông minh:</p>
-                    <p class="text-amber-800 opacity-70">Hệ thống tự động nối tiếp lịch các lô, nghỉ T7/CN. Năng suất: 32 SKU/ngày.</p>
+                <!-- KPI Quý Target -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex flex-col justify-center items-center relative">
+                    <div class="flex items-center gap-2 mb-2 text-emerald-600 font-bold text-sm cursor-pointer hover:bg-gray-50 px-3 py-1 rounded-lg transition-colors border border-transparent hover:border-gray-200 relative group">
+                        <i class="fas fa-check-circle"></i> 
+                        <select id="video-quarter-select" onchange="updateVideoQuarter(this.value)" class="bg-transparent font-bold text-emerald-600 outline-none cursor-pointer appearance-none pr-4">
+                            <option value="1">KPI QUÝ 1</option>
+                            <option value="2" selected>KPI QUÝ 2</option>
+                            <option value="3">KPI QUÝ 3</option>
+                            <option value="4">KPI QUÝ 4</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-2 top-1/2 transform -translate-y-1/2 text-xs"></i>
+                    </div>
+                    <span class="text-5xl font-black text-[#1C3B5E]">120</span>
+                </div>
+
+                <!-- KPI Quý Actual -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200 flex flex-col justify-center items-center">
+                    <h3 id="label-video-q-actual" class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i class="fas fa-video text-pnjGold"></i> Tổng Đã Quay (Q2)
+                    </h3>
+                    <div class="flex items-center gap-4">
+                        <span id="kpi-video-q-actual" class="text-5xl font-black text-pnjGold">0</span>
+                        <span id="kpi-video-q-pct" class="bg-[#Fdf6E3] text-[#B8860B] px-3 py-1 rounded-lg text-sm font-bold border border-[#F5E6B3]">0% Quý 2</span>
+                    </div>
                 </div>
             </div>
-            <div id="image-content" class="bg-white rounded-3xl shadow-xl overflow-hidden"></div>
-        </section>
 
-    </main>
+            <!-- Chart & Summary Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Bar Chart -->
+                <div class="lg:col-span-1 bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="font-bold text-[#1C3B5E] text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-gray-400"></i> Đã quay theo Tháng
+                    </h3>
+                    <div class="relative w-full flex-grow min-h-[250px]">
+                        <canvas id="chartVideo"></canvas>
+                        <div id="emptyChartVideo" class="hidden absolute inset-0 flex items-center justify-center text-gray-500 italic bg-white/90">Chưa có dữ liệu.</div>
+                    </div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-[#1C3B5E] p-4 border-b border-[#112640] flex justify-between items-center">
+                        <span class="font-bold text-white text-base uppercase tracking-wide flex items-center gap-2">
+                            <i class="fas fa-video text-pnjGold"></i> Bảng Theo Dõi Sản Xuất Video
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-600 uppercase bg-[#F8F5EE] border-b border-[#E8E2D2]">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold text-center">Tháng</th>
+                                    <th class="px-4 py-3 font-bold">Lô Video</th>
+                                    <th class="px-4 py-3 font-bold text-center">SL Thực Tế</th>
+                                    <th class="px-4 py-3 font-bold text-center">Tình Trạng Quay</th>
+                                    <th class="px-4 py-3 font-bold text-center">Tình Trạng Dựng</th>
+                                    <th class="px-4 py-3 font-bold">Ghi Chú</th>
+                                </tr>
+                            </thead>
+                            <tbody id="videoSummaryBody" class="divide-y divide-gray-100 bg-white">
+                                <!-- Generated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- END: VIDEO DASHBOARD -->
+
+            <!-- Form Control Nhập Liệu -->
+            <div class="flex flex-wrap gap-3 mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
+                <span class="font-bold text-pnjBlue uppercase text-sm"><i class="fas fa-table text-pnjGold mr-1"></i> Bảng Nhập Liệu Chi Tiết</span>
+                <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                <button onclick="addNewVideoRow()" class="bg-pnjBlue/10 text-pnjBlue hover:bg-pnjBlue/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Thêm Dòng
+                </button>
+                <div class="flex-grow"></div>
+                <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-6 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
+                    <i class="fas fa-save"></i> Lưu Dữ Liệu
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto table-container max-h-[65vh]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
+                            <tr>
+                                <th class="px-2 py-4 border-r border-pnjBlueLight w-12 text-center"><i class="fas fa-cog"></i></th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight sticky-col bg-[#002244] text-pnjGold min-w-[150px]">Mã SKU</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[80px]">Tháng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Loại video</th>
+                                <th class="px-4 py-4 min-w-[300px]">Content / Note</th>
+                            </tr>
+                        </thead>
+                        <tbody id="videoTableBody" class="divide-y divide-gray-200">
+                            <!-- Rows generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 5: DATABASE GỐC ==================== -->
+        <div id="tab-database" class="hidden">
+            <div class="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
+                <button onclick="addNewRow()" class="bg-pnjBlue/10 text-pnjBlue hover:bg-pnjBlue/20 px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Thêm Dòng
+                </button>
+                <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                    <i class="fas fa-save"></i> Lưu Dữ Liệu
+                </button>
+                
+                <div class="w-px h-8 bg-gray-300 mx-2 hidden md:block"></div>
+                
+                <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer flex items-center gap-2">
+                    <i class="fas fa-upload text-pnjBlue"></i> Nhập CSV
+                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
+                </label>
+                <button onclick="exportCSV()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                    <i class="fas fa-download text-pnjBlue"></i> Xuất CSV
+                </button>
+                
+                <div class="flex-grow"></div>
+                <button onclick="clearAllData()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg font-semibold transition-colors border border-red-100">
+                    Xóa toàn bộ
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto table-container max-h-[70vh]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
+                            <tr>
+                                <th class="px-2 py-4 border-r border-pnjBlueLight w-12 text-center"><i class="fas fa-cog"></i></th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight sticky-col bg-[#002244] text-pnjGold min-w-[150px]">Mã SKU 13</th>
+                                <th class="px-2 py-4 border-r border-pnjBlueLight min-w-[80px]">Tháng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[120px]">Nơi mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[120px]">Phân loại</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">BĐ mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">Nhận hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">Trả hàng</th>
+                                <th class="px-2 py-4 border-r border-pnjBlueLight min-w-[80px] text-center text-pnjGold">Số ngày</th>
+                                <th class="px-4 py-4 min-w-[250px]">Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-200">
+                            <!-- Rows generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-between items-center text-sm font-semibold text-gray-700">
+                    <span class="text-gray-500 italic font-normal">* Số ngày mượn tính tự động.</span>
+                    <div>Tổng dòng SKU: <span id="totalRowsCount" class="text-pnjBlue text-lg font-bold">0</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DataLists -->
+    <datalist id="noiMuonList"><option value="KHO"><option value="NVT"><option value="Sang tay"></datalist>
+    <datalist id="ttMuonList"><option value="Done mượn"><option value="Chuẩn bị mượn"><option value="Đang mượn"></datalist>
+    <datalist id="ttChupList"><option value="Done chụp"><option value="0"></datalist>
+    <datalist id="ttRetouchList"><option value="Done - đã retouch"><option value="0"></datalist>
+    <datalist id="phanLoaiList"><option value="Hàng 2025"><option value="Hàng 2026"></datalist>
+
+    <!-- START: FIREBASE CLOUD STORAGE SCRIPT -->
+    <script type="module">
+        // Import trực tiếp từ bộ thư viện gốc của Google phiên bản 11.6.1 để ổn định
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Cấu hình Firebase mà bạn đã cung cấp
+        let firebaseConfig;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            firebaseConfig = {
+                apiKey: "AIzaSyBW_picOLzLjkU-JT3PrfwDpFbUN5Cw9ag",
+                authDomain: "product-air-onsite.firebaseapp.com",
+                projectId: "product-air-onsite",
+                storageBucket: "product-air-onsite.firebasestorage.app",
+                messagingSenderId: "669904152111",
+                appId: "1:669904152111:web:3d4d53af1fb082c83608da",
+                measurementId: "G-NDXY6R3LVF"
+            };
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Fix: Sử dụng __app_id linh hoạt khi chạy trong môi trường Canvas, hoặc fallback về tên dự án của bạn khi đưa lên Github.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
+        
+        let currentUser = null;
+
+        // Bắt đầu xác thực danh tính
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth); // Đăng nhập ẩn danh
+                }
+            } catch(e) {
+                console.error("Lỗi xác thực:", e);
+                // Vẫn load data ở máy cá nhân nếu k xác thực đc
+                if(window.loadDataLocal) window.loadDataLocal();
+            }
+        };
+        initAuth();
+
+        // Tự động tải dữ liệu khi kết nối Cloud thành công
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await window.loadDataFromCloud();
+            } else {
+                if(window.loadDataLocal) window.loadDataLocal();
+            }
+        });
+
+        window.saveDataToCloud = async function() {
+            if (!currentUser) {
+                alert("Bạn chưa được kết nối với Cloud. Dữ liệu sẽ lưu ở máy tính hiện tại.");
+                if(window.saveDataLocal) window.saveDataLocal();
+                return;
+            }
+            try {
+                // Lưu dữ liệu vào Cloud
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data'); 
+                await setDoc(docRef, {
+                    tableData: window.tableData || [],
+                    videoData: window.videoData || [],
+                    imageManualDates: window.imageManualDates || {},
+                    imageManualEndDates: window.imageManualEndDates || {},
+                    imageManualRetouchStarts: window.imageManualRetouchStarts || {},
+                    imageManualRetouchEnds: window.imageManualRetouchEnds || {},
+                    timestamp: new Date().toISOString()
+                });
+                
+                const toast = document.getElementById('toast'); 
+                if (toast) {
+                    toast.classList.remove('opacity-0', 'translate-y-[-10px]'); 
+                    setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
+                }
+            } catch(e) {
+                console.error("Lỗi lưu Cloud:", e);
+                alert("Lỗi khi lưu lên Cloud. (Vui lòng đảm bảo Firestore Rules đã cho phép read/write).");
+                if(window.saveDataLocal) window.saveDataLocal(); // Chữa cháy lưu về máy
+            }
+        };
+
+        window.loadDataFromCloud = async function() {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.tableData = data.tableData || [];
+                    window.videoData = data.videoData || [];
+                    window.imageManualDates = data.imageManualDates || {};
+                    window.imageManualEndDates = data.imageManualEndDates || {};
+                    window.imageManualRetouchStarts = data.imageManualRetouchStarts || {};
+                    window.imageManualRetouchEnds = data.imageManualRetouchEnds || {};
+                    
+                    if (window.renderTable) window.renderTable(); 
+                    if (window.renderVideoTable) window.renderVideoTable(); 
+                    if (window.switchTab) window.switchTab('tab-report');
+                } else {
+                    // Nếu Cloud trắng (lần đầu tiên), cố gắng lấy từ LocalStorage đẩy lên
+                    if(window.loadDataLocal) window.loadDataLocal();
+                }
+            } catch(e) {
+                console.error("Lỗi tải Cloud:", e);
+                if(window.loadDataLocal) window.loadDataLocal();
+            }
+        }
+    </script>
+    <!-- END: FIREBASE CLOUD STORAGE SCRIPT -->
 
     <script>
-        let inventory = [];
-        let mainChart = null;
+        // Data Structures chuyển thành biến toàn cục (var) để tương tác được với Cloud
+        var tableData = [];
+        var videoData = [];
+        var imageManualDates = {}; 
+        var imageManualEndDates = {}; 
+        var imageManualRetouchStarts = {}; 
+        var imageManualRetouchEnds = {}; 
+        var chartDoneInstance = null;
+        var chartVideoInstance = null;
+        var currentVideoQuarter = 2; // Default Q2
 
-        // --- Core Logic ---
-        function init() {
-            const saved = localStorage.getItem('PNJ_APP_DATA_V2');
-            if (saved) {
-                inventory = JSON.parse(saved);
+        // UI toggles
+        function togglePendingDetails() {
+            const details = document.getElementById('pending-m-details');
+            const icon = document.getElementById('icon-pending-details');
+            if (details && icon) {
+                details.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
             }
-            lucide.createIcons();
-            renderAll();
         }
 
-        function switchTab(tab) {
-            ['report', 'database', 'summary', 'image'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.add('hidden');
-                document.getElementById(`tab-btn-${t}`).classList.remove('active-tab');
+        document.addEventListener('click', function(event) {
+            const dropdowns = ['dropdown-month', 'dropdown-noiMuon', 'dropdown-ttMuon', 'dropdown-report-month', 'dropdown-report-noiMuon', 'dropdown-img-month', 'dropdown-img-noiMuon', 'dropdown-img-loMuon'];
+            dropdowns.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.classList.contains('hidden')) {
+                    const btn = el.previousElementSibling;
+                    if (!el.contains(event.target) && !btn.contains(event.target)) el.classList.add('hidden');
+                }
             });
-            document.getElementById(`section-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-btn-${tab}`).classList.add('active-tab');
-            if (tab === 'report') renderReport();
-            if (tab === 'summary') renderSummary();
-            if (tab === 'image') renderImageTracking();
+        });
+
+        // Tab Switcher
+        window.switchTab = function(tabId) {
+            ['tab-database', 'tab-summary', 'tab-report', 'tab-video', 'tab-image'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+                const btn = document.getElementById('btn-' + id);
+                if(btn) btn.className = "text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all";
+            });
+            
+            const activeEl = document.getElementById(tabId);
+            if (activeEl) activeEl.classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) activeBtn.className = "bg-pnjBlue text-white py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-md";
+
+            if(tabId === 'tab-summary') { populateSummaryFilters(); renderSummary(); }
+            else if (tabId === 'tab-report') { populateReportFilters(); renderReport(); }
+            else if (tabId === 'tab-video') { renderVideoTable(); }
+            else if (tabId === 'tab-image') { populateImageFilters(); renderImageTrackingTable(); }
+            else if (tabId === 'tab-database') { window.renderTable(); }
         }
 
-        function addRow() {
-            const id = Date.now().toString(36);
-            inventory.unshift({ id, sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ttChup: '', ttRetouch: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' });
-            renderTable();
+        // Utils
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        function parseDateFromCSV(dateStr) {
+            if (!dateStr) return '';
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return dateStr;
+        }
+        function formatDateToDisplay(dateStr) {
+            if (!dateStr) return '';
+            if (dateStr.includes('-')) {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+        function getWorkingDays(startDate, endDate) {
+            if (!startDate || !endDate) return 0;
+            let start = new Date(startDate); let end = new Date(endDate);
+            if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+            let count = 0; let d = new Date(start);
+            while (d <= end) {
+                let day = d.getDay(); if (day !== 0 && day !== 6) count++;
+                d.setDate(d.getDate() + 1);
+            }
+            return count;
+        }
+        function addWorkingDays(dateStr, days) {
+            if (!dateStr) return '';
+            let parts = dateStr.split('-'); if (parts.length !== 3) return '';
+            let d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            if (isNaN(d.getTime())) return '';
+            if (d.getDay() === 0) d.setDate(d.getDate() + 1); 
+            else if (d.getDay() === 6) d.setDate(d.getDate() + 2); 
+            while (days > 0) {
+                d.setDate(d.getDate() + 1);
+                if (d.getDay() !== 0 && d.getDay() !== 6) days--;
+            }
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function calculateDays(startDate, receiveDate) {
+            if (!startDate || !receiveDate) return '';
+            const start = new Date(startDate); const receive = new Date(receiveDate);
+            const diffTime = receive - start;
+            return diffTime < 0 ? 0 : Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         }
 
-        function updateRow(id, field, value) {
-            const row = inventory.find(r => r.id === id);
-            if (row) row[field] = value;
+        // CRUD Operations
+        window.addNewRow = function() {
+            tableData.unshift({ id: generateId(), sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ttChup: '', ttRetouch: '', phanLoai: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' });
+            window.renderTable();
         }
-
-        function deleteRow(id) {
-            if(confirm('Xóa dòng này?')) {
-                inventory = inventory.filter(r => r.id !== id);
-                renderTable();
+        window.addNewVideoRow = function() {
+            videoData.unshift({ id: generateId(), sku: '', month: '', ttVideo: '', loaiVideo: '', videoNote: '' });
+            window.renderVideoTable();
+        }
+        window.deleteRow = function(id) { if(confirm('Xóa dòng này?')) { tableData = tableData.filter(row => row.id !== id); window.renderTable(); } }
+        window.deleteVideoRow = function(id) { if(confirm('Xóa dòng này?')) { videoData = videoData.filter(row => row.id !== id); window.renderVideoTable(); } }
+        window.clearAllData = function() { if(confirm("Xóa toàn bộ Database?")) { tableData = []; window.renderTable(); saveData(); } }
+        window.clearImageManualDates = function() {
+            if(confirm("Xóa lịch chỉnh tay?")) {
+                imageManualDates = {}; imageManualEndDates = {}; imageManualRetouchStarts = {}; imageManualRetouchEnds = {};
+                renderImageTrackingTable(); saveData();
             }
         }
 
-        function saveData() {
-            localStorage.setItem('PNJ_APP_DATA_V2', JSON.stringify(inventory));
-            const toast = document.getElementById('toast');
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
+        window.updateCell = function(id, field, value) {
+            const rowIndex = tableData.findIndex(row => row.id === id);
+            if (rowIndex > -1) {
+                tableData[rowIndex][field] = value;
+                if (field === 'ngayBatDau' || field === 'ngayNhan') {
+                    const days = calculateDays(tableData[rowIndex].ngayBatDau, tableData[rowIndex].ngayNhan);
+                    const cell = document.getElementById(`days_${id}`);
+                    if(cell) cell.innerText = days !== '' ? days : '-';
+                }
+            }
+        }
+        window.updateVideoCell = function(id, field, value) { 
+            const rowIndex = videoData.findIndex(row => row.id === id); 
+            if (rowIndex > -1) {
+                videoData[rowIndex][field] = value; 
+                renderVideoDashboard(); 
+            }
+        }
+        
+        window.updateImageManualDate = function(loMuon, value) { if (value) imageManualDates[loMuon] = value; else delete imageManualDates[loMuon]; renderImageTrackingTable(); saveData(); }
+        window.updateImageManualEndDate = function(loMuon, value) { if (value) imageManualEndDates[loMuon] = value; else delete imageManualEndDates[loMuon]; renderImageTrackingTable(); saveData(); }
+        window.updateImageManualRetouchStart = function(loMuon, value) { if (value) imageManualRetouchStarts[loMuon] = value; else delete imageManualRetouchStarts[loMuon]; renderImageTrackingTable(); saveData(); }
+        window.updateImageManualRetouchEnd = function(loMuon, value) { if (value) imageManualRetouchEnds[loMuon] = value; else delete imageManualRetouchEnds[loMuon]; renderImageTrackingTable(); saveData(); }
+
+        // --- CÁC HÀM TẠO VÀ XỬ LÝ BỘ LỌC (FILTERS) ---
+        function getFilterState(fullType) {
+            const cbs = document.querySelectorAll(`.cb-${fullType}`); 
+            if (cbs.length === 0) return null; 
+            const selectAllBtn = document.getElementById(`selectAll-${fullType}`);
+            return (selectAllBtn && selectAllBtn.checked) ? 'ALL' : Array.from(cbs).filter(cb => cb.checked).map(cb => cb.value);
         }
 
-        // --- View Renders ---
-        function renderAll() {
-            renderTable();
-            renderReport();
-        }
+        const sortValuesHelper = (a, b) => {
+            if (a === 'Trống') return 1; if (b === 'Trống') return -1;
+            const numA = Number(a); const numB = Number(b);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            return a.toString().localeCompare(b.toString());
+        };
 
-        function renderTable() {
-            const body = document.getElementById('inventory-body');
-            body.innerHTML = inventory.map(r => `
-                <tr class="hover:bg-pnj-light transition-colors group">
-                    <td class="text-center"><button onclick="deleteRow('${r.id}')" class="text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.sku}" onchange="updateRow('${r.id}', 'sku', this.value)" class="font-black text-pnj-blue" placeholder="..."></td>
-                    <td class="px-2 py-1"><input type="number" value="${r.month}" onchange="updateRow('${r.id}', 'month', this.value)" class="text-center"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.noiMuon}" onchange="updateRow('${r.id}', 'noiMuon', this.value)"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.loMuon}" onchange="updateRow('${r.id}', 'loMuon', this.value)"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.ttMuon}" onchange="updateRow('${r.id}', 'ttMuon', this.value)"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.ttChup}" onchange="updateRow('${r.id}', 'ttChup', this.value)"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.ttRetouch}" onchange="updateRow('${r.id}', 'ttRetouch', this.value)"></td>
-                    <td class="px-4 py-1"><input type="date" value="${r.ngayBatDau}" onchange="updateRow('${r.id}', 'ngayBatDau', this.value)" class="text-xs"></td>
-                    <td class="px-4 py-1"><input type="date" value="${r.ngayNhan}" onchange="updateRow('${r.id}', 'ngayNhan', this.value)" class="text-xs"></td>
-                    <td class="px-4 py-1"><input type="date" value="${r.ngayTra}" onchange="updateRow('${r.id}', 'ngayTra', this.value)" class="text-xs"></td>
-                    <td class="px-4 py-1"><input type="text" value="${r.note}" onchange="updateRow('${r.id}', 'note', this.value)" class="italic"></td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function renderReport() {
-            const doneMuon = inventory.filter(r => r.ttMuon && r.ttMuon.toLowerCase().includes('done')).length;
-            const doneChup = inventory.filter(r => r.ttChup && r.ttChup.toLowerCase().includes('done')).length;
-            const doneRetouch = inventory.filter(r => r.ttRetouch && r.ttRetouch.toLowerCase().includes('done')).length;
+        function buildFilterDropdown(set, fullType, curSelected) {
+            const listEl = document.getElementById(`list-${fullType}`); if(!listEl) return;
+            let allChecked = true;
             
-            document.getElementById('kpi-muon').innerText = doneMuon;
-            document.getElementById('kpi-chup').innerText = doneChup;
-            document.getElementById('kpi-retouch').innerText = doneRetouch;
+            const searchInput = document.getElementById(`search-${fullType}`);
+            if (searchInput) searchInput.value = '';
 
-            const pending = inventory.filter(r => !(r.ttMuon && r.ttMuon.toLowerCase().includes('done')));
-            document.getElementById('pending-total').innerText = pending.length;
-            document.getElementById('pending-kho').innerText = pending.filter(r => r.noiMuon === 'KHO').length;
-            document.getElementById('pending-nvt').innerText = pending.filter(r => r.noiMuon === 'NVT').length;
-            document.getElementById('pending-chup').innerText = inventory.filter(r => !(r.ttChup && r.ttChup.toLowerCase().includes('done'))).length;
+            if (set.size === 0) {
+                listEl.innerHTML = '<div class="px-2 py-1.5 text-sm text-gray-400 italic">Không có dữ liệu</div>';
+                return;
+            }
 
-            renderChart();
+            listEl.innerHTML = Array.from(set).sort(sortValuesHelper).map(val => {
+                let isChecked = (curSelected === null || curSelected === 'ALL') ? true : curSelected.includes(val.toString());
+                if (!isChecked) allChecked = false;
+                return `<label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded">
+                            <input type="checkbox" value="${val}" class="cb-${fullType} rounded text-pnjBlue focus:ring-pnjBlue" ${isChecked ? 'checked' : ''} onchange="handleCheckboxChange('${fullType}')">
+                            <span class="truncate">${val}</span>
+                        </label>`;
+            }).join('');
+            
+            const selectAllBtn = document.getElementById(`selectAll-${fullType}`); 
+            if(selectAllBtn) selectAllBtn.checked = allChecked;
+            
+            updateFilterLabel(fullType);
         }
 
-        function renderChart() {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            if (mainChart) mainChart.destroy();
+        window.toggleFilterDropdown = function(id) {
+            const el = document.getElementById(id);
+            ['dropdown-month', 'dropdown-noiMuon', 'dropdown-ttMuon', 'dropdown-report-month', 'dropdown-report-noiMuon', 'dropdown-img-month', 'dropdown-img-noiMuon', 'dropdown-img-loMuon'].forEach(otherId => {
+                const otherEl = document.getElementById(otherId); if(otherEl && otherId !== id) otherEl.classList.add('hidden');
+            });
+            if(el) el.classList.toggle('hidden');
+        }
 
-            const months = Array.from(new Set(inventory.map(r => r.month))).filter(Boolean).sort();
-            const data = {
-                labels: months.map(m => `T${m}`),
-                datasets: [
-                    { label: 'Đã Mượn', data: months.map(m => inventory.filter(r => r.month === m && r.ttMuon && r.ttMuon.toLowerCase().includes('done')).length), backgroundColor: '#004E98' },
-                    { label: 'Đã Chụp', data: months.map(m => inventory.filter(r => r.month === m && r.ttChup && r.ttChup.toLowerCase().includes('done')).length), backgroundColor: '#22C55E' },
-                    { label: 'Đã Retouch', data: months.map(m => inventory.filter(r => r.month === m && r.ttRetouch && r.ttRetouch.toLowerCase().includes('done')).length), backgroundColor: '#A855F7' }
-                ]
-            };
+        window.toggleAllCheckboxes = function(fullType, isChecked) {
+            document.querySelectorAll(`.cb-${fullType}`).forEach(cb => cb.checked = isChecked);
+            updateFilterLabel(fullType);
+            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) renderImageTrackingTable(); else renderSummary();
+        }
 
-            mainChart = new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold' } } } },
-                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+        window.handleCheckboxChange = function(fullType) {
+            const cbs = document.querySelectorAll(`.cb-${fullType}`);
+            const selectAllBtn = document.getElementById(`selectAll-${fullType}`);
+            if(selectAllBtn) selectAllBtn.checked = Array.from(cbs).every(cb => cb.checked);
+            updateFilterLabel(fullType);
+            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) renderImageTrackingTable(); else renderSummary();
+        }
+
+        function updateFilterLabel(fullType) {
+            const cbs = document.querySelectorAll(`.cb-${fullType}`);
+            const checkedCbs = Array.from(cbs).filter(cb => cb.checked);
+            const labelEl = document.getElementById(`label-${fullType}`);
+            if(!labelEl) return;
+            
+            let baseType = fullType.replace('report-', '').replace('img-', '');
+            let prefix = baseType === 'month' ? 'Tháng' : (baseType === 'noiMuon' ? 'Nơi mượn' : (baseType === 'loMuon' ? 'Lô mượn' : 'TT Mượn'));
+            
+            if (checkedCbs.length === cbs.length) {
+                labelEl.innerText = `Tất cả ${prefix}`;
+            } else if (checkedCbs.length === 0) {
+                labelEl.innerText = `Trống (${prefix})`;
+            } else if (checkedCbs.length === 1) {
+                let val = checkedCbs[0].value;
+                labelEl.innerText = (baseType === 'month' && val !== 'Trống') ? `Tháng ${val}` : val;
+            } else {
+                labelEl.innerText = `Đã chọn (${checkedCbs.length})`;
+            }
+        }
+
+        window.filterDropdownList = function(type, searchTerm) {
+            const term = searchTerm.toLowerCase();
+            const listEl = document.getElementById(`list-${type}`);
+            if (!listEl) return;
+            const labels = listEl.querySelectorAll('label');
+            labels.forEach(label => {
+                const text = label.innerText.toLowerCase();
+                if (text.includes(term)) {
+                    label.classList.remove('hidden');
+                    label.classList.add('flex');
+                } else {
+                    label.classList.add('hidden');
+                    label.classList.remove('flex');
                 }
             });
         }
 
-        function renderSummary() {
-            const groups = inventory.reduce((acc, r) => {
-                const key = `${r.month}-${r.noiMuon}-${r.loMuon}`;
-                if (!acc[key]) acc[key] = { ...r, count: 0, c: 0, r: 0 };
-                acc[key].count++;
-                if (r.ttChup && r.ttChup.toLowerCase().includes('done')) acc[key].c++;
-                if (r.ttRetouch && r.ttRetouch.toLowerCase().includes('done')) acc[key].r++;
-                return acc;
-            }, {});
+        function populateSummaryFilters() {
+            const curMonth = getFilterState('month'); const curNoi = getFilterState('noiMuon'); const curTT = getFilterState('ttMuon');
+            const months = new Set(); const nois = new Set(); const tts = new Set();
+            tableData.forEach(row => { if (!row.sku && !row.loMuon && !row.noiMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); tts.add(row.ttMuon || 'Trống'); });
+            buildFilterDropdown(months, 'month', curMonth);
+            buildFilterDropdown(nois, 'noiMuon', curNoi);
+            buildFilterDropdown(tts, 'ttMuon', curTT);
+        }
+        window.clearSummaryFilters = function() { ['month', 'noiMuon', 'ttMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); }
 
-            document.getElementById('summary-content').innerHTML = `
-                <table class="w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-black">
-                        <tr><th class="p-4">Tháng</th><th class="p-4">Nơi</th><th class="p-4">Lô</th><th class="p-4">Nhận Hàng</th><th class="p-4 text-center">Chụp</th><th class="p-4 text-center">Retouch</th><th class="p-4 text-right">Tổng SKU</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        ${Object.values(groups).map(g => `
-                            <tr>
-                                <td class="p-4 font-bold text-slate-400">${g.month}</td><td class="p-4">${g.noiMuon}</td><td class="p-4 font-black">${g.loMuon}</td>
-                                <td class="p-4 text-slate-400">${g.ngayNhan}</td>
-                                <td class="p-4 text-center"><span class="text-green-600 font-bold">${g.c}</span>/${g.count}</td>
-                                <td class="p-4 text-center"><span class="text-green-600 font-bold">${g.r}</span>/${g.count}</td>
-                                <td class="p-4 text-right font-black text-pnj-blue">${g.count}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        function populateReportFilters() {
+            const curMonth = getFilterState('report-month'); const curNoi = getFilterState('report-noiMuon');
+            const months = new Set(); const nois = new Set();
+            tableData.forEach(row => { if (!row.sku && !row.loMuon && !row.noiMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); });
+            buildFilterDropdown(months, 'report-month', curMonth);
+            buildFilterDropdown(nois, 'report-noiMuon', curNoi);
+        }
+        window.clearReportFilters = function() { ['report-month', 'report-noiMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); }
+
+        function populateImageFilters() {
+            const curMonth = getFilterState('img-month'); const curNoi = getFilterState('img-noiMuon'); const curLo = getFilterState('img-loMuon');
+            const months = new Set(); const nois = new Set(); const los = new Set();
+            tableData.forEach(row => { if (!row.loMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); los.add(row.loMuon); });
+            buildFilterDropdown(months, 'img-month', curMonth);
+            buildFilterDropdown(nois, 'img-noiMuon', curNoi);
+            buildFilterDropdown(los, 'img-loMuon', curLo);
+        }
+        window.clearImageFilters = function() { ['img-month', 'img-noiMuon', 'img-loMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); }
+
+
+        // --- CÁC HÀM RENDER (TẠO BẢNG & BIỂU ĐỒ) ---
+        window.renderTable = function() {
+            const tbody = document.getElementById('tableBody'); if(!tbody) return;
+            tbody.innerHTML = tableData.map(row => {
+                const calculatedDays = calculateDays(row.ngayBatDau, row.ngayNhan);
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors group bg-white">
+                        <td class="px-2 py-2 border-r border-gray-100 text-center"><button onclick="deleteRow('${row.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash"></i></button></td>
+                        <td class="px-2 py-1 border-r border-gray-100 sticky-col bg-white"><input type="text" value="${row.sku}" onchange="updateCell('${row.id}', 'sku', this.value)" class="font-bold text-pnjBlue" placeholder="Nhập SKU"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="number" min="1" max="12" value="${row.month}" onchange="updateCell('${row.id}', 'month', this.value)" class="text-center font-medium"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.noiMuon}" onchange="updateCell('${row.id}', 'noiMuon', this.value)" list="noiMuonList"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.loMuon}" onchange="updateCell('${row.id}', 'loMuon', this.value)"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttMuon}" onchange="updateCell('${row.id}', 'ttMuon', this.value)" list="ttMuonList" class="${row.ttMuon?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttChup}" onchange="updateCell('${row.id}', 'ttChup', this.value)" list="ttChupList" class="${row.ttChup?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttRetouch}" onchange="updateCell('${row.id}', 'ttRetouch', this.value)" list="ttRetouchList" class="${row.ttRetouch?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.phanLoai}" onchange="updateCell('${row.id}', 'phanLoai', this.value)" list="phanLoaiList"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayBatDau}" onchange="updateCell('${row.id}', 'ngayBatDau', this.value)" class="text-xs"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayNhan}" onchange="updateCell('${row.id}', 'ngayNhan', this.value)" class="text-xs"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayTra}" onchange="updateCell('${row.id}', 'ngayTra', this.value)" class="text-xs"></td>
+                        <td class="px-2 py-1 border-r border-gray-100 text-center font-bold text-pnjGold bg-pnjGold/5" id="days_${row.id}">${calculatedDays !== '' ? calculatedDays : '-'}</td>
+                        <td class="px-1 py-1"><input type="text" value="${row.note}" onchange="updateCell('${row.id}', 'note', this.value)"></td>
+                    </tr>`;
+            }).join('');
+            const totalCount = document.getElementById('totalRowsCount');
+            if (totalCount) totalCount.innerText = tableData.length.toLocaleString();
         }
 
-        function renderImageTracking() {
-            // Logically similar to Summary but adding date calculations
-            const content = document.getElementById('image-content');
-            content.innerHTML = `<div class="p-20 text-center text-slate-400 font-bold italic">Bảng tiến độ đang được đồng bộ dựa trên Database...</div>`;
-            renderSummary(); // Fallback to summary for now to show data
+        window.renderVideoTable = function() {
+            const tbody = document.getElementById('videoTableBody'); if(!tbody) return;
+            tbody.innerHTML = videoData.map(row => `
+                <tr class="hover:bg-gray-50 transition-colors group bg-white">
+                    <td class="px-2 py-2 border-r border-gray-100 text-center"><button onclick="deleteVideoRow('${row.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash"></i></button></td>
+                    <td class="px-2 py-1 border-r border-gray-100 sticky-col bg-white"><input type="text" value="${row.sku}" onchange="updateVideoCell('${row.id}', 'sku', this.value)" class="font-bold text-pnjBlue" placeholder="Nhập SKU"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="number" min="1" max="12" value="${row.month}" onchange="updateVideoCell('${row.id}', 'month', this.value)" class="text-center font-medium"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttVideo || ''}" onchange="updateVideoCell('${row.id}', 'ttVideo', this.value)" placeholder="VD: Đã xong"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.loaiVideo || ''}" onchange="updateVideoCell('${row.id}', 'loaiVideo', this.value)" placeholder="VD: Đang dựng"></td>
+                    <td class="px-1 py-1"><input type="text" value="${row.videoNote || ''}" onchange="updateVideoCell('${row.id}', 'videoNote', this.value)"></td>
+                </tr>`).join('');
+            renderVideoDashboard();
         }
 
-        // --- CSV ---
-        function exportCSV() {
-            const headers = ["SKU","Tháng","Nơi mượn","Lô mượn","TT Mượn","TT Chụp","TT Retouch","Ghi chú"];
-            const csv = "\uFEFF" + headers.join(",") + "\n" + inventory.map(r => `"${r.sku}","${r.month}","${r.noiMuon}","${r.loMuon}","${r.ttMuon}","${r.ttChup}","${r.ttRetouch}","${r.note}"`).join("\n");
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `PNJ_Inventory_Export.csv`;
-            link.click();
+        window.updateVideoQuarter = function(q) {
+            currentVideoQuarter = parseInt(q);
+            renderVideoDashboard();
         }
 
-        function importCSV(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const lines = event.target.result.split('\n').slice(1);
-                const newData = lines.filter(l => l.trim()).map(line => {
-                    const p = line.split(',').map(s => s.replace(/"/g, '').trim());
-                    return { id: Math.random().toString(36), sku: p[0], month: p[1], noiMuon: p[2], loMuon: p[3], ttMuon: p[4], ttChup: p[5], ttRetouch: p[6], note: p[7], ngayBatDau: '', ngayNhan: '', ngayTra: '' };
+        function renderVideoDashboard() {
+            let yearlyTotal = 0;
+            let quarterlyTotal = 0;
+            let monthlyData = {};
+
+            for(let i=1; i<=12; i++) {
+                monthlyData[i] = { count: 0, ttQuay: '', ttDung: '', notes: new Set() };
+            }
+
+            videoData.forEach(row => {
+                if(!row.sku || !row.month) return;
+                let m = parseInt(row.month);
+                if(isNaN(m) || m < 1 || m > 12) return;
+
+                yearlyTotal++;
+                monthlyData[m].count++;
+                
+                let q = Math.floor((m - 1) / 3) + 1;
+                if(q === currentVideoQuarter) {
+                    quarterlyTotal++;
+                }
+
+                if (row.ttVideo) monthlyData[m].ttQuay = row.ttVideo;
+                if (row.loaiVideo) monthlyData[m].ttDung = row.loaiVideo;
+                if (row.videoNote) monthlyData[m].notes.add(row.videoNote);
+            });
+
+            let yearPct = Math.min(100, Math.round((yearlyTotal / 480) * 100));
+            const yearPctEl = document.getElementById('kpi-video-year-pct');
+            if (yearPctEl) yearPctEl.innerText = `Đã đạt ${yearPct}% kế hoạch năm`;
+            const yearBarEl = document.getElementById('kpi-video-year-bar');
+            if (yearBarEl) yearBarEl.style.width = `${yearPct}%`;
+
+            const labelActual = document.getElementById('label-video-q-actual');
+            if (labelActual) labelActual.innerHTML = `<i class="fas fa-video text-pnjGold"></i> Tổng Đã Quay (Q${currentVideoQuarter})`;
+            const kpiActual = document.getElementById('kpi-video-q-actual');
+            if (kpiActual) kpiActual.innerText = quarterlyTotal;
+            let qPct = Math.min(100, Math.round((quarterlyTotal / 120) * 100));
+            const kpiPct = document.getElementById('kpi-video-q-pct');
+            if (kpiPct) kpiPct.innerText = `${qPct}% Quý ${currentVideoQuarter}`;
+
+            let chartLabels = [];
+            let chartValues = [];
+            let tableHTML = '';
+
+            for(let i=1; i<=12; i++) {
+                if(monthlyData[i].count > 0) {
+                    chartLabels.push(`Tháng ${i}`);
+                    chartValues.push(monthlyData[i].count);
+
+                    let tQ = monthlyData[i].ttQuay || 'Chưa cập nhật';
+                    let tQClass = tQ.toLowerCase().includes('xong') || tQ.toLowerCase().includes('done') 
+                                  ? 'bg-[#Fdf6E3] text-[#B8860B] border border-[#F5E6B3]' 
+                                  : 'bg-gray-100 text-gray-600 border border-gray-200';
+                    
+                    let tD = monthlyData[i].ttDung || 'Chưa cập nhật';
+                    let tDClass = tD.toLowerCase().includes('đang') 
+                                  ? 'bg-[#E8F0FE] text-[#1C3B5E] border border-[#D1E0F5]'
+                                  : (tD.toLowerCase().includes('xong') || tD.toLowerCase().includes('done') 
+                                      ? 'bg-[#Fdf6E3] text-[#B8860B] border border-[#F5E6B3]' 
+                                      : 'bg-gray-100 text-gray-600 border border-gray-200');
+
+                    let n = Array.from(monthlyData[i].notes).join('; ') || '-';
+
+                    tableHTML += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 font-bold rounded shadow-sm text-xs">T${i}</span>
+                            </td>
+                            <td class="px-4 py-3 font-bold text-[#1C3B5E]">Video-Tháng ${i}</td>
+                            <td class="px-4 py-3 text-center font-bold text-red-500">${monthlyData[i].count}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-3 py-1 rounded text-xs font-bold ${tQClass}">${tQ}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-3 py-1 rounded text-xs font-bold ${tDClass}">${tD}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500 text-sm truncate max-w-[150px]" title="${n}">${n}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            const videoSummaryBody = document.getElementById('videoSummaryBody');
+            if (videoSummaryBody) videoSummaryBody.innerHTML = tableHTML || `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">Chưa có dữ liệu sản xuất. Vui lòng nhập dữ liệu ở bảng chi tiết bên dưới.</td></tr>`;
+
+            const canvas = document.getElementById('chartVideo');
+            const empty = document.getElementById('emptyChartVideo');
+            if (!canvas || !empty) return;
+            if(chartVideoInstance) chartVideoInstance.destroy();
+            
+            if (chartLabels.length === 0) {
+                canvas.classList.add('hidden');
+                empty.classList.remove('hidden');
+            } else {
+                canvas.classList.remove('hidden');
+                empty.classList.add('hidden');
+                chartVideoInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Số lượng Video',
+                            data: chartValues,
+                            backgroundColor: '#7393B3',
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 25 } },
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } },
+                            x: { grid: { display: false }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } }
+                        }
+                    },
+                    plugins: [{
+                        id: 'customDataLabelsVideo',
+                        afterDatasetsDraw(chart) {
+                            const { ctx, data } = chart;
+                            ctx.save();
+                            ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillStyle = '#1C3B5E';
+                            
+                            data.datasets[0].data.forEach((value, index) => {
+                                if (value > 0) {
+                                    const meta = chart.getDatasetMeta(0);
+                                    const bar = meta.data[index];
+                                    ctx.fillText(value, bar.x, bar.y - 4);
+                                }
+                            });
+                            ctx.restore();
+                        }
+                    }]
                 });
-                inventory = [...newData, ...inventory];
-                renderAll();
-                saveData();
+            }
+        }
+
+        function renderImageTrackingTable() {
+            const tbody = document.getElementById('imageTrackingBody'); if(!tbody) return;
+            let batches = {};
+            tableData.forEach(row => {
+                if (!row.loMuon) return;
+                if (!batches[row.loMuon]) batches[row.loMuon] = { loMuon: row.loMuon, month: row.month || 'Trống', noiMuon: row.noiMuon || 'Trống', skuCount: 0, ngayNhan: null, chupDone: 0, retouchDone: 0 };
+                batches[row.loMuon].skuCount++;
+                if (row.ttChup && row.ttChup.toLowerCase().includes('done')) batches[row.loMuon].chupDone++;
+                if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) batches[row.loMuon].retouchDone++;
+                if (row.ngayNhan) if (!batches[row.loMuon].ngayNhan || row.ngayNhan < batches[row.loMuon].ngayNhan) batches[row.loMuon].ngayNhan = row.ngayNhan;
+            });
+
+            const getV = (type) => Array.from(document.querySelectorAll(`.cb-img-${type}:checked`)).map(cb => cb.value);
+            const mF = getV('month'); const nF = getV('noiMuon'); const lF = getV('loMuon');
+            let bA = Object.values(batches).filter(b => mF.includes(b.month.toString()) && nF.includes(b.noiMuon) && lF.includes(b.loMuon)).sort((a,b) => (a.ngayNhan||'9').localeCompare(b.ngayNhan||'9'));
+
+            let av = null; let html = '';
+            bA.forEach(b => {
+                let bs = b.ngayNhan ? addWorkingDays(b.ngayNhan, 1) : '';
+                if (av && bs && bs < av) bs = av;
+                let s = imageManualDates[b.loMuon] || bs;
+                let eC = '', aeC = '', sR = '', asR = '', eR = '', aeR = '', tCD = '-', tRD = '-';
+                if (s) {
+                    let rD = Math.ceil(b.skuCount / 32); let dD = Math.max(0, rD - 1);
+                    eC = addWorkingDays(s, dD); aeC = imageManualEndDates[b.loMuon] || eC;
+                    sR = addWorkingDays(s, 2); asR = imageManualRetouchStarts[b.loMuon] || sR;
+                    eR = addWorkingDays(asR, dD); aeR = imageManualRetouchEnds[b.loMuon] || eR;
+                    tCD = getWorkingDays(s, aeC) || 1; tRD = getWorkingDays(asR, aeR) || 1;
+                    av = addWorkingDays(aeC, 1);
+                }
+                html += `
+                    <tr class="hover:bg-gray-50 transition-colors bg-white">
+                        <td class="px-4 py-3 border-r border-gray-100 font-bold text-pnjBlue">${b.loMuon}</td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center">${b.month}</td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjBlue bg-pnjBlue/5">${b.skuCount}</td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center text-gray-500">${formatDateToDisplay(b.ngayNhan) || '-'}</td>
+                        <td class="px-2 py-2 border-r border-gray-100 text-center"><input type="date" value="${s}" onchange="updateImageManualDate('${b.loMuon}', this.value)" class="text-xs bg-transparent border-none"></td>
+                        <td class="px-2 py-2 border-r border-gray-100 text-center"><input type="date" value="${aeC}" onchange="updateImageManualEndDate('${b.loMuon}', this.value)" class="text-xs bg-transparent border-none"></td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjGold bg-pnjGold/5">${tCD}</td>
+                        <td class="px-2 py-2 border-r border-gray-100 text-center"><input type="date" value="${asR}" onchange="updateImageManualRetouchStart('${b.loMuon}', this.value)" class="text-xs text-gray-600 bg-transparent border-none"></td>
+                        <td class="px-2 py-2 border-r border-gray-100 text-center"><input type="date" value="${aeR}" onchange="updateImageManualRetouchEnd('${b.loMuon}', this.value)" class="text-xs text-gray-600 bg-transparent border-none"></td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-gray-700 bg-gray-100">${tRD}</td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center"><span class="text-emerald-600 font-bold">${b.chupDone}</span> / ${b.skuCount}</td>
+                        <td class="px-4 py-3 text-center"><span class="text-emerald-600 font-bold">${b.retouchDone}</span> / ${b.skuCount}</td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp.</td></tr>';
+        }
+
+        function renderSummary() {
+            const tbody = document.getElementById('summaryBody'); if(!tbody) return;
+            const getV = (t) => Array.from(document.querySelectorAll(`.cb-${t}:checked`)).map(cb => cb.value);
+            const mF = getV('month'); const nF = getV('noiMuon'); const tF = getV('ttMuon');
+            let groups = {}; let grandTotal = 0;
+            tableData.forEach(row => {
+                if (!row.sku && !row.loMuon && !row.noiMuon) return; 
+                const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống'; const tt = row.ttMuon || 'Trống';
+                if (!mF.includes(m.toString()) || !nF.includes(n) || !tF.includes(tt)) return;
+                const d = calculateDays(row.ngayBatDau, row.ngayNhan); const l = row.loMuon || 'Trống';
+                const bd = row.ngayBatDau || 'Trống'; const nh = row.ngayNhan || 'Trống'; const ds = d !== '' ? d : 'Trống';
+                const k = `${m}|${n}|${l}|${bd}|${nh}|${ds}|${tt}`;
+                if (!groups[k]) groups[k] = { m, n, l, bd, nh, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set() };
+                groups[k].count++; grandTotal++;
+                if (row.ttChup && row.ttChup.toLowerCase().includes('done')) groups[k].cD++; else groups[k].cND++;
+                if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) groups[k].rD++; else groups[k].rND++;
+                if (row.note && row.note.trim()) groups[k].notes.add(row.note.trim());
+            });
+            tbody.innerHTML = Object.values(groups).sort((a,b) => (a.m - b.m) || a.l.localeCompare(b.l)).map(g => `
+                <tr class="hover:bg-gray-50 transition-colors bg-white">
+                    <td class="px-4 py-3 border-r border-gray-100 text-center font-medium">${g.m}</td>
+                    <td class="px-4 py-3 border-r border-gray-100">${g.n}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 font-bold text-pnjBlue">${g.l}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center text-gray-500">${formatDateToDisplay(g.bd)}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center text-gray-500">${formatDateToDisplay(g.nh)}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjGold bg-pnjGold/5">${g.ds}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 font-medium ${g.tt.includes('Done')?'text-emerald-600':''}">${g.tt}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center"><span class="text-red-500 font-bold">${g.cND}</span> / ${g.count}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center"><span class="text-red-500 font-bold">${g.rND}</span> / ${g.count}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-gray-500 truncate max-w-[200px]" title="${Array.from(g.notes).join('; ')}">${Array.from(g.notes).join('; ') || '-'}</td>
+                    <td class="px-4 py-3 text-right font-black text-pnjBlue bg-pnjBlue/5">${g.count}</td>
+                </tr>`).join('');
+            const sgt = document.getElementById('summaryGrandTotal');
+            if (sgt) sgt.innerText = grandTotal.toLocaleString();
+        }
+
+        function renderReport() {
+            const getV = (t) => Array.from(document.querySelectorAll(`.cb-report-${t}:checked`)).map(cb => cb.value);
+            const mF = getV('month'); const nF = getV('noiMuon');
+            let tMD = 0, tCD = 0, tRD = 0; let mD = {};
+            tableData.forEach(row => {
+                if (!row.sku && !row.loMuon && !row.noiMuon) return;
+                const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống';
+                if (!mF.includes(m.toString()) || !nF.includes(n)) return;
+                if (!mD[m]) mD[m] = { dM: 0, dC: 0, dR: 0, pMK: 0, pMN: 0, pMT: 0, pC: 0, pR: 0 };
+                let iDM = row.ttMuon?.toLowerCase().includes('done'), iCBM = row.ttMuon?.toLowerCase().includes('chuẩn bị mượn'), iDC = row.ttChup?.toLowerCase().includes('done'), iDR = row.ttRetouch?.toLowerCase().includes('done');
+                let nU = row.noiMuon?.toUpperCase();
+                if (iDM) { tMD++; mD[m].dM++; } if (iDC) { tCD++; mD[m].dC++; } if (iDR) { tRD++; mD[m].dR++; }
+                if (!iDM) { mD[m].pMT++; if (nU === 'KHO') mD[m].pMK++; else if (nU === 'NVT') mD[m].pMN++; }
+                if (!iDC && !iCBM) mD[m].pC++;
+                if (iDC && !iDR) mD[m].pR++;
+            });
+
+            const kpiMuon = document.getElementById('kpi-total-muon'); if(kpiMuon) kpiMuon.innerText = tMD.toLocaleString();
+            const kpiChup = document.getElementById('kpi-total-chup'); if(kpiChup) kpiChup.innerText = tCD.toLocaleString();
+            const kpiRetouch = document.getElementById('kpi-total-retouch'); if(kpiRetouch) kpiRetouch.innerText = tRD.toLocaleString();
+
+            const canvas = document.getElementById('chartDone'); const empty = document.getElementById('emptyChartDone');
+            if(!canvas || !empty) return;
+            if (chartDoneInstance) chartDoneInstance.destroy();
+            const sM = Object.keys(mD).sort((a,b) => {
+                if(a==='Trống') return 1; if(b==='Trống') return -1;
+                return Number(a) - Number(b);
+            });
+
+            if (sM.length === 0) { canvas.classList.add('hidden'); empty.classList.remove('hidden'); } else {
+                canvas.classList.remove('hidden'); empty.classList.add('hidden');
+                chartDoneInstance = new Chart(canvas, { 
+                    type: 'bar', 
+                    data: { 
+                        labels: sM.map(m => m === 'Trống' ? 'Trống' : `Tháng ${m}`), 
+                        datasets: [
+                            { label: 'Đã Mượn', data: sM.map(m => mD[m].dM), backgroundColor: '#003366', borderRadius: 4 }, 
+                            { label: 'Đã Chụp', data: sM.map(m => mD[m].dC), backgroundColor: '#D4AF37', borderRadius: 4 }, 
+                            { label: 'Đã Retouch', data: sM.map(m => mD[m].dR), backgroundColor: '#9CA3AF', borderRadius: 4 }
+                        ] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        layout: { padding: { top: 25 } }, 
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Be Vietnam Pro', sans-serif" } } } },
+                        scales: { x: { grid: { display: false } }, y: { border: { display: false } } }
+                    },
+                    plugins: [{
+                        id: 'customDataLabelsReport',
+                        afterDatasetsDraw(chart) {
+                            const { ctx, data } = chart;
+                            ctx.save();
+                            ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillStyle = '#4B5563'; 
+                            
+                            data.datasets.forEach((dataset, i) => {
+                                const meta = chart.getDatasetMeta(i);
+                                if (!meta.hidden) { 
+                                    meta.data.forEach((bar, index) => {
+                                        const value = dataset.data[index];
+                                        if (value > 0) { 
+                                            ctx.fillText(value, bar.x, bar.y - 4);
+                                        }
+                                    });
+                                }
+                            });
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            let sPK = 0, sPN = 0, sPT = 0, sPC = 0, sPR = 0;
+            sM.forEach(m => { sPK += mD[m].pMK; sPN += mD[m].pMN; sPT += mD[m].pMT; sPC += mD[m].pC; sPR += mD[m].pR; });
+            const valPendingMTotal = document.getElementById('val-pending-m-total'); if (valPendingMTotal) valPendingMTotal.innerText = sPT || '-'; 
+            const valPendingMKho = document.getElementById('val-pending-m-kho'); if (valPendingMKho) valPendingMKho.innerText = sPK || '-'; 
+            const valPendingMNvt = document.getElementById('val-pending-m-nvt'); if (valPendingMNvt) valPendingMNvt.innerText = sPN || '-'; 
+            const valPendingC = document.getElementById('val-pending-c'); if (valPendingC) valPendingC.innerText = sPC || '-'; 
+            const valPendingR = document.getElementById('val-pending-r'); if (valPendingR) valPendingR.innerText = sPR || '-';
+        }
+
+        // --- BẢNG TÍNH NGÀY DỰ KIẾN LOGIC ---
+        window.getLatestEndChup = function(noiMuonTarget) {
+            if (!noiMuonTarget) return {};
+            let batches = {};
+            tableData.forEach(row => {
+                if (!row.loMuon || row.noiMuon !== noiMuonTarget) return;
+                if (!batches[row.loMuon]) batches[row.loMuon] = { loMuon: row.loMuon, skuCount: 0, ngayNhan: null };
+                batches[row.loMuon].skuCount++;
+                if (row.ngayNhan) if (!batches[row.loMuon].ngayNhan || row.ngayNhan < batches[row.loMuon].ngayNhan) batches[row.loMuon].ngayNhan = row.ngayNhan;
+            });
+
+            let bA = Object.values(batches).sort((a,b) => (a.ngayNhan||'9').localeCompare(b.ngayNhan||'9'));
+            let av = null;
+            let maxEndDate = null;
+            let conflictLo = null;
+
+            bA.forEach(b => {
+                let bs = b.ngayNhan ? addWorkingDays(b.ngayNhan, 1) : '';
+                if (av && bs && bs < av) bs = av;
+                let s = imageManualDates[b.loMuon] || bs;
+                if (s) {
+                    let rD = Math.ceil(b.skuCount / 32); let dD = Math.max(0, rD - 1);
+                    let eC = addWorkingDays(s, dD);
+                    let aeC = imageManualEndDates[b.loMuon] || eC;
+                    av = addWorkingDays(aeC, 1);
+
+                    if (!maxEndDate || aeC > maxEndDate) {
+                        maxEndDate = aeC;
+                        conflictLo = b.loMuon;
+                    }
+                }
+            });
+            return { date: maxEndDate, loMuon: conflictLo };
+        }
+
+        window.calculateSimulation = function() {
+            const noi = document.getElementById('calc-noi').value;
+            const ngayNhan = document.getElementById('calc-ngay').value;
+            const sku = parseInt(document.getElementById('calc-sku').value);
+
+            if (!ngayNhan || isNaN(sku) || sku <= 0) {
+                alert('Vui lòng nhập ngày nhận hàng và số lượng SKU hợp lệ!');
+                return;
+            }
+
+            const resArea = document.getElementById('calc-result-area');
+            const warnArea = document.getElementById('calc-warning');
+            const warnText = document.getElementById('calc-warning-text');
+
+            resArea.classList.remove('hidden');
+            warnArea.classList.add('hidden');
+
+            let baseStart = addWorkingDays(ngayNhan, 1);
+            let actualStart = baseStart;
+
+            if (noi) {
+                let latest = window.getLatestEndChup(noi);
+                if (latest.date && latest.date >= baseStart) {
+                    actualStart = addWorkingDays(latest.date, 1);
+                    warnText.innerHTML = `Lưu ý: <b>${noi}</b> đang bị kẹt lịch chụp của lô <b>${latest.loMuon}</b> cho đến hết ngày <b>${formatDateToDisplay(latest.date)}</b>.<br>Hệ thống tự động nối tiếp, ngày chụp dự kiến mới là: <b>${formatDateToDisplay(actualStart)}</b>.`;
+                    warnArea.classList.remove('hidden');
+                }
+            }
+
+            let daysToProcess = Math.max(0, Math.ceil(sku / 32) - 1);
+            
+            let endChup = addWorkingDays(actualStart, daysToProcess);
+            let startRetouch = addWorkingDays(actualStart, 2);
+            let endRetouch = addWorkingDays(startRetouch, daysToProcess);
+
+            document.getElementById('res-bd-c').innerText = formatDateToDisplay(actualStart);
+            document.getElementById('res-kt-c').innerText = formatDateToDisplay(endChup);
+            document.getElementById('res-bd-r').innerText = formatDateToDisplay(startRetouch);
+            document.getElementById('res-kt-r').innerText = formatDateToDisplay(endRetouch);
+        }
+
+        // --- STORAGE & EXPORT ---
+        window.saveData = function() {
+            if (window.saveDataToCloud) {
+                window.saveDataToCloud(); 
+            } else {
+                window.saveDataLocal(); 
+            }
+        }
+
+        window.saveDataLocal = function() {
+            localStorage.setItem('pnj_inventoryData', JSON.stringify(tableData));
+            localStorage.setItem('pnj_videoData', JSON.stringify(videoData));
+            localStorage.setItem('pnj_imageManualDates', JSON.stringify(imageManualDates));
+            localStorage.setItem('pnj_imageManualEndDates', JSON.stringify(imageManualEndDates));
+            localStorage.setItem('pnj_imageManualRetouchStarts', JSON.stringify(imageManualRetouchStarts));
+            localStorage.setItem('pnj_imageManualRetouchEnds', JSON.stringify(imageManualRetouchEnds));
+            
+            const toast = document.getElementById('toast'); 
+            if(toast) {
+                toast.classList.remove('opacity-0', 'translate-y-[-10px]'); 
+                setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
+            }
+        }
+
+        window.loadDataLocal = function() {
+            const saved = localStorage.getItem('pnj_inventoryData') || localStorage.getItem('inventoryData_v6');
+            if (saved) try { tableData = JSON.parse(saved); } catch(e) { tableData = []; }
+            const savedVideo = localStorage.getItem('pnj_videoData') || localStorage.getItem('videoData_v1');
+            if (savedVideo) try { videoData = JSON.parse(savedVideo); } catch(e) { videoData = []; }
+            
+            const parseLS = (key, oldKey, targetObj) => {
+                const s = localStorage.getItem(key) || localStorage.getItem(oldKey);
+                if (s) try { Object.assign(targetObj, JSON.parse(s)); } catch(e) {}
+            };
+            parseLS('pnj_imageManualDates', 'imageManualDates_v1', imageManualDates);
+            parseLS('pnj_imageManualEndDates', 'imageManualEndDates_v1', imageManualEndDates);
+            parseLS('pnj_imageManualRetouchStarts', 'imageManualRetouchStarts_v1', imageManualRetouchStarts);
+            parseLS('pnj_imageManualRetouchEnds', 'imageManualRetouchEnds_v1', imageManualRetouchEnds);
+            
+            window.renderTable(); 
+            window.renderVideoTable(); 
+            window.switchTab('tab-report');
+        }
+
+        window.exportCSV = function() {
+            if(tableData.length === 0) return alert("Không có dữ liệu!");
+            let csv = "\uFEFFMã SKU 13,Tháng,Nơi mượn,Lô mượn,Ngày bắt đầu mượn,Ngày nhận hàng,Ngày trả hàng,Tổng số ngày mượn,Tình trạng mượn,Tình trạng chụp,Tình trạng retouch,Ghi chú,Phân loại\n";
+            tableData.forEach(r => { csv += `"${r.sku}","${r.month}","${r.noiMuon}","${r.loMuon}","${formatDateToDisplay(r.ngayBatDau)}","${formatDateToDisplay(r.ngayNhan)}","${formatDateToDisplay(r.ngayTra)}","${calculateDays(r.ngayBatDau,r.ngayNhan)}","${r.ttMuon}","${r.ttChup}","${r.ttRetouch}","${(r.note||'').replace(/"/g,'""')}","${r.phanLoai}"\n`; });
+            downloadCSV(csv, `PNJ_Database_${new Date().toISOString().slice(0,10)}.csv`);
+        }
+
+        window.exportSummaryCSV = function() {
+            const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
+            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Số ngày,TT Mượn,TT Chụp (Chưa/Tổng),TT Retouch (Chưa/Tổng),Ghi chú,Tổng SKU\n";
+            Array.from(tbody.querySelectorAll('tr')).forEach(tr => { csv += Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g,'""')}"`).join(",") + "\n"; });
+            downloadCSV(csv, `PNJ_Report_${new Date().toISOString().slice(0,10)}.csv`);
+        }
+
+        function downloadCSV(content, filename) { const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+
+        window.importCSV = function(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.replace(/^\uFEFF/, '').split('\n');
+                if (lines.length < 2) return alert("File rỗng!");
+                if (tableData.length > 0 && !confirm("Bạn có muốn ghi đè lên dữ liệu hiện tại không?")) return;
+                const newData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const c = lines[i].trim().split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                    if (c.length >= 4 && c[0]) newData.push({ id: generateId()+i, sku: c[0], month: c[1], noiMuon: c[2], loMuon: c[3], ngayBatDau: parseDateFromCSV(c[4]), ngayNhan: parseDateFromCSV(c[5]), ngayTra: parseDateFromCSV(c[6]), ttMuon: c[8]||'', ttChup: c[9]||'', ttRetouch: c[10]||'', note: c[11]||'', phanLoai: c[12]||'' });
+                }
+                if (newData.length > 0) { tableData = newData; window.saveData(); window.renderTable(); window.switchTab('tab-database'); }
+                event.target.value = '';
             };
             reader.readAsText(file);
         }
-
-        window.onload = init;
     </script>
 </body>
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBW_picOLzLjkU-JT3PrfwDpFbUN5Cw9ag",
-    authDomain: "product-air-onsite.firebaseapp.com",
-    projectId: "product-air-onsite",
-    storageBucket: "product-air-onsite.firebasestorage.app",
-    messagingSenderId: "669904152111",
-    appId: "1:669904152111:web:3d4d53af1fb082c83608da",
-    measurementId: "G-NDXY6R3LVF"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 </html>
