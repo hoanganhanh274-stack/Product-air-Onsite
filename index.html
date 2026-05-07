@@ -107,8 +107,8 @@
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                    <input type="email" id="admin-email" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20 outline-none transition-all" placeholder="admin@pnj.com">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tài khoản</label>
+                    <input type="text" id="admin-email" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20 outline-none transition-all" placeholder="admin@product">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Mật khẩu</label>
@@ -133,8 +133,8 @@
                 P
             </div>
             <div>
-                <h1 class="text-xl md:text-2xl font-bold text-pnjBlue uppercase tracking-wide">Quản Lý Nhận/Mượn Hàng</h1>
-                <p class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud text-pnjGold mr-1"></i>Đã tích hợp lưu trữ Firebase Cloud (product-air-onsite)</p>
+                <h1 class="text-xl md:text-2xl font-bold text-pnjBlue uppercase tracking-wide">Product Air Onsite</h1>
+                <p class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud text-pnjGold mr-1"></i>Đã lưu trữ</p>
             </div>
         </div>
         
@@ -156,16 +156,16 @@
         <div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-2 overflow-x-auto">
             <nav class="flex space-x-2 min-w-max" aria-label="Tabs">
                 <button onclick="switchTab('tab-report')" id="btn-tab-report" class="bg-pnjBlue text-white py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-md">
-                    <i class="fas fa-chart-pie text-pnjGold"></i> Report Onsite
+                    <i class="fas fa-chart-pie text-pnjGold"></i> Report
                 </button>
                 <button onclick="switchTab('tab-summary')" id="btn-tab-summary" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
-                    <i class="fas fa-layer-group text-gray-400"></i> Tổng hợp mượn hàng
+                    <i class="fas fa-layer-group text-gray-400"></i> Mượn hàng
                 </button>
                 <button onclick="switchTab('tab-image')" id="btn-tab-image" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
-                    <i class="fas fa-image text-gray-400"></i> Tiến độ hình ảnh
+                    <i class="fas fa-image text-gray-400"></i> Sản xuất hình ảnh
                 </button>
                 <button onclick="switchTab('tab-video')" id="btn-tab-video" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
-                    <i class="fas fa-video text-gray-400"></i> Tiến độ video
+                    <i class="fas fa-video text-gray-400"></i> Sản xuất video
                 </button>
                 <div class="w-px bg-gray-300 my-2 mx-1"></div>
                 <button onclick="switchTab('tab-database')" id="btn-tab-database" class="text-gray-600 hover:bg-pnjGold/20 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all">
@@ -322,7 +322,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 
                 <div class="bg-white p-5 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Tổng hợp mượn hàng</span>
+                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Mượn hàng</span>
                     <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm w-fit">
                         <i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo
                     </button>
@@ -600,22 +600,31 @@
                     </div>
                 </div>
 
-                <!-- Summary Table -->
+                <!-- Editable Summary Table -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                     <div class="bg-[#1C3B5E] p-4 border-b border-[#112640] flex justify-between items-center">
                         <span class="font-bold text-white text-base uppercase tracking-wide flex items-center gap-2">
                             <i class="fas fa-video text-pnjGold"></i> Bảng Theo Dõi Sản Xuất Video
                         </span>
+                        <div class="flex gap-2">
+                            <button onclick="addNewVideoRow()" class="bg-white/10 text-white hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 border border-white/20">
+                                <i class="fas fa-plus"></i> Thêm Lô Video
+                            </button>
+                            <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
+                                <i class="fas fa-save"></i> Lưu Dữ Liệu
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto flex-grow">
                         <table class="w-full text-sm text-left whitespace-nowrap">
                             <thead class="text-xs text-gray-600 uppercase bg-[#F8F5EE] border-b border-[#E8E2D2]">
                                 <tr>
-                                    <th class="px-4 py-3 font-bold text-center">Tháng</th>
-                                    <th class="px-4 py-3 font-bold">Lô Video</th>
-                                    <th class="px-4 py-3 font-bold text-center">SL Thực Tế</th>
-                                    <th class="px-4 py-3 font-bold text-center">Tình Trạng Quay</th>
-                                    <th class="px-4 py-3 font-bold text-center">Tình Trạng Dựng</th>
+                                    <th class="px-2 py-3 w-10 text-center"><i class="fas fa-cog"></i></th>
+                                    <th class="px-4 py-3 font-bold text-center border-r border-[#E8E2D2]">Tháng</th>
+                                    <th class="px-4 py-3 font-bold border-r border-[#E8E2D2]">Lô Video</th>
+                                    <th class="px-4 py-3 font-bold text-center border-r border-[#E8E2D2]">SL Thực Tế</th>
+                                    <th class="px-4 py-3 font-bold text-center border-r border-[#E8E2D2]">Tình Trạng Quay</th>
+                                    <th class="px-4 py-3 font-bold text-center border-r border-[#E8E2D2]">Tình Trạng Dựng</th>
                                     <th class="px-4 py-3 font-bold">Ghi Chú</th>
                                 </tr>
                             </thead>
@@ -627,39 +636,6 @@
                 </div>
             </div>
             <!-- END: VIDEO DASHBOARD -->
-
-            <!-- Form Control Nhập Liệu -->
-            <div class="flex flex-wrap gap-3 mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
-                <span class="font-bold text-pnjBlue uppercase text-sm"><i class="fas fa-table text-pnjGold mr-1"></i> Bảng Nhập Liệu Chi Tiết</span>
-                <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                <button onclick="addNewVideoRow()" class="bg-pnjBlue/10 text-pnjBlue hover:bg-pnjBlue/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Thêm Dòng
-                </button>
-                <div class="flex-grow"></div>
-                <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-6 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
-                    <i class="fas fa-save"></i> Lưu Dữ Liệu
-                </button>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="overflow-x-auto table-container max-h-[65vh]">
-                    <table class="w-full text-sm text-left whitespace-nowrap">
-                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
-                            <tr>
-                                <th class="px-2 py-4 border-r border-pnjBlueLight w-12 text-center"><i class="fas fa-cog"></i></th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight sticky-col bg-[#002244] text-pnjGold min-w-[150px]">Mã SKU</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[80px]">Tháng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Loại video</th>
-                                <th class="px-4 py-4 min-w-[300px]">Content / Note</th>
-                            </tr>
-                        </thead>
-                        <tbody id="videoTableBody" class="divide-y divide-gray-200">
-                            <!-- Rows generated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
         <!-- ==================== TAB 5: DATABASE GỐC ==================== -->
@@ -751,7 +727,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const appId = "product-air-onsite";
+        
+        // Fix: Sử dụng __app_id linh hoạt khi chạy trong môi trường Canvas, hoặc fallback về tên dự án của bạn khi đưa lên Github.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
         
         // KIỂM TRA ĐĂNG NHẬP (BẰNG JAVASCRIPT TRONG TRÌNH DUYỆT)
         let isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
@@ -770,7 +748,7 @@
         }
 
         // Hàm xử lý Đăng nhập nội bộ (Không cần Firebase Auth)
-        window.handleLogin = function() {
+        window.handleLogin = async function() {
             const email = document.getElementById('admin-email').value;
             const pass = document.getElementById('admin-pass').value;
             const errEl = document.getElementById('login-error');
@@ -779,13 +757,13 @@
             errEl.classList.add('hidden');
 
             if(!email || !pass) {
-                errEl.innerText = "Vui lòng nhập đầy đủ Email và Mật khẩu!";
+                errEl.innerText = "Vui lòng nhập đầy đủ Tài khoản và Mật khẩu!";
                 errEl.classList.remove('hidden');
                 return;
             }
 
             // 👇 ĐẶT TÀI KHOẢN VÀ MẬT KHẨU CỦA BẠN TẠI ĐÂY 👇
-            if (email === 'admin@pnj.com' && pass === 'pnj123') {
+            if (email === 'admin@product' && pass === 'admin123') {
                 localStorage.setItem('pnj_admin_logged_in', 'true');
                 isFakeLoggedIn = true;
                 
@@ -799,7 +777,7 @@
         };
 
         // Hàm xử lý Đăng xuất
-        window.handleLogout = function() {
+        window.handleLogout = async function() {
             if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
                 localStorage.removeItem('pnj_admin_logged_in');
                 isFakeLoggedIn = false;
@@ -980,7 +958,7 @@
             window.renderTable();
         }
         window.addNewVideoRow = function() {
-            videoData.unshift({ id: generateId(), sku: '', month: '', ttVideo: '', loaiVideo: '', videoNote: '' });
+            videoData.unshift({ id: generateId(), month: '', loVideo: '', slThucTe: 0, ttQuay: '', ttDung: '', ghiChu: '' });
             window.renderVideoTable();
         }
         window.deleteRow = function(id) { if(confirm('Xóa dòng này?')) { tableData = tableData.filter(row => row.id !== id); window.renderTable(); } }
@@ -1177,16 +1155,28 @@
         }
 
         window.renderVideoTable = function() {
-            const tbody = document.getElementById('videoTableBody'); if(!tbody) return;
-            tbody.innerHTML = videoData.map(row => `
-                <tr class="hover:bg-gray-50 transition-colors group bg-white">
-                    <td class="px-2 py-2 border-r border-gray-100 text-center"><button onclick="deleteVideoRow('${row.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash"></i></button></td>
-                    <td class="px-2 py-1 border-r border-gray-100 sticky-col bg-white"><input type="text" value="${row.sku}" onchange="updateVideoCell('${row.id}', 'sku', this.value)" class="font-bold text-pnjBlue" placeholder="Nhập SKU"></td>
-                    <td class="px-1 py-1 border-r border-gray-100"><input type="number" min="1" max="12" value="${row.month}" onchange="updateVideoCell('${row.id}', 'month', this.value)" class="text-center font-medium"></td>
-                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttVideo || ''}" onchange="updateVideoCell('${row.id}', 'ttVideo', this.value)" placeholder="VD: Đã xong"></td>
-                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.loaiVideo || ''}" onchange="updateVideoCell('${row.id}', 'loaiVideo', this.value)" placeholder="VD: Đang dựng"></td>
-                    <td class="px-1 py-1"><input type="text" value="${row.videoNote || ''}" onchange="updateVideoCell('${row.id}', 'videoNote', this.value)"></td>
-                </tr>`).join('');
+            const tbody = document.getElementById('videoSummaryBody'); if(!tbody) return;
+            tbody.innerHTML = videoData.map(row => {
+                let tQClass = (row.ttQuay || '').toLowerCase().includes('xong') || (row.ttQuay || '').toLowerCase().includes('done') 
+                              ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' 
+                              : 'text-gray-600 bg-gray-50';
+                let tDClass = (row.ttDung || '').toLowerCase().includes('đang') 
+                              ? 'text-[#1C3B5E] font-bold bg-[#E8F0FE]'
+                              : ((row.ttDung || '').toLowerCase().includes('xong') || (row.ttDung || '').toLowerCase().includes('done') 
+                                  ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' 
+                                  : 'text-gray-600 bg-gray-50');
+
+                return `
+                <tr class="hover:bg-gray-50 transition-colors group">
+                    <td class="px-2 py-2 text-center border-r border-gray-100"><button onclick="deleteVideoRow('${row.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash"></i></button></td>
+                    <td class="px-1 py-1 border-r border-gray-100 w-16"><input type="number" min="1" max="12" value="${row.month}" onchange="updateVideoCell('${row.id}', 'month', this.value)" class="text-center font-bold text-gray-700 bg-transparent border-none"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.loVideo || ''}" onchange="updateVideoCell('${row.id}', 'loVideo', this.value)" class="font-bold text-[#1C3B5E] bg-transparent border-none" placeholder="VD: Video-Jan"></td>
+                    <td class="px-1 py-1 border-r border-gray-100 w-24"><input type="number" value="${row.slThucTe || ''}" onchange="updateVideoCell('${row.id}', 'slThucTe', this.value)" class="text-center font-bold text-red-500 bg-transparent border-none" placeholder="0"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttQuay || ''}" onchange="updateVideoCell('${row.id}', 'ttQuay', this.value)" class="text-center border-none rounded px-2 py-1 w-full outline-none focus:ring-1 focus:ring-pnjGold ${tQClass}" placeholder="VD: Đã xong"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttDung || ''}" onchange="updateVideoCell('${row.id}', 'ttDung', this.value)" class="text-center border-none rounded px-2 py-1 w-full outline-none focus:ring-1 focus:ring-pnjGold ${tDClass}" placeholder="VD: Đang dựng"></td>
+                    <td class="px-1 py-1"><input type="text" value="${row.ghiChu || ''}" onchange="updateVideoCell('${row.id}', 'ghiChu', this.value)" class="bg-transparent border-none text-gray-500" placeholder="Ghi chú..."></td>
+                </tr>`;
+            }).join('');
             renderVideoDashboard();
         }
 
@@ -1201,25 +1191,21 @@
             let monthlyData = {};
 
             for(let i=1; i<=12; i++) {
-                monthlyData[i] = { count: 0, ttQuay: '', ttDung: '', notes: new Set() };
+                monthlyData[i] = { count: 0 };
             }
 
             videoData.forEach(row => {
-                if(!row.sku || !row.month) return;
                 let m = parseInt(row.month);
+                let sl = parseInt(row.slThucTe) || 0;
                 if(isNaN(m) || m < 1 || m > 12) return;
 
-                yearlyTotal++;
-                monthlyData[m].count++;
+                yearlyTotal += sl;
+                monthlyData[m].count += sl;
                 
                 let q = Math.floor((m - 1) / 3) + 1;
                 if(q === currentVideoQuarter) {
-                    quarterlyTotal++;
+                    quarterlyTotal += sl;
                 }
-
-                if (row.ttVideo) monthlyData[m].ttQuay = row.ttVideo;
-                if (row.loaiVideo) monthlyData[m].ttDung = row.loaiVideo;
-                if (row.videoNote) monthlyData[m].notes.add(row.videoNote);
             });
 
             let yearPct = Math.min(100, Math.round((yearlyTotal / 480) * 100));
@@ -1238,48 +1224,13 @@
 
             let chartLabels = [];
             let chartValues = [];
-            let tableHTML = '';
 
             for(let i=1; i<=12; i++) {
                 if(monthlyData[i].count > 0) {
                     chartLabels.push(`Tháng ${i}`);
                     chartValues.push(monthlyData[i].count);
-
-                    let tQ = monthlyData[i].ttQuay || 'Chưa cập nhật';
-                    let tQClass = tQ.toLowerCase().includes('xong') || tQ.toLowerCase().includes('done') 
-                                  ? 'bg-[#Fdf6E3] text-[#B8860B] border border-[#F5E6B3]' 
-                                  : 'bg-gray-100 text-gray-600 border border-gray-200';
-                    
-                    let tD = monthlyData[i].ttDung || 'Chưa cập nhật';
-                    let tDClass = tD.toLowerCase().includes('đang') 
-                                  ? 'bg-[#E8F0FE] text-[#1C3B5E] border border-[#D1E0F5]'
-                                  : (tD.toLowerCase().includes('xong') || tD.toLowerCase().includes('done') 
-                                      ? 'bg-[#Fdf6E3] text-[#B8860B] border border-[#F5E6B3]' 
-                                      : 'bg-gray-100 text-gray-600 border border-gray-200');
-
-                    let n = Array.from(monthlyData[i].notes).join('; ') || '-';
-
-                    tableHTML += `
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 font-bold rounded shadow-sm text-xs">T${i}</span>
-                            </td>
-                            <td class="px-4 py-3 font-bold text-[#1C3B5E]">Video-Tháng ${i}</td>
-                            <td class="px-4 py-3 text-center font-bold text-red-500">${monthlyData[i].count}</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-3 py-1 rounded text-xs font-bold ${tQClass}">${tQ}</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-3 py-1 rounded text-xs font-bold ${tDClass}">${tD}</span>
-                            </td>
-                            <td class="px-4 py-3 text-gray-500 text-sm truncate max-w-[150px]" title="${n}">${n}</td>
-                        </tr>
-                    `;
                 }
             }
-
-            const videoSummaryBody = document.getElementById('videoSummaryBody');
-            if (videoSummaryBody) videoSummaryBody.innerHTML = tableHTML || `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">Chưa có dữ liệu sản xuất. Vui lòng nhập dữ liệu ở bảng chi tiết bên dưới.</td></tr>`;
 
             const canvas = document.getElementById('chartVideo');
             const empty = document.getElementById('emptyChartVideo');
