@@ -25,11 +25,11 @@
             theme: {
                 extend: {
                     colors: {
-                        pnjBlue: '#003366', // Xanh Navy PNJ
+                        pnjBlue: '#003366',
                         pnjBlueLight: '#004A8F',
-                        pnjGold: '#D4AF37', // Vàng kim PNJ
+                        pnjGold: '#D4AF37',
                         pnjGoldLight: '#E5C973',
-                        pnjBg: '#F5F7FA', // Nền xám nhạt sang trọng
+                        pnjBg: '#F5F7FA',
                     },
                     fontFamily: {
                         sans: ['"Be Vietnam Pro"', 'sans-serif'],
@@ -40,59 +40,23 @@
     </script>
 
     <style>
-        /* Tùy chỉnh thanh cuộn cho bảng tinh tế hơn */
         .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #003366; }
         
-        /* Style cho input và select trong table */
         input, select {
-            width: 100%;
-            background: transparent;
-            border: 1px solid transparent;
-            padding: 8px 10px;
-            border-radius: 6px;
-            outline: none;
-            text-overflow: ellipsis;
-            transition: all 0.2s ease;
-            font-size: 0.875rem;
+            width: 100%; background: transparent; border: 1px solid transparent;
+            padding: 8px 10px; border-radius: 6px; outline: none;
+            text-overflow: ellipsis; transition: all 0.2s ease; font-size: 0.875rem;
         }
-        input:hover, select:hover {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        input:focus, select:focus {
-            border-color: #D4AF37;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
-        }
+        input:hover, select:hover { background: #f8fafc; border-color: #e2e8f0; }
+        input:focus, select:focus { border-color: #D4AF37; background: white; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); }
         
-        /* Sticky columns */
-        .sticky-col {
-            position: sticky;
-            left: 0;
-            background-color: white;
-            z-index: 10;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-        }
-        th.sticky-col {
-            background-color: #003366;
-            z-index: 20;
-        }
-
-        /* Glassmorphism hiệu ứng nhẹ cho Header */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        /* Checkbox style */
-        input[type="checkbox"] {
-            width: auto;
-            accent-color: #003366;
-        }
+        .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        th.sticky-col { background-color: #003366; z-index: 20; }
+        .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e5e7eb; }
+        input[type="checkbox"] { width: auto; accent-color: #003366; }
     </style>
 </head>
 <body class="bg-pnjBg text-gray-800 font-sans min-h-screen">
@@ -108,15 +72,13 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Tài khoản</label>
-                    <input type="text" id="admin-username" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20 outline-none transition-all" placeholder="Nhập tài khoản admin...">
+                    <input type="text" id="admin-username" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20" placeholder="Nhập tài khoản admin...">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Mật khẩu</label>
-                    <input type="password" id="admin-pass" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20 outline-none transition-all" placeholder="••••••••" onkeypress="if(event.key === 'Enter') handleLogin()">
+                    <input type="password" id="admin-pass" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20" placeholder="••••••••" onkeypress="if(event.key === 'Enter') handleLogin()">
                 </div>
-                <button id="btn-login" onclick="handleLogin()" class="w-full bg-pnjGold text-white font-bold text-lg py-3 rounded-lg shadow-md hover:bg-pnjGoldLight transition-colors mt-4">
-                    ĐĂNG NHẬP
-                </button>
+                <button id="btn-login" onclick="handleLogin()" class="w-full bg-pnjGold text-white font-bold text-lg py-3 rounded-lg shadow-md hover:bg-pnjGoldLight transition-colors mt-4">ĐĂNG NHẬP</button>
                 <p id="login-error" class="text-red-500 text-sm text-center hidden mt-2"></p>
             </div>
         </div>
@@ -128,10 +90,7 @@
     <!-- Header cố định trên cùng -->
     <header class="glass-header sticky top-0 z-40 px-4 md:px-6 py-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-            <!-- Giả lập Logo PNJ -->
-            <div class="w-12 h-12 bg-pnjBlue text-pnjGold rounded-lg flex items-center justify-center font-bold text-2xl shadow-md border border-pnjGold/30">
-                P
-            </div>
+            <div class="w-12 h-12 bg-pnjBlue text-pnjGold rounded-lg flex items-center justify-center font-bold text-2xl shadow-md border border-pnjGold/30">P</div>
             <div>
                 <h1 class="text-xl md:text-2xl font-bold text-pnjBlue uppercase tracking-wide">Product Air Onsite</h1>
                 <p class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud text-pnjGold mr-1"></i>Đã lưu trữ</p>
@@ -139,11 +98,9 @@
         </div>
         
         <div class="flex items-center gap-4">
-            <!-- Thông báo lưu thành công -->
             <div id="toast" class="bg-emerald-500 text-white px-5 py-2.5 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-[-10px] flex items-center gap-2 font-medium text-sm">
                 <i class="fas fa-check-circle text-lg"></i> Dữ liệu đã được đồng bộ lên Cloud!
             </div>
-            <!-- Nút đăng xuất -->
             <button onclick="handleLogout()" class="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-sm">
                 <i class="fas fa-sign-out-alt"></i> Đăng xuất
             </button>
@@ -176,138 +133,80 @@
 
         <!-- ==================== TAB 1: REPORT DASHBOARD ==================== -->
         <div id="tab-report">
-            <!-- Filter Bar -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
                 <span class="font-bold text-pnjBlue text-sm uppercase tracking-wider"><i class="fas fa-filter text-pnjGold mr-2"></i> Lọc Báo Cáo:</span>
                 
-                <!-- Dropdown Report Tháng -->
                 <div class="relative inline-block text-left" id="wrap-filter-report-month">
-                    <button onclick="toggleFilterDropdown('dropdown-report-month')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-pnjGold/50 outline-none flex items-center justify-between min-w-[150px] transition-all">
-                        <span id="label-report-month" class="truncate font-medium">Tất cả Tháng</span>
-                        <i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    <button onclick="toggleFilterDropdown('dropdown-report-month')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white flex items-center justify-between min-w-[150px] transition-all">
+                        <span id="label-report-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                     </button>
                     <div id="dropdown-report-month" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-xl rounded-lg border border-gray-100 top-full left-0">
-                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
-                            <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer">
-                                <input type="checkbox" id="selectAll-report-month" checked onchange="toggleAllCheckboxes('report-month', this.checked)">
-                                <span>Chọn tất cả</span>
-                            </label>
-                        </div>
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-report-month" checked onchange="toggleAllCheckboxes('report-month', this.checked)"><span>Chọn tất cả</span></label></div>
                         <div id="list-report-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                     </div>
                 </div>
 
-                <!-- Dropdown Report Nơi mượn -->
                 <div class="relative inline-block text-left" id="wrap-filter-report-noiMuon">
-                    <button onclick="toggleFilterDropdown('dropdown-report-noiMuon')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-pnjGold/50 outline-none flex items-center justify-between min-w-[170px] transition-all">
-                        <span id="label-report-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span>
-                        <i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                    <button onclick="toggleFilterDropdown('dropdown-report-noiMuon')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50 hover:bg-white flex items-center justify-between min-w-[170px] transition-all">
+                        <span id="label-report-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                     </button>
                     <div id="dropdown-report-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-xl rounded-lg border border-gray-100 top-full left-0">
-                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
-                            <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer">
-                                <input type="checkbox" id="selectAll-report-noiMuon" checked onchange="toggleAllCheckboxes('report-noiMuon', this.checked)">
-                                <span>Chọn tất cả</span>
-                            </label>
-                        </div>
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-report-noiMuon" checked onchange="toggleAllCheckboxes('report-noiMuon', this.checked)"><span>Chọn tất cả</span></label></div>
                         <div id="list-report-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                     </div>
                 </div>
 
                 <div class="flex-grow"></div>
-                <button onclick="clearReportFilters()" class="text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium px-4 py-2 transition-colors border border-red-100">
-                    <i class="fas fa-sync-alt mr-1"></i> Đặt lại
-                </button>
+                <button onclick="clearReportFilters()" class="text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium px-4 py-2 transition-colors border border-red-100"><i class="fas fa-sync-alt mr-1"></i> Đặt lại</button>
             </div>
 
-            <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <!-- Card 1 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-2 h-full bg-pnjBlue transition-all group-hover:w-3"></div>
-                    <div class="p-4 rounded-xl bg-pnjBlue/5 text-pnjBlue mr-5">
-                        <i class="fas fa-box-open fa-2x"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Mượn</p>
-                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-muon">0</p>
-                    </div>
+                    <div class="p-4 rounded-xl bg-pnjBlue/5 text-pnjBlue mr-5"><i class="fas fa-box-open fa-2x"></i></div>
+                    <div><p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Mượn</p><p class="text-4xl font-black text-pnjBlue" id="kpi-total-muon">0</p></div>
                 </div>
-                <!-- Card 2 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-2 h-full bg-pnjGold transition-all group-hover:w-3"></div>
-                    <div class="p-4 rounded-xl bg-pnjGold/10 text-pnjGold mr-5">
-                        <i class="fas fa-camera fa-2x"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Chụp</p>
-                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-chup">0</p>
-                    </div>
+                    <div class="p-4 rounded-xl bg-pnjGold/10 text-pnjGold mr-5"><i class="fas fa-camera fa-2x"></i></div>
+                    <div><p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Chụp</p><p class="text-4xl font-black text-pnjBlue" id="kpi-total-chup">0</p></div>
                 </div>
-                <!-- Card 3 -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-2 h-full bg-gray-800 transition-all group-hover:w-3"></div>
-                    <div class="p-4 rounded-xl bg-gray-100 text-gray-800 mr-5">
-                        <i class="fas fa-magic fa-2x"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Retouch</p>
-                        <p class="text-4xl font-black text-pnjBlue" id="kpi-total-retouch">0</p>
-                    </div>
+                    <div class="p-4 rounded-xl bg-gray-100 text-gray-800 mr-5"><i class="fas fa-magic fa-2x"></i></div>
+                    <div><p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Tổng Đã Retouch</p><p class="text-4xl font-black text-pnjBlue" id="kpi-total-retouch">0</p></div>
                 </div>
             </div>
 
-            <!-- Dashboards Area -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Dashboard 1: Đã Hoàn Thành -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between">
-                        <span class="font-bold text-pnjBlue text-lg"><i class="fas fa-chart-bar mr-2 text-pnjGold"></i> Thực tế hoàn thành</span>
-                    </div>
+                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between"><span class="font-bold text-pnjBlue text-lg"><i class="fas fa-chart-bar mr-2 text-pnjGold"></i> Thực tế hoàn thành</span></div>
                     <div class="p-5 relative h-[380px] w-full flex-grow">
                         <canvas id="chartDone"></canvas>
-                        <div id="emptyChartDone" class="hidden absolute inset-0 flex items-center justify-center text-gray-500 italic bg-white/90">Không có dữ liệu phù hợp với bộ lọc.</div>
+                        <div id="emptyChartDone" class="hidden absolute inset-0 flex items-center justify-center text-gray-500 italic bg-white/90">Không có dữ liệu.</div>
                     </div>
                 </div>
 
-                <!-- Dashboard 2: Dự Kiến -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between">
-                        <span class="font-bold text-pnjBlue text-lg"><i class="fas fa-clipboard-list mr-2 text-pnjGold"></i> Thống kê dự kiến</span>
-                    </div>
+                    <div class="bg-white p-5 border-b border-gray-200 flex items-center justify-between"><span class="font-bold text-pnjBlue text-lg"><i class="fas fa-clipboard-list mr-2 text-pnjGold"></i> Thống kê dự kiến</span></div>
                     <div class="p-6 flex-grow flex flex-col gap-5 justify-center bg-gray-50/50">
-                        
-                        <!-- Item 1: Mượn -->
                         <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm transition-all hover:shadow-md cursor-pointer" onclick="togglePendingDetails()">
                             <div class="flex justify-between items-center select-none">
                                 <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-pnjBlue rounded mr-3"></div>Dự kiến mượn</div>
                                 <div class="flex items-center gap-4">
                                     <span class="text-3xl font-black text-pnjBlue" id="val-pending-m-total">-</span>
-                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center transition-colors">
-                                        <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="icon-pending-details"></i>
-                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="icon-pending-details"></i></div>
                                 </div>
                             </div>
-                            <!-- Hidden details -->
                             <div id="pending-m-details" class="hidden mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3 pl-5 text-sm">
-                                <div class="flex justify-between items-center text-gray-600">
-                                    <span class="font-medium"><i class="fas fa-warehouse mr-2 text-gray-400"></i>Từ KHO:</span>
-                                    <span class="font-bold text-lg text-pnjBlue" id="val-pending-m-kho">-</span>
-                                </div>
-                                <div class="flex justify-between items-center text-gray-600">
-                                    <span class="font-medium"><i class="fas fa-store mr-2 text-gray-400"></i>Từ NVT:</span>
-                                    <span class="font-bold text-lg text-pnjBlue" id="val-pending-m-nvt">-</span>
-                                </div>
+                                <div class="flex justify-between items-center text-gray-600"><span class="font-medium"><i class="fas fa-warehouse mr-2 text-gray-400"></i>Từ KHO:</span><span class="font-bold text-lg text-pnjBlue" id="val-pending-m-kho">-</span></div>
+                                <div class="flex justify-between items-center text-gray-600"><span class="font-medium"><i class="fas fa-store mr-2 text-gray-400"></i>Từ NVT:</span><span class="font-bold text-lg text-pnjBlue" id="val-pending-m-nvt">-</span></div>
                             </div>
                         </div>
-
-                        <!-- Item 2: Chụp -->
                         <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex justify-between items-center hover:shadow-md transition-all">
                             <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-pnjGold rounded mr-3"></div>Dự kiến chụp</div>
                             <span class="text-3xl font-black text-pnjGold" id="val-pending-c">-</span>
                         </div>
-
-                        <!-- Item 3: Retouch -->
                         <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex justify-between items-center hover:shadow-md transition-all">
                             <div class="font-bold text-pnjBlue text-lg flex items-center"><div class="w-2 h-8 bg-gray-400 rounded mr-3"></div>Dự kiến retouch</div>
                             <span class="text-3xl font-black text-gray-600" id="val-pending-r">-</span>
@@ -320,26 +219,18 @@
         <!-- ==================== TAB 2: SUMMARY ==================== -->
         <div id="tab-summary" class="hidden">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                
                 <div class="bg-white p-5 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Mượn hàng</span>
                     <div class="flex gap-2">
-                        <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2 w-fit">
-                            <i class="fas fa-save"></i> Lưu Dữ Liệu
-                        </button>
-                        <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm w-fit">
-                            <i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo
-                        </button>
+                        <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
+                        <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"><i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo</button>
                     </div>
                 </div>
                 
-                <!-- Thanh Lọc -->
                 <div class="bg-gray-50 p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
                     <span class="text-sm font-bold text-pnjBlue uppercase"><i class="fas fa-filter text-pnjGold mr-1"></i> Lọc dữ liệu:</span>
-                    
-                    <!-- Dropdowns lọc -->
                     <div class="relative inline-block text-left" id="wrap-filter-month">
-                        <button onclick="toggleFilterDropdown('dropdown-month')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[140px]">
+                        <button onclick="toggleFilterDropdown('dropdown-month')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
                             <span id="label-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                         </button>
                         <div id="dropdown-month" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
@@ -347,9 +238,8 @@
                             <div id="list-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                         </div>
                     </div>
-
                     <div class="relative inline-block text-left" id="wrap-filter-noiMuon">
-                        <button onclick="toggleFilterDropdown('dropdown-noiMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[160px]">
+                        <button onclick="toggleFilterDropdown('dropdown-noiMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[160px]">
                             <span id="label-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                         </button>
                         <div id="dropdown-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
@@ -357,9 +247,8 @@
                             <div id="list-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                         </div>
                     </div>
-
                     <div class="relative inline-block text-left" id="wrap-filter-ttMuon">
-                        <button onclick="toggleFilterDropdown('dropdown-ttMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 outline-none flex items-center justify-between min-w-[160px]">
+                        <button onclick="toggleFilterDropdown('dropdown-ttMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[160px]">
                             <span id="label-ttMuon" class="truncate font-medium">Tất cả TT Mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                         </button>
                         <div id="dropdown-ttMuon" class="hidden absolute z-50 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
@@ -367,10 +256,7 @@
                             <div id="list-ttMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                         </div>
                     </div>
-
-                    <button onclick="clearSummaryFilters()" class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 transition-colors ml-auto">
-                        <i class="fas fa-times-circle"></i> Xóa lọc
-                    </button>
+                    <button onclick="clearSummaryFilters()" class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 transition-colors ml-auto"><i class="fas fa-times-circle"></i> Xóa lọc</button>
                 </div>
 
                 <div class="overflow-x-auto table-container max-h-[65vh]">
@@ -382,7 +268,7 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Bắt đầu mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Tổng Ngày mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-emerald-300">Tổng ngày SX</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Chụp</th>
@@ -391,9 +277,7 @@
                                 <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
                             </tr>
                         </thead>
-                        <tbody id="summaryBody" class="divide-y divide-gray-200">
-                            <!-- Rows generated via JS -->
-                        </tbody>
+                        <tbody id="summaryBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
                 <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end text-gray-800 text-base font-bold">
@@ -407,7 +291,6 @@
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
                 <span class="font-bold text-pnjBlue text-sm uppercase tracking-wider"><i class="fas fa-filter text-pnjGold mr-2"></i> Lọc Tiến Độ:</span>
                 
-                <!-- Dropdown Image Tháng -->
                 <div class="relative inline-block text-left" id="wrap-filter-img-month">
                     <button onclick="toggleFilterDropdown('dropdown-img-month')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[140px] flex justify-between items-center">
                         <span id="label-img-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
@@ -418,7 +301,6 @@
                     </div>
                 </div>
                 
-                <!-- Dropdown Image Nơi mượn -->
                 <div class="relative inline-block text-left" id="wrap-filter-img-noiMuon">
                     <button onclick="toggleFilterDropdown('dropdown-img-noiMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[160px] flex justify-between items-center">
                         <span id="label-img-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
@@ -429,98 +311,54 @@
                     </div>
                 </div>
                 
-                <!-- Dropdown Image Lô mượn -->
                 <div class="relative inline-block text-left" id="wrap-filter-img-loMuon">
                     <button onclick="toggleFilterDropdown('dropdown-img-loMuon')" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 hover:bg-white min-w-[200px] flex justify-between items-center">
                         <span id="label-img-loMuon" class="truncate font-medium">Tất cả Lô mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
                     </button>
                     <div id="dropdown-img-loMuon" class="hidden absolute z-50 mt-1 w-72 bg-white shadow-xl rounded-lg border border-gray-200 top-full left-0">
                         <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg flex flex-col gap-2">
-                            <input type="text" id="search-img-loMuon" placeholder="Nhập để tìm lô mượn..." class="w-full text-sm border border-gray-300 rounded p-1.5 focus:border-pnjBlue focus:ring-1 focus:ring-pnjBlue outline-none transition-all" onkeyup="filterDropdownList('img-loMuon', this.value)" onclick="event.stopPropagation()">
+                            <input type="text" id="search-img-loMuon" placeholder="Nhập để tìm lô mượn..." class="w-full text-sm border border-gray-300 rounded p-1.5 focus:border-pnjBlue focus:ring-1 focus:ring-pnjBlue" onkeyup="filterDropdownList('img-loMuon', this.value)" onclick="event.stopPropagation()">
                             <label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-img-loMuon" checked onchange="toggleAllCheckboxes('img-loMuon', this.checked)"><span>Chọn tất cả</span></label>
                         </div>
                         <div id="list-img-loMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
                     </div>
                 </div>
                 
-                <!-- Lọc Lô trễ hạn -->
                 <label class="flex items-center space-x-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-100 font-bold cursor-pointer hover:bg-red-100 transition-colors shadow-sm ml-2">
                     <input type="checkbox" id="filter-img-late" onchange="renderImageTrackingTable()" class="rounded text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Chỉ hiện lô trễ hạn</span>
+                    <i class="fas fa-exclamation-circle"></i><span>Chỉ hiện lô trễ hạn</span>
                 </label>
                 
                 <div class="flex-grow"></div>
                 <button onclick="clearImageFilters()" class="text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium px-4 py-2 transition-colors border border-red-100">Xóa lọc</button>
             </div>
 
-            <!-- START: MODULE BẢNG TÍNH NGÀY DỰ KIẾN -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 hidden">
                 <h3 class="font-bold text-pnjBlue text-lg uppercase mb-4"><i class="fas fa-calculator mr-2 text-pnjGold"></i> Bảng Tính Ngày Dự Kiến</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nơi mượn (Để ktra trùng lịch)</label>
-                        <select id="calc-noi" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
-                            <option value="">-- Bỏ qua kiểm tra --</option>
-                            <option value="KHO">KHO</option>
-                            <option value="NVT">NVT</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nơi mượn</label>
+                        <select id="calc-noi" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50"><option value="">-- Bỏ qua --</option><option value="KHO">KHO</option><option value="NVT">NVT</option></select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ngày nhận hàng</label>
-                        <input type="date" id="calc-ngay" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tổng số lượng SKU</label>
-                        <input type="number" id="calc-sku" placeholder="VD: 160" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:border-pnjGold focus:ring-1 focus:ring-pnjGold transition-all">
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="calculateSimulation()" class="w-full bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-2 rounded-lg font-bold transition-colors shadow-sm flex justify-center items-center gap-2 h-[38px]">
-                            <i class="fas fa-magic"></i> Tính Toán
-                        </button>
-                    </div>
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ngày nhận hàng</label><input type="date" id="calc-ngay" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50"></div>
+                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tổng số lượng SKU</label><input type="number" id="calc-sku" placeholder="VD: 160" class="border border-gray-300 w-full rounded-lg px-3 py-2 text-sm bg-gray-50"></div>
+                    <div class="flex items-end"><button onclick="calculateSimulation()" class="w-full bg-pnjBlue text-white px-4 py-2 rounded-lg font-bold flex justify-center items-center gap-2 h-[38px]"><i class="fas fa-magic"></i> Tính Toán</button></div>
                 </div>
-
-                <!-- Vùng hiển thị kết quả -->
                 <div id="calc-result-area" class="hidden bg-pnjBg p-4 rounded-lg border border-gray-200 mt-4">
-                    <div id="calc-warning" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium leading-relaxed">
-                        <i class="fas fa-exclamation-triangle mr-1"></i> <span id="calc-warning-text"></span>
-                    </div>
+                    <div id="calc-warning" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"><span id="calc-warning-text"></span></div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-pnjGold"></div>
-                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu chụp</p>
-                            <p class="text-xl font-black text-pnjBlue" id="res-bd-c">-</p>
-                        </div>
-                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-pnjGold"></div>
-                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc chụp</p>
-                            <p class="text-xl font-black text-pnjBlue" id="res-kt-c">-</p>
-                        </div>
-                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gray-500"></div>
-                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu Retouch</p>
-                            <p class="text-xl font-black text-gray-700" id="res-bd-r">-</p>
-                        </div>
-                        <div class="p-3 bg-white border border-gray-200 rounded shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gray-500"></div>
-                            <p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc Retouch</p>
-                            <p class="text-xl font-black text-gray-700" id="res-kt-r">-</p>
-                        </div>
+                        <div class="p-3 bg-white border border-gray-200 rounded"><p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu chụp</p><p class="text-xl font-black text-pnjBlue" id="res-bd-c">-</p></div>
+                        <div class="p-3 bg-white border border-gray-200 rounded"><p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc chụp</p><p class="text-xl font-black text-pnjBlue" id="res-kt-c">-</p></div>
+                        <div class="p-3 bg-white border border-gray-200 rounded"><p class="text-xs text-gray-500 font-bold uppercase mb-1">Bắt đầu Retouch</p><p class="text-xl font-black text-gray-700" id="res-bd-r">-</p></div>
+                        <div class="p-3 bg-white border border-gray-200 rounded"><p class="text-xs text-gray-500 font-bold uppercase mb-1">Kết thúc Retouch</p><p class="text-xl font-black text-gray-700" id="res-kt-r">-</p></div>
                     </div>
                 </div>
             </div>
-            <!-- END: MODULE BẢNG TÍNH -->
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                 <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center">
                     <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-calendar-alt mr-2 text-pnjGold"></i> Bảng Theo Dõi Tiến Độ</span>
-                    <button onclick="clearImageManualDates()" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                        <i class="fas fa-sync-alt"></i> Reset ngày thủ công
-                    </button>
-                </div>
-                <div class="p-4 bg-pnjGold/10 text-pnjBlue text-sm border-b border-pnjGold/20 font-medium">
-                    <i class="fas fa-info-circle mr-1 text-pnjGold"></i> <b>Quy tắc:</b> Gom nhóm theo Ngày nhận hàng. Năng suất gói chụp 160m: Chụp hình 5 ngày, Retouch 5 ngày (Xuất hình 2 ngày 50sku). Retouch bắt đầu sau chụp 2 ngày. Trường hợp: kho đang chụp thì lô tiếp theo sẽ chụp nối tiếp sau khi chụp xong lô trước.
+                    <button onclick="clearImageManualDates()" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><i class="fas fa-sync-alt"></i> Reset lịch thủ công</button>
                 </div>
                 <div class="overflow-x-auto table-container max-h-[60vh]">
                     <table class="w-full text-sm text-left whitespace-nowrap">
@@ -540,9 +378,7 @@
                                 <th class="px-2 py-4 text-center" title="Tải SKU 13"><i class="fas fa-download text-pnjGold"></i></th>
                             </tr>
                         </thead>
-                        <tbody id="imageTrackingBody" class="divide-y divide-gray-200">
-                            <!-- Tracking Rows -->
-                        </tbody>
+                        <tbody id="imageTrackingBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
@@ -552,76 +388,39 @@
                 <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center">
                     <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-stream mr-2 text-pnjGold"></i> Timeline Sản Xuất (Sơ đồ Gantt)</span>
                 </div>
-                <div class="overflow-auto table-container max-h-[500px]" id="gantt-container">
-                    <!-- Table generated by JS -->
-                </div>
+                <div class="overflow-auto table-container max-h-[500px]" id="gantt-container"></div>
             </div>
-
         </div>
 
         <!-- ==================== TAB 4: VIDEO ==================== -->
         <div id="tab-video" class="hidden">
-            
-            <!-- START: VIDEO DASHBOARD (NEW) -->
-            <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- KPI Năm -->
                 <div class="bg-[#1C3B5E] text-white rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
                     <div class="absolute right-[-20px] bottom-[-20px] opacity-10"><i class="fas fa-video fa-6x"></i></div>
-                    <div>
-                        <h3 class="text-xs font-bold text-pnjGold uppercase tracking-wider mb-2">Mục Tiêu Năm 2026</h3>
-                        <div class="flex items-baseline gap-2 mb-4">
-                            <span class="text-5xl font-black">480</span>
-                            <span class="text-lg font-medium text-gray-300">sku</span>
-                        </div>
-                    </div>
-                    <div>
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-[#112640] rounded-full h-1.5 mb-2">
-                            <div id="kpi-video-year-bar" class="bg-pnjGold h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <p id="kpi-video-year-pct" class="text-xs text-gray-300">Đã đạt 0% kế hoạch năm</p>
-                    </div>
+                    <div><h3 class="text-xs font-bold text-pnjGold uppercase mb-2">Mục Tiêu Năm 2026</h3><div class="flex items-baseline gap-2 mb-4"><span class="text-5xl font-black">480</span><span class="text-lg font-medium text-gray-300">sku</span></div></div>
+                    <div><div class="w-full bg-[#112640] rounded-full h-1.5 mb-2"><div id="kpi-video-year-bar" class="bg-pnjGold h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div></div><p id="kpi-video-year-pct" class="text-xs text-gray-300">Đã đạt 0% kế hoạch năm</p></div>
                 </div>
-
-                <!-- Tổng Actual -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col justify-center items-center relative overflow-hidden group">
-                    <div class="absolute right-0 top-0 w-2 h-full bg-pnjGold transition-all group-hover:w-3"></div>
-                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <i class="fas fa-video text-pnjGold"></i> Tổng Đã Quay
-                    </h3>
-                    <div class="flex items-center gap-4">
-                        <span id="kpi-video-total-actual" class="text-6xl font-black text-pnjBlue">0</span>
-                    </div>
+                    <div class="absolute right-0 top-0 w-2 h-full bg-pnjGold transition-all"></div>
+                    <h3 class="text-sm font-bold text-gray-500 uppercase mb-2 flex items-center gap-2"><i class="fas fa-video text-pnjGold"></i> Tổng Đã Quay</h3>
+                    <div class="flex items-center gap-4"><span id="kpi-video-total-actual" class="text-6xl font-black text-pnjBlue">0</span></div>
                 </div>
             </div>
 
-            <!-- Chart & Summary Table -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Bar Chart -->
                 <div class="lg:col-span-1 bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
-                    <h3 class="font-bold text-[#1C3B5E] text-lg mb-4 flex items-center gap-2">
-                        <i class="fas fa-chart-bar text-gray-400"></i> Đã quay theo Tháng
-                    </h3>
+                    <h3 class="font-bold text-[#1C3B5E] text-lg mb-4 flex items-center gap-2"><i class="fas fa-chart-bar text-gray-400"></i> Đã quay theo Tháng</h3>
                     <div class="relative w-full flex-grow min-h-[250px]">
                         <canvas id="chartVideo"></canvas>
                         <div id="emptyChartVideo" class="hidden absolute inset-0 flex items-center justify-center text-gray-500 italic bg-white/90">Chưa có dữ liệu.</div>
                     </div>
                 </div>
-
-                <!-- Editable Summary Table -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                     <div class="bg-[#1C3B5E] p-4 border-b border-[#112640] flex justify-between items-center">
-                        <span class="font-bold text-white text-base uppercase tracking-wide flex items-center gap-2">
-                            <i class="fas fa-video text-pnjGold"></i> Bảng Theo Dõi Sản Xuất Video
-                        </span>
+                        <span class="font-bold text-white text-base uppercase flex items-center gap-2"><i class="fas fa-video text-pnjGold"></i> Bảng Theo Dõi Sản Xuất Video</span>
                         <div class="flex gap-2">
-                            <button onclick="addNewVideoRow()" class="bg-white/10 text-white hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 border border-white/20">
-                                <i class="fas fa-plus"></i> Thêm Lô Video
-                            </button>
-                            <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
-                                <i class="fas fa-save"></i> Lưu Dữ Luệu
-                            </button>
+                            <button onclick="addNewVideoRow()" class="bg-white/10 text-white hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2"><i class="fas fa-plus"></i> Thêm Lô Video</button>
+                            <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto flex-grow">
@@ -637,40 +436,25 @@
                                     <th class="px-4 py-3 font-bold">Ghi Chú</th>
                                 </tr>
                             </thead>
-                            <tbody id="videoSummaryBody" class="divide-y divide-gray-100 bg-white">
-                                <!-- Generated via JS -->
-                            </tbody>
+                            <tbody id="videoSummaryBody" class="divide-y divide-gray-100 bg-white"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <!-- END: VIDEO DASHBOARD -->
         </div>
 
         <!-- ==================== TAB 5: DATABASE GỐC ==================== -->
         <div id="tab-database" class="hidden">
             <div class="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
-                <button onclick="addNewRow()" class="bg-pnjBlue/10 text-pnjBlue hover:bg-pnjBlue/20 px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Thêm Dòng
-                </button>
-                <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
-                    <i class="fas fa-save"></i> Lưu Dữ Liệu
-                </button>
-                
+                <button onclick="addNewRow()" class="bg-pnjBlue/10 text-pnjBlue hover:bg-pnjBlue/20 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2"><i class="fas fa-plus"></i> Thêm Dòng</button>
+                <button onclick="saveData()" class="bg-pnjGold text-white hover:bg-pnjGoldLight px-6 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
                 <div class="w-px h-8 bg-gray-300 mx-2 hidden md:block"></div>
-                
-                <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer flex items-center gap-2">
-                    <i class="fas fa-upload text-pnjBlue"></i> Nhập CSV
-                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
+                <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold cursor-pointer flex items-center gap-2">
+                    <i class="fas fa-upload text-pnjBlue"></i> Nhập CSV<input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
                 </label>
-                <button onclick="exportCSV()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2">
-                    <i class="fas fa-download text-pnjBlue"></i> Xuất CSV
-                </button>
-                
+                <button onclick="exportCSV()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2"><i class="fas fa-download text-pnjBlue"></i> Xuất CSV</button>
                 <div class="flex-grow"></div>
-                <button onclick="clearAllData()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg font-semibold transition-colors border border-red-100">
-                    Xóa toàn bộ
-                </button>
+                <button onclick="clearAllData()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg font-semibold border border-red-100">Xóa toàn bộ</button>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -694,9 +478,7 @@
                                 <th class="px-4 py-4 min-w-[250px]">Ghi chú</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-gray-200">
-                            <!-- Rows generated via JS -->
-                        </tbody>
+                        <tbody id="tableBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
                 <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-between items-center text-sm font-semibold text-gray-700">
@@ -707,10 +489,8 @@
         </div>
 
     </div>
-    
-    </div> <!-- End of app-content -->
+    </div>
 
-    <!-- DataLists -->
     <datalist id="noiMuonList"><option value="KHO"><option value="NVT"><option value="Sang tay"></datalist>
     <datalist id="ttMuonList"><option value="Done mượn"><option value="Chuẩn bị mượn"><option value="Đang mượn"></datalist>
     <datalist id="ttChupList"><option value="Done chụp"><option value="0"></datalist>
@@ -719,14 +499,11 @@
     <datalist id="ttQuayList"><option value="Đã xong"><option value="Đang quay"><option value="Chưa quay"></datalist>
     <datalist id="ttDungList"><option value="Đã xong"><option value="Đang dựng"><option value="Chưa dựng"></datalist>
 
-    <!-- START: FIREBASE CLOUD STORAGE SCRIPT -->
     <script type="module">
-        // Import trực tiếp từ bộ thư viện gốc của Google
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { initializeFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Cấu hình Firebase mà bạn đã cung cấp
         let firebaseConfig;
         if (typeof __firebase_config !== 'undefined') {
             firebaseConfig = JSON.parse(__firebase_config);
@@ -745,7 +522,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // Khởi tạo Auth (Đăng nhập ẩn danh để xin quyền truy cập Database một cách hợp lệ)
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -759,21 +535,13 @@
         };
         const authPromise = initAuth();
 
-        // Sử dụng initializeFirestore với experimentalForceLongPolling để khắc phục lỗi mạng chặn WebSocket (lỗi Timeout 10s)
-        const db = initializeFirestore(app, {
-            experimentalForceLongPolling: true
-        });
-        
-        // Fix: Sử dụng __app_id linh hoạt khi chạy trong môi trường Canvas, hoặc fallback về tên dự án của bạn khi đưa lên Github.
+        const db = initializeFirestore(app, { experimentalForceLongPolling: true });
         const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
         
-        // KIỂM TRA ĐĂNG NHẬP (BẰNG JAVASCRIPT TRONG TRÌNH DUYỆT)
         let isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
-
         const loginOverlay = document.getElementById('login-overlay');
         const appContent = document.getElementById('app-content');
 
-        // Khởi tạo giao diện dựa trên trạng thái đăng nhập
         if (isFakeLoggedIn) {
             if(loginOverlay) loginOverlay.classList.add('hidden');
             if(appContent) appContent.classList.remove('hidden');
@@ -783,13 +551,10 @@
             if(appContent) appContent.classList.add('hidden');
         }
 
-        // Hàm xử lý Đăng nhập nội bộ (Không cần Firebase Auth)
         window.handleLogin = async function() {
             const username = document.getElementById('admin-username').value;
             const pass = document.getElementById('admin-pass').value;
             const errEl = document.getElementById('login-error');
-            const btnLogin = document.getElementById('btn-login');
-            
             errEl.classList.add('hidden');
 
             if(!username || !pass) {
@@ -798,12 +563,9 @@
                 return;
             }
 
-            // 👇 BẠN CÓ THỂ ĐỔI TÊN TÀI KHOẢN VÀ MẬT KHẨU TÙY THÍCH Ở ĐÂY 👇
-            // Hiện tại tôi đang để tài khoản là 'admin'
             if (username === 'admin' && pass === 'admin123') {
                 localStorage.setItem('pnj_admin_logged_in', 'true');
                 isFakeLoggedIn = true;
-                
                 if(loginOverlay) loginOverlay.classList.add('hidden');
                 if(appContent) appContent.classList.remove('hidden');
                 if(window.loadDataFromCloud) window.loadDataFromCloud();
@@ -813,31 +575,21 @@
             }
         };
 
-        // Hàm xử lý Đăng xuất
         window.handleLogout = async function() {
             if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
                 localStorage.removeItem('pnj_admin_logged_in');
                 isFakeLoggedIn = false;
-                
-                // Xóa trắng bảng khi đăng xuất để bảo vệ dữ liệu trên màn hình
                 window.tableData = [];
                 window.videoData = [];
-                
                 if(loginOverlay) loginOverlay.classList.remove('hidden');
                 if(appContent) appContent.classList.add('hidden');
             }
         };
 
         window.saveDataToCloud = async function() {
-            if (!isFakeLoggedIn) {
-                alert("Vui lòng đăng nhập để lưu dữ liệu!");
-                return;
-            }
+            if (!isFakeLoggedIn) { alert("Vui lòng đăng nhập để lưu dữ liệu!"); return; }
             try {
-                // Đảm bảo hệ thống đã cấp quyền thành công trước khi lưu
                 await authPromise;
-                
-                // Lưu dữ liệu vào Cloud
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data'); 
                 await setDoc(docRef, {
                     tableData: window.tableData || [],
@@ -864,9 +616,7 @@
         window.loadDataFromCloud = async function() {
             if (!isFakeLoggedIn) return;
             try {
-                // Đảm bảo hệ thống đã cấp quyền thành công trước khi đọc
                 await authPromise;
-                
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
@@ -890,10 +640,8 @@
             }
         }
     </script>
-    <!-- END: FIREBASE CLOUD STORAGE SCRIPT -->
 
     <script>
-        // Data Structures chuyển thành biến toàn cục (var) để tương tác được với Cloud
         var tableData = [];
         var videoData = [];
         var imageManualDates = {}; 
@@ -903,14 +651,10 @@
         var chartDoneInstance = null;
         var chartVideoInstance = null;
 
-        // UI toggles
         function togglePendingDetails() {
             const details = document.getElementById('pending-m-details');
             const icon = document.getElementById('icon-pending-details');
-            if (details && icon) {
-                details.classList.toggle('hidden');
-                icon.classList.toggle('rotate-180');
-            }
+            if (details && icon) { details.classList.toggle('hidden'); icon.classList.toggle('rotate-180'); }
         }
 
         document.addEventListener('click', function(event) {
@@ -924,49 +668,38 @@
             });
         });
 
-        // Tab Switcher
         window.switchTab = function(tabId) {
             ['tab-database', 'tab-summary', 'tab-report', 'tab-video', 'tab-image'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('hidden');
+                const el = document.getElementById(id); if (el) el.classList.add('hidden');
                 const btn = document.getElementById('btn-' + id);
                 if(btn) btn.className = "text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all";
             });
-            
-            const activeEl = document.getElementById(tabId);
-            if (activeEl) activeEl.classList.remove('hidden');
+            const activeEl = document.getElementById(tabId); if (activeEl) activeEl.classList.remove('hidden');
             const activeBtn = document.getElementById('btn-' + tabId);
             if(activeBtn) activeBtn.className = "bg-pnjBlue text-white py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-md";
 
-            if(tabId === 'tab-summary') { populateSummaryFilters(); renderSummary(); }
+            if(tabId === 'tab-summary') { populateSummaryFilters(); window.renderSummary(); }
             else if (tabId === 'tab-report') { populateReportFilters(); renderReport(); }
-            else if (tabId === 'tab-video') { renderVideoTable(); }
-            else if (tabId === 'tab-image') { populateImageFilters(); renderImageTrackingTable(); }
+            else if (tabId === 'tab-video') { window.renderVideoTable(); }
+            else if (tabId === 'tab-image') { populateImageFilters(); window.renderImageTrackingTable(); }
             else if (tabId === 'tab-database') { window.renderTable(); }
         }
 
-        // Utils
         function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        
         function parseDateFromCSV(dateStr) {
             if (!dateStr) return '';
-            // Xử lý định dạng ngày tháng có chứa dấu '/'
             if (dateStr.includes('/')) {
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
-                    let month = parts[0];
-                    let day = parts[1];
-                    let year = parts[2];
-                    
-                    if (parseInt(parts[0]) > 12) {
-                        day = parts[0];
-                        month = parts[1];
-                    }
-                    
+                    let month = parts[0]; let day = parts[1]; let year = parts[2];
+                    if (parseInt(parts[0]) > 12) { day = parts[0]; month = parts[1]; }
                     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                 }
             }
             return dateStr;
         }
+        
         function formatDateToDisplay(dateStr) {
             if (!dateStr) return '';
             if (dateStr.includes('-')) {
@@ -975,30 +708,56 @@
             }
             return dateStr;
         }
+
+        function getLocalDateStr(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function getDayName(dateStr) {
+            let d = new Date(dateStr).getDay();
+            if(d === 0) return 'CN';
+            return 'T' + (d + 1);
+        }
+        
+        function isWeekend(dateStr) {
+            let d = new Date(dateStr).getDay();
+            return d === 0 || d === 6;
+        }
+
+        function isHoliday(dateStr) {
+            const holidays = ['2026-04-26', '2026-04-27', '2026-04-30', '2026-05-01'];
+            return holidays.includes(dateStr);
+        }
+
         function getWorkingDays(startDate, endDate) {
             if (!startDate || !endDate) return 0;
             let start = new Date(startDate); let end = new Date(endDate);
             if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
             let count = 0; let d = new Date(start);
             while (d <= end) {
-                let day = d.getDay(); if (day !== 0 && day !== 6) count++;
+                let ds = getLocalDateStr(d);
+                let day = d.getDay();
+                if (day !== 0 && day !== 6 && !isHoliday(ds)) count++;
                 d.setDate(d.getDate() + 1);
             }
             return count;
         }
+
         function addWorkingDays(dateStr, days) {
             if (!dateStr) return '';
-            let parts = dateStr.split('-'); if (parts.length !== 3) return '';
-            let d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            let d = new Date(dateStr);
             if (isNaN(d.getTime())) return '';
-            if (d.getDay() === 0) d.setDate(d.getDate() + 1); 
-            else if (d.getDay() === 6) d.setDate(d.getDate() + 2); 
+            while (d.getDay() === 0 || d.getDay() === 6 || isHoliday(getLocalDateStr(d))) {
+                d.setDate(d.getDate() + 1);
+            }
             while (days > 0) {
                 d.setDate(d.getDate() + 1);
-                if (d.getDay() !== 0 && d.getDay() !== 6) days--;
+                let ds = getLocalDateStr(d);
+                if (d.getDay() !== 0 && d.getDay() !== 6 && !isHoliday(ds)) days--;
             }
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return getLocalDateStr(d);
         }
+
         function calculateDays(startDate, receiveDate) {
             if (!startDate || !receiveDate) return '';
             const start = new Date(startDate); const receive = new Date(receiveDate);
@@ -1006,49 +765,24 @@
             return diffTime < 0 ? 0 : Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         }
 
-        // --- Hàm hỗ trợ Sơ đồ Gantt ---
         function getDatesInRange(startStr, endStr) {
             let dates = [];
             let curr = new Date(startStr);
             let end = new Date(endStr);
             if(isNaN(curr.getTime()) || isNaN(end.getTime())) return dates;
             while(curr <= end) {
-                let y = curr.getFullYear();
-                let m = String(curr.getMonth() + 1).padStart(2, '0');
-                let d = String(curr.getDate()).padStart(2, '0');
-                dates.push(`${y}-${m}-${d}`);
+                dates.push(getLocalDateStr(curr));
                 curr.setDate(curr.getDate() + 1);
             }
             return dates;
         }
-        function getDayName(dateStr) {
-            let d = new Date(dateStr).getDay();
-            if(d === 0) return 'CN';
-            return 'T' + (d + 1);
-        }
-        function isWeekend(dateStr) {
-            let d = new Date(dateStr).getDay();
-            return d === 0 || d === 6;
-        }
 
-        // CRUD Operations
-        window.addNewRow = function() {
-            tableData.unshift({ id: generateId(), sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ttChup: '', ttRetouch: '', phanLoai: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' });
-            window.renderTable();
-        }
-        window.addNewVideoRow = function() {
-            videoData.unshift({ id: generateId(), month: '', loVideo: '', slThucTe: 0, ttQuay: '', ttDung: '', ghiChu: '' });
-            window.renderVideoTable();
-        }
+        window.addNewRow = function() { tableData.unshift({ id: generateId(), sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ttChup: '', ttRetouch: '', phanLoai: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' }); window.renderTable(); }
+        window.addNewVideoRow = function() { videoData.unshift({ id: generateId(), month: '', loVideo: '', slThucTe: 0, ttQuay: '', ttDung: '', ghiChu: '' }); window.renderVideoTable(); }
         window.deleteRow = function(id) { if(confirm('Xóa dòng này?')) { tableData = tableData.filter(row => row.id !== id); window.renderTable(); } }
         window.deleteVideoRow = function(id) { if(confirm('Xóa dòng này?')) { videoData = videoData.filter(row => row.id !== id); window.renderVideoTable(); } }
         window.clearAllData = function() { if(confirm("Xóa toàn bộ Database?")) { tableData = []; window.renderTable(); saveData(); } }
-        window.clearImageManualDates = function() {
-            if(confirm("Xóa lịch chỉnh tay?")) {
-                imageManualDates = {}; imageManualEndDates = {}; imageManualRetouchStarts = {}; imageManualRetouchEnds = {};
-                renderImageTrackingTable(); saveData();
-            }
-        }
+        window.clearImageManualDates = function() { if(confirm("Xóa lịch chỉnh tay?")) { imageManualDates = {}; imageManualEndDates = {}; imageManualRetouchStarts = {}; imageManualRetouchEnds = {}; window.renderImageTrackingTable(); saveData(); } }
 
         window.updateCell = function(id, field, value) {
             const rowIndex = tableData.findIndex(row => row.id === id);
@@ -1063,34 +797,24 @@
         }
 
         window.updateSummaryGroup = function(idsStr, field, value) {
-            const ids = idsStr.split(',');
-            let needsRender = false;
+            const ids = idsStr.split(','); let needsRender = false;
             ids.forEach(id => {
                 const rowIndex = tableData.findIndex(row => row.id === id);
-                if (rowIndex > -1) {
-                    tableData[rowIndex][field] = value;
-                    needsRender = true;
-                }
+                if (rowIndex > -1) { tableData[rowIndex][field] = value; needsRender = true; }
             });
-            if (needsRender) {
-                renderSummary(); 
-            }
+            if (needsRender) window.renderSummary(); 
         }
 
         window.updateVideoCell = function(id, field, value) { 
             const rowIndex = videoData.findIndex(row => row.id === id); 
-            if (rowIndex > -1) {
-                videoData[rowIndex][field] = value; 
-                renderVideoDashboard(); 
-            }
+            if (rowIndex > -1) { videoData[rowIndex][field] = value; window.renderVideoDashboard(); }
         }
         
-        window.updateImageManualDate = function(key, value) { if (value) imageManualDates[key] = value; else delete imageManualDates[key]; renderImageTrackingTable(); saveData(); }
-        window.updateImageManualEndDate = function(key, value) { if (value) imageManualEndDates[key] = value; else delete imageManualEndDates[key]; renderImageTrackingTable(); saveData(); }
-        window.updateImageManualRetouchStart = function(key, value) { if (value) imageManualRetouchStarts[key] = value; else delete imageManualRetouchStarts[key]; renderImageTrackingTable(); saveData(); }
-        window.updateImageManualRetouchEnd = function(key, value) { if (value) imageManualRetouchEnds[key] = value; else delete imageManualRetouchEnds[key]; renderImageTrackingTable(); saveData(); }
+        window.updateImageManualDate = function(key, value) { if (value) imageManualDates[key] = value; else delete imageManualDates[key]; window.renderImageTrackingTable(); saveData(); }
+        window.updateImageManualEndDate = function(key, value) { if (value) imageManualEndDates[key] = value; else delete imageManualEndDates[key]; window.renderImageTrackingTable(); saveData(); }
+        window.updateImageManualRetouchStart = function(key, value) { if (value) imageManualRetouchStarts[key] = value; else delete imageManualRetouchStarts[key]; window.renderImageTrackingTable(); saveData(); }
+        window.updateImageManualRetouchEnd = function(key, value) { if (value) imageManualRetouchEnds[key] = value; else delete imageManualRetouchEnds[key]; window.renderImageTrackingTable(); saveData(); }
 
-        // --- CÁC HÀM TẠO VÀ XỬ LÝ BỘ LỌC (FILTERS) ---
         function getFilterState(fullType) {
             const cbs = document.querySelectorAll(`.cb-${fullType}`); 
             if (cbs.length === 0) return null; 
@@ -1108,27 +832,19 @@
         function buildFilterDropdown(set, fullType, curSelected) {
             const listEl = document.getElementById(`list-${fullType}`); if(!listEl) return;
             let allChecked = true;
-            
             const searchInput = document.getElementById(`search-${fullType}`);
             if (searchInput) searchInput.value = '';
 
-            if (set.size === 0) {
-                listEl.innerHTML = '<div class="px-2 py-1.5 text-sm text-gray-400 italic">Không có dữ liệu</div>';
-                return;
-            }
+            if (set.size === 0) { listEl.innerHTML = '<div class="px-2 py-1.5 text-sm text-gray-400 italic">Không có dữ liệu</div>'; return; }
 
             listEl.innerHTML = Array.from(set).sort(sortValuesHelper).map(val => {
                 let isChecked = (curSelected === null || curSelected === 'ALL') ? true : curSelected.includes(val.toString());
                 if (!isChecked) allChecked = false;
-                return `<label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded">
-                            <input type="checkbox" value="${val}" class="cb-${fullType} rounded text-pnjBlue focus:ring-pnjBlue" ${isChecked ? 'checked' : ''} onchange="handleCheckboxChange('${fullType}')">
-                            <span class="truncate">${val}</span>
-                        </label>`;
+                return `<label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded"><input type="checkbox" value="${val}" class="cb-${fullType} rounded text-pnjBlue focus:ring-pnjBlue" ${isChecked ? 'checked' : ''} onchange="handleCheckboxChange('${fullType}')"><span class="truncate">${val}</span></label>`;
             }).join('');
             
             const selectAllBtn = document.getElementById(`selectAll-${fullType}`); 
             if(selectAllBtn) selectAllBtn.checked = allChecked;
-            
             updateFilterLabel(fullType);
         }
 
@@ -1143,7 +859,7 @@
         window.toggleAllCheckboxes = function(fullType, isChecked) {
             document.querySelectorAll(`.cb-${fullType}`).forEach(cb => cb.checked = isChecked);
             updateFilterLabel(fullType);
-            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) renderImageTrackingTable(); else renderSummary();
+            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) window.renderImageTrackingTable(); else window.renderSummary();
         }
 
         window.handleCheckboxChange = function(fullType) {
@@ -1151,7 +867,7 @@
             const selectAllBtn = document.getElementById(`selectAll-${fullType}`);
             if(selectAllBtn) selectAllBtn.checked = Array.from(cbs).every(cb => cb.checked);
             updateFilterLabel(fullType);
-            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) renderImageTrackingTable(); else renderSummary();
+            if(fullType.startsWith('report-')) renderReport(); else if(fullType.startsWith('img-')) window.renderImageTrackingTable(); else window.renderSummary();
         }
 
         function updateFilterLabel(fullType) {
@@ -1163,16 +879,10 @@
             let baseType = fullType.replace('report-', '').replace('img-', '');
             let prefix = baseType === 'month' ? 'Tháng' : (baseType === 'noiMuon' ? 'Nơi mượn' : (baseType === 'loMuon' ? 'Lô mượn' : 'TT Mượn'));
             
-            if (checkedCbs.length === cbs.length) {
-                labelEl.innerText = `Tất cả ${prefix}`;
-            } else if (checkedCbs.length === 0) {
-                labelEl.innerText = `Trống (${prefix})`;
-            } else if (checkedCbs.length === 1) {
-                let val = checkedCbs[0].value;
-                labelEl.innerText = (baseType === 'month' && val !== 'Trống') ? `Tháng ${val}` : val;
-            } else {
-                labelEl.innerText = `Đã chọn (${checkedCbs.length})`;
-            }
+            if (checkedCbs.length === cbs.length) labelEl.innerText = `Tất cả ${prefix}`;
+            else if (checkedCbs.length === 0) labelEl.innerText = `Trống (${prefix})`;
+            else if (checkedCbs.length === 1) { let val = checkedCbs[0].value; labelEl.innerText = (baseType === 'month' && val !== 'Trống') ? `Tháng ${val}` : val; }
+            else labelEl.innerText = `Đã chọn (${checkedCbs.length})`;
         }
 
         window.filterDropdownList = function(type, searchTerm) {
@@ -1181,14 +891,8 @@
             if (!listEl) return;
             const labels = listEl.querySelectorAll('label');
             labels.forEach(label => {
-                const text = label.innerText.toLowerCase();
-                if (text.includes(term)) {
-                    label.classList.remove('hidden');
-                    label.classList.add('flex');
-                } else {
-                    label.classList.add('hidden');
-                    label.classList.remove('flex');
-                }
+                if (label.innerText.toLowerCase().includes(term)) { label.classList.remove('hidden'); label.classList.add('flex'); } 
+                else { label.classList.add('hidden'); label.classList.remove('flex'); }
             });
         }
 
@@ -1196,9 +900,7 @@
             const curMonth = getFilterState('month'); const curNoi = getFilterState('noiMuon'); const curTT = getFilterState('ttMuon');
             const months = new Set(); const nois = new Set(); const tts = new Set();
             tableData.forEach(row => { if (!row.sku && !row.loMuon && !row.noiMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); tts.add(row.ttMuon || 'Trống'); });
-            buildFilterDropdown(months, 'month', curMonth);
-            buildFilterDropdown(nois, 'noiMuon', curNoi);
-            buildFilterDropdown(tts, 'ttMuon', curTT);
+            buildFilterDropdown(months, 'month', curMonth); buildFilterDropdown(nois, 'noiMuon', curNoi); buildFilterDropdown(tts, 'ttMuon', curTT);
         }
         window.clearSummaryFilters = function() { ['month', 'noiMuon', 'ttMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); }
 
@@ -1206,8 +908,7 @@
             const curMonth = getFilterState('report-month'); const curNoi = getFilterState('report-noiMuon');
             const months = new Set(); const nois = new Set();
             tableData.forEach(row => { if (!row.sku && !row.loMuon && !row.noiMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); });
-            buildFilterDropdown(months, 'report-month', curMonth);
-            buildFilterDropdown(nois, 'report-noiMuon', curNoi);
+            buildFilterDropdown(months, 'report-month', curMonth); buildFilterDropdown(nois, 'report-noiMuon', curNoi);
         }
         window.clearReportFilters = function() { ['report-month', 'report-noiMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); }
 
@@ -1215,45 +916,31 @@
             const curMonth = getFilterState('img-month'); const curNoi = getFilterState('img-noiMuon'); const curLo = getFilterState('img-loMuon');
             const months = new Set(); const nois = new Set(); const los = new Set();
             tableData.forEach(row => { if (!row.loMuon) return; months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); los.add(row.loMuon); });
-            buildFilterDropdown(months, 'img-month', curMonth);
-            buildFilterDropdown(nois, 'img-noiMuon', curNoi);
-            buildFilterDropdown(los, 'img-loMuon', curLo);
+            buildFilterDropdown(months, 'img-month', curMonth); buildFilterDropdown(nois, 'img-noiMuon', curNoi); buildFilterDropdown(los, 'img-loMuon', curLo);
         }
         window.clearImageFilters = function() { 
-            const lateCb = document.getElementById('filter-img-late');
-            if (lateCb) lateCb.checked = false;
+            const lateCb = document.getElementById('filter-img-late'); if (lateCb) lateCb.checked = false;
             ['img-month', 'img-noiMuon', 'img-loMuon'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); 
         }
 
-        // --- HÀM TÍNH LỊCH SẢN XUẤT CHUNG (Sử dụng cho cả Tab Mượn Hàng & Tab Hình Ảnh) ---
         window.getGlobalSchedule = function() {
             let dailyGroups = {};
             tableData.forEach(row => {
                 if (!row.ngayNhan) return; 
                 let dateKey = row.ngayNhan;
-                if (!dailyGroups[dateKey]) {
-                    dailyGroups[dateKey] = { ngayNhan: dateKey, skuCount: 0, khoSku: 0, nvtSku: 0, otherSku: 0 };
-                }
+                if (!dailyGroups[dateKey]) { dailyGroups[dateKey] = { ngayNhan: dateKey, skuCount: 0, khoSku: 0, nvtSku: 0, otherSku: 0 }; }
                 let group = dailyGroups[dateKey];
-                let n = row.noiMuon || 'Trống';
-                let nUpper = n.toUpperCase();
-                if (nUpper === 'KHO') group.khoSku++;
-                else if (nUpper === 'NVT') group.nvtSku++;
-                else group.otherSku++;
+                let nUpper = (row.noiMuon || 'Trống').toUpperCase();
+                if (nUpper === 'KHO') group.khoSku++; else if (nUpper === 'NVT') group.nvtSku++; else group.otherSku++;
                 group.skuCount++;
             });
 
             let sortedDates = Object.values(dailyGroups).sort((a, b) => a.ngayNhan.localeCompare(b.ngayNhan));
-            let globalNextFreeChupNVT = null; 
-            let globalNextFreeChupKHO = null;
-            let globalNextFreeChupOther = null;
-            let globalNextFreeRetouch = null;
-            
+            let globalNextFreeChupNVT = null, globalNextFreeChupKHO = null, globalNextFreeChupOther = null, globalNextFreeRetouch = null;
             let schedules = {};
 
             sortedDates.forEach(g => {
                 let baseStart = addWorkingDays(g.ngayNhan, 1); 
-                
                 let sKHO = null, eKHO = null;
                 if (g.khoSku > 0) {
                     sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart;
@@ -1277,30 +964,20 @@
 
                 let starts = [sKHO, sNVT, sOther].filter(x => x !== null);
                 let minStart = starts.length > 0 ? starts.reduce((min, p) => p < min ? p : min, starts[0]) : baseStart;
-
                 let manualKey = g.ngayNhan;
                 let finalStartChup = imageManualDates[manualKey] || minStart;
 
-                // Retouch
                 let sR = addWorkingDays(finalStartChup, 2); 
-                if (globalNextFreeRetouch && sR < globalNextFreeRetouch) {
-                    sR = globalNextFreeRetouch;
-                }
-
+                if (globalNextFreeRetouch && sR < globalNextFreeRetouch) sR = globalNextFreeRetouch;
                 let asR = imageManualRetouchStarts[manualKey] || sR;
                 let eR = addWorkingDays(asR, Math.max(0, Math.ceil(g.skuCount / 32) - 1)); 
                 let aeR = imageManualRetouchEnds[manualKey] || eR;
-                
                 globalNextFreeRetouch = addWorkingDays(aeR, 1);
-                
                 schedules[g.ngayNhan] = { endRetouch: aeR };
             });
-
             return schedules;
         };
 
-
-        // --- CÁC HÀM RENDER (TẠO BẢNG & BIỂU ĐỒ) ---
         window.renderTable = function() {
             const tbody = document.getElementById('tableBody'); if(!tbody) return;
             tbody.innerHTML = tableData.map(row => {
@@ -1331,16 +1008,9 @@
             const tbody = document.getElementById('videoSummaryBody'); if(!tbody) return;
             tbody.innerHTML = videoData.map(row => {
                 let tQVal = (row.ttQuay || '').toLowerCase();
-                let tQClass = tQVal.includes('xong') || tQVal.includes('done') 
-                              ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' 
-                              : (tQVal.includes('đang') ? 'text-[#1C3B5E] font-bold bg-[#E8F0FE]' : 'text-gray-600 bg-gray-50');
-
+                let tQClass = tQVal.includes('xong') || tQVal.includes('done') ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' : (tQVal.includes('đang') ? 'text-[#1C3B5E] font-bold bg-[#E8F0FE]' : 'text-gray-600 bg-gray-50');
                 let tDVal = (row.ttDung || '').toLowerCase();
-                let tDClass = tDVal.includes('đang') 
-                              ? 'text-[#1C3B5E] font-bold bg-[#E8F0FE]'
-                              : ((tDVal.includes('xong') || tDVal.includes('done'))
-                                  ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' 
-                                  : 'text-gray-600 bg-gray-50');
+                let tDClass = tDVal.includes('đang') ? 'text-[#1C3B5E] font-bold bg-[#E8F0FE]' : ((tDVal.includes('xong') || tDVal.includes('done')) ? 'text-[#B8860B] font-bold bg-[#Fdf6E3]' : 'text-gray-600 bg-gray-50');
 
                 return `
                 <tr class="hover:bg-gray-50 transition-colors group">
@@ -1353,259 +1023,109 @@
                     <td class="px-1 py-1"><input type="text" value="${row.ghiChu || ''}" onchange="updateVideoCell('${row.id}', 'ghiChu', this.value)" class="bg-transparent border-none text-gray-500" placeholder="Ghi chú..."></td>
                 </tr>`;
             }).join('');
-            renderVideoDashboard();
+            window.renderVideoDashboard();
         }
 
-        function renderVideoDashboard() {
-            let yearlyTotal = 0;
-            let monthlyData = {};
-
-            for(let i=1; i<=12; i++) {
-                monthlyData[i] = { count: 0 };
-            }
-
+        window.renderVideoDashboard = function() {
+            let yearlyTotal = 0; let monthlyData = {};
+            for(let i=1; i<=12; i++) { monthlyData[i] = { count: 0 }; }
             videoData.forEach(row => {
-                let m = parseInt(row.month);
-                let sl = parseInt(row.slThucTe) || 0;
+                let m = parseInt(row.month); let sl = parseInt(row.slThucTe) || 0;
                 if(isNaN(m) || m < 1 || m > 12) return;
-
-                yearlyTotal += sl;
-                monthlyData[m].count += sl;
+                yearlyTotal += sl; monthlyData[m].count += sl;
             });
 
             let yearPct = Math.min(100, Math.round((yearlyTotal / 480) * 100));
-            const yearPctEl = document.getElementById('kpi-video-year-pct');
-            if (yearPctEl) yearPctEl.innerText = `Đã đạt ${yearPct}% kế hoạch năm`;
-            const yearBarEl = document.getElementById('kpi-video-year-bar');
-            if (yearBarEl) yearBarEl.style.width = `${yearPct}%`;
+            const yearPctEl = document.getElementById('kpi-video-year-pct'); if (yearPctEl) yearPctEl.innerText = `Đã đạt ${yearPct}% kế hoạch năm`;
+            const yearBarEl = document.getElementById('kpi-video-year-bar'); if (yearBarEl) yearBarEl.style.width = `${yearPct}%`;
+            const kpiTotalActual = document.getElementById('kpi-video-total-actual'); if (kpiTotalActual) kpiTotalActual.innerText = yearlyTotal;
 
-            const kpiTotalActual = document.getElementById('kpi-video-total-actual');
-            if (kpiTotalActual) kpiTotalActual.innerText = yearlyTotal;
+            let chartLabels = []; let chartValues = [];
+            for(let i=1; i<=12; i++) { if(monthlyData[i].count > 0) { chartLabels.push(`Tháng ${i}`); chartValues.push(monthlyData[i].count); } }
 
-            let chartLabels = [];
-            let chartValues = [];
-
-            for(let i=1; i<=12; i++) {
-                if(monthlyData[i].count > 0) {
-                    chartLabels.push(`Tháng ${i}`);
-                    chartValues.push(monthlyData[i].count);
-                }
-            }
-
-            const canvas = document.getElementById('chartVideo');
-            const empty = document.getElementById('emptyChartVideo');
+            const canvas = document.getElementById('chartVideo'); const empty = document.getElementById('emptyChartVideo');
             if (!canvas || !empty) return;
             if(chartVideoInstance) chartVideoInstance.destroy();
             
-            if (chartLabels.length === 0) {
-                canvas.classList.add('hidden');
-                empty.classList.remove('hidden');
-            } else {
-                canvas.classList.remove('hidden');
-                empty.classList.add('hidden');
+            if (chartLabels.length === 0) { canvas.classList.add('hidden'); empty.classList.remove('hidden'); } else {
+                canvas.classList.remove('hidden'); empty.classList.add('hidden');
                 chartVideoInstance = new Chart(canvas, {
                     type: 'bar',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{
-                            label: 'Số lượng Video',
-                            data: chartValues,
-                            backgroundColor: '#7393B3',
-                            borderRadius: 6,
-                            barPercentage: 0.6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } },
-                            x: { grid: { display: false }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } }
-                        }
-                    },
-                    plugins: [{
-                        id: 'customDataLabelsVideo',
-                        afterDatasetsDraw(chart) {
-                            const { ctx, data } = chart;
-                            ctx.save();
-                            ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'bottom';
-                            ctx.fillStyle = '#1C3B5E';
-                            
-                            data.datasets[0].data.forEach((value, index) => {
-                                if (value > 0) {
-                                    const meta = chart.getDatasetMeta(0);
-                                    const bar = meta.data[index];
-                                    ctx.fillText(value, bar.x, bar.y - 4);
-                                }
-                            });
-                            ctx.restore();
-                        }
-                    }]
+                    data: { labels: chartLabels, datasets: [{ label: 'Số lượng Video', data: chartValues, backgroundColor: '#7393B3', borderRadius: 6, barPercentage: 0.6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 25 } }, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } }, x: { grid: { display: false }, border: {display: false}, ticks: { font: { family: "'Be Vietnam Pro', sans-serif" } } } } },
+                    plugins: [{ id: 'customDataLabelsVideo', afterDatasetsDraw(chart) { const { ctx, data } = chart; ctx.save(); ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#1C3B5E'; data.datasets[0].data.forEach((value, index) => { if (value > 0) { const meta = chart.getDatasetMeta(0); const bar = meta.data[index]; ctx.fillText(value, bar.x, bar.y - 4); } }); ctx.restore(); } }]
                 });
             }
         }
 
-        function renderImageTrackingTable() {
+        window.renderImageTrackingTable = function() {
             const tbody = document.getElementById('imageTrackingBody'); if(!tbody) return;
-            
             const getV = (type) => Array.from(document.querySelectorAll(`.cb-img-${type}:checked`)).map(cb => cb.value);
-            const mF = getV('month'); 
-            const nF = getV('noiMuon'); 
-            const lF = getV('loMuon');
+            const mF = getV('month'); const nF = getV('noiMuon'); const lF = getV('loMuon');
 
             let dailyGroups = {};
-            
             tableData.forEach(row => {
                 if (!row.ngayNhan) return; 
-
-                const m = row.month || 'Trống';
-                const n = row.noiMuon || 'Trống';
-                const l = row.loMuon || 'Trống';
-
+                const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống'; const l = row.loMuon || 'Trống';
                 if (!mF.includes(m.toString()) || !nF.includes(n) || !lF.includes(l)) return;
 
-                // Gom nhóm theo Ngày nhận hàng (Trở lại thiết kế cũ: 1 dòng / 1 ngày)
                 let groupKey = row.ngayNhan;
-
-                if (!dailyGroups[groupKey]) {
-                    dailyGroups[groupKey] = {
-                        groupKey: groupKey,
-                        ngayNhan: row.ngayNhan,
-                        skuCount: 0,
-                        chupDone: 0,
-                        retouchDone: 0,
-                        khoSku: 0,
-                        nvtSku: 0,
-                        otherSku: 0,
-                        items: {}, // Lưu chi tiết Lô + Nơi mượn
-                        ids: [] // Lưu danh sách ID để xuất CSV
-                    };
-                }
-                
+                if (!dailyGroups[groupKey]) { dailyGroups[groupKey] = { groupKey: groupKey, ngayNhan: row.ngayNhan, skuCount: 0, chupDone: 0, retouchDone: 0, khoSku: 0, nvtSku: 0, otherSku: 0, items: {}, ids: [] }; }
                 let group = dailyGroups[groupKey];
                 group.ids.push(row.id);
                 
-                // Cập nhật số lượng theo KHO / NVT để xử lý Timeline song song
                 let nUpper = n.toUpperCase();
-                if (nUpper === 'KHO') group.khoSku++;
-                else if (nUpper === 'NVT') group.nvtSku++;
-                else group.otherSku++;
-
+                if (nUpper === 'KHO') group.khoSku++; else if (nUpper === 'NVT') group.nvtSku++; else group.otherSku++;
                 let itemKey = l + '|' + n;
-                if (!group.items[itemKey]) {
-                    group.items[itemKey] = { loMuon: l, noiMuon: n, skuCount: 0 };
-                }
+                if (!group.items[itemKey]) { group.items[itemKey] = { loMuon: l, noiMuon: n, skuCount: 0 }; }
                 group.items[itemKey].skuCount++;
-
                 group.skuCount++;
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) group.chupDone++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) group.retouchDone++;
             });
 
-            // Sắp xếp: Ưu tiên ngày nhận
             let sortedDates = Object.values(dailyGroups).sort((a, b) => a.ngayNhan.localeCompare(b.ngayNhan));
-
-            // 2 luồng chụp độc lập cho NVT và KHO
-            let globalNextFreeChupNVT = null; 
-            let globalNextFreeChupKHO = null;
-            let globalNextFreeChupOther = null;
-            
-            // 1 luồng Retouch chung cuốn chiếu
-            let globalNextFreeRetouch = null;
-            
-            // Lấy ngày hiện tại để tính cảnh báo Trễ Deadline
+            let globalNextFreeChupNVT = null, globalNextFreeChupKHO = null, globalNextFreeChupOther = null, globalNextFreeRetouch = null;
             let todayStr = new Date().toISOString().slice(0, 10);
-
             let html = '';
             
             let processedGanttData = sortedDates.map(g => {
                 let baseStart = addWorkingDays(g.ngayNhan, 1); 
-                
-                // Tính toán lịch chụp cho KHO (Nếu có)
                 let sKHO = null, eKHO = null;
-                if (g.khoSku > 0) {
-                    sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart;
-                    eKHO = addWorkingDays(sKHO, Math.max(0, Math.ceil(g.khoSku / 32) - 1));
-                    globalNextFreeChupKHO = addWorkingDays(eKHO, 1);
-                }
-
-                // Tính toán lịch chụp cho NVT (Nếu có)
+                if (g.khoSku > 0) { sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart; eKHO = addWorkingDays(sKHO, Math.max(0, Math.ceil(g.khoSku / 32) - 1)); globalNextFreeChupKHO = addWorkingDays(eKHO, 1); }
                 let sNVT = null, eNVT = null;
-                if (g.nvtSku > 0) {
-                    sNVT = (globalNextFreeChupNVT && baseStart < globalNextFreeChupNVT) ? globalNextFreeChupNVT : baseStart;
-                    eNVT = addWorkingDays(sNVT, Math.max(0, Math.ceil(g.nvtSku / 32) - 1));
-                    globalNextFreeChupNVT = addWorkingDays(eNVT, 1);
-                }
-
-                // Tính toán các nhóm khác (Sang tay...)
+                if (g.nvtSku > 0) { sNVT = (globalNextFreeChupNVT && baseStart < globalNextFreeChupNVT) ? globalNextFreeChupNVT : baseStart; eNVT = addWorkingDays(sNVT, Math.max(0, Math.ceil(g.nvtSku / 32) - 1)); globalNextFreeChupNVT = addWorkingDays(eNVT, 1); }
                 let sOther = null, eOther = null;
-                if (g.otherSku > 0) {
-                    sOther = (globalNextFreeChupOther && baseStart < globalNextFreeChupOther) ? globalNextFreeChupOther : baseStart;
-                    eOther = addWorkingDays(sOther, Math.max(0, Math.ceil(g.otherSku / 32) - 1));
-                    globalNextFreeChupOther = addWorkingDays(eOther, 1);
-                }
+                if (g.otherSku > 0) { sOther = (globalNextFreeChupOther && baseStart < globalNextFreeChupOther) ? globalNextFreeChupOther : baseStart; eOther = addWorkingDays(sOther, Math.max(0, Math.ceil(g.otherSku / 32) - 1)); globalNextFreeChupOther = addWorkingDays(eOther, 1); }
 
-                // Tìm ngày bắt đầu sớm nhất và kết thúc muộn nhất để hiển thị ở Bảng
-                let starts = [sKHO, sNVT, sOther].filter(x => x !== null);
-                let ends = [eKHO, eNVT, eOther].filter(x => x !== null);
-                
+                let starts = [sKHO, sNVT, sOther].filter(x => x !== null); let ends = [eKHO, eNVT, eOther].filter(x => x !== null);
                 let minStart = starts.length > 0 ? starts.reduce((min, p) => p < min ? p : min, starts[0]) : baseStart;
                 let maxEnd = ends.length > 0 ? ends.reduce((max, p) => p > max ? p : max, ends[0]) : baseStart;
-
-                let manualKey = g.groupKey; // Khóa lưu lịch thủ công
+                let manualKey = g.groupKey;
                 
-                // Ưu tiên ngày chỉnh tay nếu có
                 let finalStartChup = imageManualDates[manualKey] || minStart;
                 let finalEndChup = imageManualEndDates[manualKey] || maxEnd;
 
-                // Retouch bắt đầu sau 2 ngày kể từ khi Bắt đầu chụp của lô tổng
                 let sR = addWorkingDays(finalStartChup, 2); 
-                
-                // Luật cuốn chiếu Retouch: Tiếp nối nếu nhóm trước chưa xong
-                if (globalNextFreeRetouch && sR < globalNextFreeRetouch) {
-                    sR = globalNextFreeRetouch;
-                }
-
+                if (globalNextFreeRetouch && sR < globalNextFreeRetouch) { sR = globalNextFreeRetouch; }
                 let asR = imageManualRetouchStarts[manualKey] || sR;
-                
                 let eR = addWorkingDays(asR, Math.max(0, Math.ceil(g.skuCount / 32) - 1)); 
                 let aeR = imageManualRetouchEnds[manualKey] || eR;
-                
-                // Cập nhật ngày rảnh tiếp theo của team Retouch
                 globalNextFreeRetouch = addWorkingDays(aeR, 1);
                 
                 let tCD = getWorkingDays(finalStartChup, finalEndChup) || 1; 
                 let tRD = getWorkingDays(asR, aeR) || 1;
-                
-                // Tính toán cảnh báo TRỄ DEADLINE
                 let isChupLate = todayStr > finalEndChup && g.chupDone < g.skuCount;
                 let isRetouchLate = todayStr > aeR && g.retouchDone < g.skuCount;
                 
-                return {
-                    ...g,
-                    manualKey,
-                    sKHO, eKHO, sNVT, eNVT, sOther, eOther,
-                    startChup: finalStartChup, endChup: finalEndChup, 
-                    startRetouch: asR, endRetouch: aeR,
-                    tCD, tRD, isChupLate, isRetouchLate
-                };
+                return { ...g, manualKey, sKHO, eKHO, sNVT, eNVT, sOther, eOther, startChup: finalStartChup, endChup: finalEndChup, startRetouch: asR, endRetouch: aeR, tCD, tRD, isChupLate, isRetouchLate };
             });
 
-            // Lọc các lô trễ tiến độ nếu checkbox được check
             const showOnlyLate = document.getElementById('filter-img-late')?.checked;
-            if (showOnlyLate) {
-                processedGanttData = processedGanttData.filter(g => g.isChupLate || g.isRetouchLate);
-            }
+            if (showOnlyLate) { processedGanttData = processedGanttData.filter(g => g.isChupLate || g.isRetouchLate); }
 
-            // 1. Render Bảng theo dõi tiến độ (Chỉ 1 dòng cho 1 ngày nhận hàng)
             processedGanttData.forEach(g => {
                 let loListHTML = Object.values(g.items).map(i => `<div class="py-1 border-b border-gray-100 last:border-0">${i.loMuon}</div>`).join('') || '-';
-                
-                // Trực quan hóa tiến độ + Cảnh báo nhấp nháy
                 let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.chupDone}</span> / ${g.skuCount} ${g.isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.retouchDone}</span> / ${g.skuCount} ${g.isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 
@@ -1627,40 +1147,20 @@
             });
             tbody.innerHTML = html || '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp (Cần có Ngày nhận hàng trong Database).</td></tr>';
 
-            // 2. Render Biểu đồ Gantt (Timeline)
             window.renderGanttChart(processedGanttData);
         }
 
         window.renderGanttChart = function(ganttData) {
-            const container = document.getElementById('gantt-container');
-            if(!container) return;
+            const container = document.getElementById('gantt-container'); if(!container) return;
+            if(!ganttData || ganttData.length === 0) { container.innerHTML = '<div class="text-center text-gray-400 italic py-8">Không có dữ liệu để vẽ timeline.</div>'; return; }
 
-            if(!ganttData || ganttData.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-400 italic py-8">Không có dữ liệu để vẽ timeline.</div>';
-                return;
-            }
-
-            // Tìm khung thời gian cho Sơ đồ Gantt
-            let minDate = ganttData[0].ngayNhan;
-            let maxDate = ganttData[0].endRetouch;
-
-            ganttData.forEach(g => {
-                if (g.ngayNhan < minDate) minDate = g.ngayNhan;
-                if (g.endRetouch > maxDate) maxDate = g.endRetouch;
-            });
-
-            // Mở rộng timeline cho đẹp (thêm 1 ngày trước và 3 ngày sau)
-            minDate = addWorkingDays(minDate, -1);
-            maxDate = addWorkingDays(maxDate, 3);
-            
+            let minDate = ganttData[0].ngayNhan; let maxDate = ganttData[0].endRetouch;
+            ganttData.forEach(g => { if (g.ngayNhan < minDate) minDate = g.ngayNhan; if (g.endRetouch > maxDate) maxDate = g.endRetouch; });
+            minDate = addWorkingDays(minDate, -1); maxDate = addWorkingDays(maxDate, 3);
             let timelineDates = getDatesInRange(minDate, maxDate);
 
-            // Bắt đầu vẽ Table Sơ đồ (Thêm CSS Cố định Cột)
             let html = '<table class="text-sm text-left whitespace-nowrap border-collapse border border-gray-200" style="table-layout: fixed; min-width: 100%;">';
-            
-            // THEAD: Ngày và Thứ
-            html += '<thead class="text-xs text-gray-700 bg-gray-50 sticky top-0" style="z-index: 30;">';
-            html += '<tr>';
+            html += '<thead class="text-xs text-gray-700 bg-gray-50 sticky top-0" style="z-index: 30;"><tr>';
             html += '<th class="px-2 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 80px; max-width: 80px; position: sticky; left: 0; z-index: 30;" rowspan="2">Tổng<br>ngày</th>';
             html += '<th class="px-3 py-2 border border-gray-200 bg-gray-50" style="min-width: 150px; max-width: 150px; position: sticky; left: 80px; z-index: 30;" rowspan="2">Lô</th>';
             html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 100px; max-width: 100px; position: sticky; left: 230px; z-index: 30;" rowspan="2">Ngày nhận</th>';
@@ -1668,42 +1168,28 @@
             html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 60px; max-width: 60px; position: sticky; left: 420px; z-index: 30;" rowspan="2">SL</th>';
             
             timelineDates.forEach(d => {
-                let isW = isWeekend(d);
-                let bgClass = isW ? 'bg-gray-300' : 'bg-gray-100';
-                let parts = d.split('-');
-                let shortDate = `${parts[2]}/${parts[1]}`;
+                let isW = isWeekend(d); let isH = isHoliday(d);
+                let bgClass = (isW || isH) ? 'bg-gray-300' : 'bg-gray-100';
+                let parts = d.split('-'); let shortDate = `${parts[2]}/${parts[1]}`;
                 html += `<th class="px-1 py-1 border border-gray-200 text-center ${bgClass} text-[10px] min-w-[40px]">${shortDate}</th>`;
             });
             html += '</tr><tr>';
             timelineDates.forEach(d => {
-                let dayName = getDayName(d);
-                let isW = isWeekend(d);
-                let bgClass = isW ? 'bg-gray-400 text-white' : 'bg-white';
+                let dayName = getDayName(d); let isW = isWeekend(d); let isH = isHoliday(d);
+                let bgClass = (isW || isH) ? 'bg-gray-400 text-white' : 'bg-white';
                 html += `<th class="px-1 py-1 border border-gray-200 text-center ${bgClass} text-[10px] min-w-[40px]">${dayName}</th>`;
             });
             html += '</tr></thead>';
-
-            // TBODY: Nội dung timeline
             html += '<tbody class="divide-y divide-gray-200 bg-white">';
             
             ganttData.forEach(g => {
                 let isManualOverride = !!(imageManualDates[g.manualKey] || imageManualEndDates[g.manualKey]);
                 let totalDays = getWorkingDays(g.ngayNhan, g.endRetouch);
                 
-                // In từng Lô chi tiết
                 Object.values(g.items).forEach(item => {
-                    let nUpper = item.noiMuon.toUpperCase();
-                    let iStart = null, iEnd = null;
-                    
-                    // Nếu không có chỉnh tay, vẽ màu Chụp lên từng dòng Lô theo KHO/NVT
-                    if (!isManualOverride) {
-                        if(nUpper === 'KHO') { iStart = g.sKHO; iEnd = g.eKHO; }
-                        else if(nUpper === 'NVT') { iStart = g.sNVT; iEnd = g.eNVT; }
-                        else { iStart = g.sOther; iEnd = g.eOther; }
-                    } else {
-                        // Nếu đã chỉnh tay lịch cho ngày này, gộp chung theo lịch tay
-                        iStart = g.startChup; iEnd = g.endChup;
-                    }
+                    let nUpper = item.noiMuon.toUpperCase(); let iStart = null, iEnd = null;
+                    if (!isManualOverride) { if(nUpper === 'KHO') { iStart = g.sKHO; iEnd = g.eKHO; } else if(nUpper === 'NVT') { iStart = g.sNVT; iEnd = g.eNVT; } else { iStart = g.sOther; iEnd = g.eOther; } } 
+                    else { iStart = g.startChup; iEnd = g.endChup; }
 
                     html += `<tr>`;
                     html += `<td class="px-2 py-2 border border-gray-200 text-center font-bold text-pnjGold bg-pnjGold/5" style="position: sticky; left: 0; z-index: 10;">${totalDays}</td>`;
@@ -1713,47 +1199,40 @@
                     html += `<td class="px-3 py-2 border border-gray-200 text-center bg-white" style="position: sticky; left: 420px; z-index: 10;">${item.skuCount}</td>`;
                     
                     timelineDates.forEach(d => {
-                        let isW = isWeekend(d);
-                        let isTaskDay = iStart && iEnd && d >= iStart && d <= iEnd && !isW;
-                        let bgClass = isTaskDay ? 'bg-pnjGold text-white text-center text-[10px]' : (isW ? 'bg-gray-100' : '');
+                        let isW = isWeekend(d); let isH = isHoliday(d);
+                        let isTaskDay = iStart && iEnd && d >= iStart && d <= iEnd && !isW && !isH;
+                        let bgClass = isTaskDay ? 'bg-pnjGold text-white text-center text-[10px]' : ((isW || isH) ? 'bg-gray-100' : '');
                         html += `<td class="border border-gray-200 ${bgClass}">${isTaskDay ? 'Chụp' : ''}</td>`;
                     });
                     html += `</tr>`;
                 });
 
-                // In dòng Tổng Lô (Đưa Retouch lên chung hàng này)
                 html += `<tr class="bg-gray-50 font-bold">`;
-                
-                // Thay thế colspan="3" bằng 4 thẻ <td> riêng biệt để chữ không bị trượt khi cuộn ngang
                 html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 0; z-index: 10;"></td>`;
                 html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 80px; z-index: 10;"></td>`;
                 html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 230px; z-index: 10;"></td>`;
                 html += `<td class="px-3 py-2 border border-gray-200 text-right text-[#1C3B5E] bg-gray-50" style="position: sticky; left: 330px; z-index: 10;">Total</td>`;
-                
                 html += `<td class="px-3 py-2 border border-gray-200 text-center text-pnjBlue bg-gray-50" style="position: sticky; left: 420px; z-index: 10;">${g.skuCount}</td>`;
                 
                 timelineDates.forEach(d => {
-                    let isW = isWeekend(d);
-                    let isTaskDay = d >= g.startRetouch && d <= g.endRetouch && !isW;
-                    let cellClass = isTaskDay ? 'bg-pnjBlue text-white text-center text-[10px]' : (isW ? 'bg-gray-200' : '');
+                    let isW = isWeekend(d); let isH = isHoliday(d);
+                    let isTaskDay = d >= g.startRetouch && d <= g.endRetouch && !isW && !isH;
+                    let cellClass = isTaskDay ? 'bg-pnjBlue text-white text-center text-[10px]' : ((isW || isH) ? 'bg-gray-200' : '');
                     html += `<td class="border border-gray-200 ${cellClass}">${isTaskDay ? 'Retouch' : ''}</td>`;
                 });
                 html += `</tr>`;
             });
-
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        function renderSummary() {
+        window.renderSummary = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody) return;
             const getV = (t) => Array.from(document.querySelectorAll(`.cb-${t}:checked`)).map(cb => cb.value);
             const mF = getV('month'); const nF = getV('noiMuon'); const tF = getV('ttMuon');
-            
-            // Lấy dữ liệu ngày hoàn thành Retouch từ khối Sản xuất hình ảnh
             const globalSchedules = window.getGlobalSchedule ? window.getGlobalSchedule() : {};
-
             let groups = {}; let grandTotal = 0;
+            
             tableData.forEach(row => {
                 if (!row.sku && !row.loMuon && !row.noiMuon) return; 
                 const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống'; const tt = row.ttMuon || 'Trống';
@@ -1762,23 +1241,18 @@
                 const bd = row.ngayBatDau || 'Trống'; const nh = row.ngayNhan || 'Trống'; const ds = d !== '' ? d : 'Trống';
                 const k = `${m}|${n}|${l}|${bd}|${nh}|${ds}|${tt}`;
                 if (!groups[k]) groups[k] = { m, n, l, bd, nh, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set(), ids: [] };
-                groups[k].count++; grandTotal++;
-                groups[k].ids.push(row.id);
+                groups[k].count++; grandTotal++; groups[k].ids.push(row.id);
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) groups[k].cD++; else groups[k].cND++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) groups[k].rD++; else groups[k].rND++;
                 if (row.note && row.note.trim()) groups[k].notes.add(row.note.trim());
             });
             
             tbody.innerHTML = Object.values(groups).sort((a,b) => (a.m - b.m) || a.l.localeCompare(b.l)).map(g => {
-                // Tính toán Tổng ngày SX cho lô này
                 let totalSXDys = '-';
                 if (g.nh !== 'Trống' && g.bd !== 'Trống') {
                     let schedule = globalSchedules[g.nh];
-                    if (schedule && schedule.endRetouch) {
-                        totalSXDys = getWorkingDays(g.bd, schedule.endRetouch);
-                    }
+                    if (schedule && schedule.endRetouch) totalSXDys = getWorkingDays(g.bd, schedule.endRetouch);
                 }
-                
                 return `
                 <tr class="hover:bg-gray-50 transition-colors bg-white">
                     <td class="px-1 py-1 border-r border-gray-100 w-16"><input type="number" min="1" max="12" value="${g.m === 'Trống' ? '' : g.m}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'month', this.value)" class="text-center font-medium bg-transparent border-none"></td>
@@ -1795,8 +1269,7 @@
                     <td class="px-4 py-3 text-right font-black text-pnjBlue bg-pnjBlue/5">${g.count}</td>
                 </tr>`;
             }).join('');
-            const sgt = document.getElementById('summaryGrandTotal');
-            if (sgt) sgt.innerText = grandTotal.toLocaleString();
+            const sgt = document.getElementById('summaryGrandTotal'); if (sgt) sgt.innerText = grandTotal.toLocaleString();
         }
 
         function renderReport() {
@@ -1823,10 +1296,7 @@
             const canvas = document.getElementById('chartDone'); const empty = document.getElementById('emptyChartDone');
             if(!canvas || !empty) return;
             if (chartDoneInstance) chartDoneInstance.destroy();
-            const sM = Object.keys(mD).sort((a,b) => {
-                if(a==='Trống') return 1; if(b==='Trống') return -1;
-                return Number(a) - Number(b);
-            });
+            const sM = Object.keys(mD).sort((a,b) => { if(a==='Trống') return 1; if(b==='Trống') return -1; return Number(a) - Number(b); });
 
             if (sM.length === 0) { canvas.classList.add('hidden'); empty.classList.remove('hidden'); } else {
                 canvas.classList.remove('hidden'); empty.classList.add('hidden');
@@ -1834,75 +1304,33 @@
                     type: 'bar', 
                     data: { 
                         labels: sM.map(m => m === 'Trống' ? 'Trống' : `Tháng ${m}`), 
-                        datasets: [
-                            { label: 'Đã Mượn', data: sM.map(m => mD[m].dM), backgroundColor: '#003366', borderRadius: 4 }, 
-                            { label: 'Đã Chụp', data: sM.map(m => mD[m].dC), backgroundColor: '#D4AF37', borderRadius: 4 }, 
-                            { label: 'Đã Retouch', data: sM.map(m => mD[m].dR), backgroundColor: '#9CA3AF', borderRadius: 4 }
-                        ] 
+                        datasets: [ { label: 'Đã Mượn', data: sM.map(m => mD[m].dM), backgroundColor: '#003366', borderRadius: 4 }, { label: 'Đã Chụp', data: sM.map(m => mD[m].dC), backgroundColor: '#D4AF37', borderRadius: 4 }, { label: 'Đã Retouch', data: sM.map(m => mD[m].dR), backgroundColor: '#9CA3AF', borderRadius: 4 } ] 
                     }, 
-                    options: { 
-                        responsive: true, maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } }, 
-                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Be Vietnam Pro', sans-serif" } } } },
-                        scales: { x: { grid: { display: false } }, y: { border: { display: false } } }
-                    },
-                    plugins: [{
-                        id: 'customDataLabelsReport',
-                        afterDatasetsDraw(chart) {
-                            const { ctx, data } = chart;
-                            ctx.save();
-                            ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'bottom';
-                            ctx.fillStyle = '#4B5563'; 
-                            
-                            data.datasets.forEach((dataset, i) => {
-                                const meta = chart.getDatasetMeta(i);
-                                if (!meta.hidden) { 
-                                    meta.data.forEach((bar, index) => {
-                                        const value = dataset.data[index];
-                                        if (value > 0) { 
-                                            ctx.fillText(value, bar.x, bar.y - 4);
-                                        }
-                                    });
-                                }
-                            });
-                            ctx.restore();
-                        }
-                    }]
+                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 25 } }, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Be Vietnam Pro', sans-serif" } } } }, scales: { x: { grid: { display: false } }, y: { border: { display: false } } } },
+                    plugins: [{ id: 'customDataLabelsReport', afterDatasetsDraw(chart) { const { ctx, data } = chart; ctx.save(); ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#4B5563'; data.datasets.forEach((dataset, i) => { const meta = chart.getDatasetMeta(i); if (!meta.hidden) { meta.data.forEach((bar, index) => { const value = dataset.data[index]; if (value > 0) { ctx.fillText(value, bar.x, bar.y - 4); } }); } }); ctx.restore(); } }]
                 });
             }
 
             let sPK = 0, sPN = 0, sPT = 0, sPC = 0, sPR = 0;
             sM.forEach(m => { sPK += mD[m].pMK; sPN += mD[m].pMN; sPT += mD[m].pMT; sPC += mD[m].pC; sPR += mD[m].pR; });
-            const valPendingMTotal = document.getElementById('val-pending-m-total'); if (valPendingMTotal) valPendingMTotal.innerText = sPT || '-'; 
-            const valPendingMKho = document.getElementById('val-pending-m-kho'); if (valPendingMKho) valPendingMKho.innerText = sPK || '-'; 
-            const valPendingMNvt = document.getElementById('val-pending-m-nvt'); if (valPendingMNvt) valPendingMNvt.innerText = sPN || '-'; 
-            const valPendingC = document.getElementById('val-pending-c'); if (valPendingC) valPendingC.innerText = sPC || '-'; 
-            const valPendingR = document.getElementById('val-pending-r'); if (valPendingR) valPendingR.innerText = sPR || '-';
+            const vM = document.getElementById('val-pending-m-total'); if (vM) vM.innerText = sPT || '-'; 
+            const vMK = document.getElementById('val-pending-m-kho'); if (vMK) vMK.innerText = sPK || '-'; 
+            const vMN = document.getElementById('val-pending-m-nvt'); if (vMN) vMN.innerText = sPN || '-'; 
+            const vC = document.getElementById('val-pending-c'); if (vC) vC.innerText = sPC || '-'; 
+            const vR = document.getElementById('val-pending-r'); if (vR) vR.innerText = sPR || '-';
         }
 
-        // --- BẢNG TÍNH NGÀY DỰ KIẾN LOGIC ---
         window.getLatestEndChup = function(noiMuonTarget) {
             if (!noiMuonTarget) return {};
             let nUpper = noiMuonTarget.toUpperCase();
-            
-            // Tìm ngày kết thúc muộn nhất của nhóm nơi mượn cụ thể
-            let maxEndDate = null;
-            let conflictDate = null;
-            
-            // Logic tính toán tương tự renderImageTrackingTable
+            let maxEndDate = null; let conflictDate = null;
             let dailyGroups = {};
             tableData.forEach(row => {
                 if (!row.ngayNhan || !row.noiMuon) return;
                 let dateKey = row.ngayNhan;
-                if (!dailyGroups[dateKey]) {
-                    dailyGroups[dateKey] = { ngayNhan: dateKey, khoSku: 0, nvtSku: 0, otherSku: 0 };
-                }
+                if (!dailyGroups[dateKey]) { dailyGroups[dateKey] = { ngayNhan: dateKey, khoSku: 0, nvtSku: 0, otherSku: 0 }; }
                 let n = row.noiMuon.toUpperCase();
-                if (n === 'KHO') dailyGroups[dateKey].khoSku++;
-                else if (n === 'NVT') dailyGroups[dateKey].nvtSku++;
-                else dailyGroups[dateKey].otherSku++;
+                if (n === 'KHO') dailyGroups[dateKey].khoSku++; else if (n === 'NVT') dailyGroups[dateKey].nvtSku++; else dailyGroups[dateKey].otherSku++;
             });
 
             let sortedDates = Object.values(dailyGroups).sort((a, b) => a.ngayNhan.localeCompare(b.ngayNhan));
@@ -1910,56 +1338,27 @@
 
             sortedDates.forEach(g => {
                 let skuCount = 0;
-                if (nUpper === 'KHO') skuCount = g.khoSku;
-                else if (nUpper === 'NVT') skuCount = g.nvtSku;
-                else skuCount = g.otherSku;
-                
+                if (nUpper === 'KHO') skuCount = g.khoSku; else if (nUpper === 'NVT') skuCount = g.nvtSku; else skuCount = g.otherSku;
                 if(skuCount === 0) return;
-
                 let baseStart = addWorkingDays(g.ngayNhan, 1);
                 let startChup = baseStart;
-                
-                if (globalNextFree && startChup < globalNextFree) {
-                    startChup = globalNextFree;
-                }
-                
-                let s = imageManualDates[g.ngayNhan] || startChup; // Nếu có chỉnh tay cả ngày thì lấy lịch chỉnh tay
-                let rD = Math.ceil(skuCount / 32); 
-                let dD = Math.max(0, rD - 1);
-                
+                if (globalNextFree && startChup < globalNextFree) { startChup = globalNextFree; }
+                let s = imageManualDates[g.ngayNhan] || startChup; 
+                let rD = Math.ceil(skuCount / 32); let dD = Math.max(0, rD - 1);
                 let eC = addWorkingDays(s, dD);
                 let aeC = imageManualEndDates[g.ngayNhan] || eC;
-
                 globalNextFree = addWorkingDays(aeC, 1);
-
-                if (!maxEndDate || aeC > maxEndDate) {
-                    maxEndDate = aeC;
-                    conflictDate = g.ngayNhan;
-                }
+                if (!maxEndDate || aeC > maxEndDate) { maxEndDate = aeC; conflictDate = g.ngayNhan; }
             });
-            
             return { date: maxEndDate, conflictDate: conflictDate };
         }
 
         window.calculateSimulation = function() {
-            const noi = document.getElementById('calc-noi').value;
-            const ngayNhan = document.getElementById('calc-ngay').value;
-            const sku = parseInt(document.getElementById('calc-sku').value);
-
-            if (!ngayNhan || isNaN(sku) || sku <= 0) {
-                alert('Vui lòng nhập ngày nhận hàng và số lượng SKU hợp lệ!');
-                return;
-            }
-
-            const resArea = document.getElementById('calc-result-area');
-            const warnArea = document.getElementById('calc-warning');
-            const warnText = document.getElementById('calc-warning-text');
-
-            resArea.classList.remove('hidden');
-            warnArea.classList.add('hidden');
-
-            let baseStart = addWorkingDays(ngayNhan, 1);
-            let actualStart = baseStart;
+            const noi = document.getElementById('calc-noi').value; const ngayNhan = document.getElementById('calc-ngay').value; const sku = parseInt(document.getElementById('calc-sku').value);
+            if (!ngayNhan || isNaN(sku) || sku <= 0) { alert('Vui lòng nhập ngày nhận hàng và số lượng SKU hợp lệ!'); return; }
+            const resArea = document.getElementById('calc-result-area'); const warnArea = document.getElementById('calc-warning'); const warnText = document.getElementById('calc-warning-text');
+            resArea.classList.remove('hidden'); warnArea.classList.add('hidden');
+            let baseStart = addWorkingDays(ngayNhan, 1); let actualStart = baseStart;
 
             if (noi) {
                 let latest = window.getLatestEndChup(noi);
@@ -1971,7 +1370,6 @@
             }
 
             let daysToProcess = Math.max(0, Math.ceil(sku / 32) - 1);
-            
             let endChup = addWorkingDays(actualStart, daysToProcess);
             let startRetouch = addWorkingDays(actualStart, 2);
             let endRetouch = addWorkingDays(startRetouch, daysToProcess);
@@ -1982,15 +1380,6 @@
             document.getElementById('res-kt-r').innerText = formatDateToDisplay(endRetouch);
         }
 
-        // --- STORAGE & EXPORT ---
-        window.saveData = function() {
-            if (window.saveDataToCloud) {
-                window.saveDataToCloud(); 
-            } else {
-                window.saveDataLocal(); 
-            }
-        }
-
         window.saveDataLocal = function() {
             localStorage.setItem('pnj_inventoryData', JSON.stringify(tableData));
             localStorage.setItem('pnj_videoData', JSON.stringify(videoData));
@@ -1998,12 +1387,8 @@
             localStorage.setItem('pnj_imageManualEndDates', JSON.stringify(imageManualEndDates));
             localStorage.setItem('pnj_imageManualRetouchStarts', JSON.stringify(imageManualRetouchStarts));
             localStorage.setItem('pnj_imageManualRetouchEnds', JSON.stringify(imageManualRetouchEnds));
-            
             const toast = document.getElementById('toast'); 
-            if(toast) {
-                toast.classList.remove('opacity-0', 'translate-y-[-10px]'); 
-                setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
-            }
+            if(toast) { toast.classList.remove('opacity-0', 'translate-y-[-10px]'); setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500); }
         }
 
         window.loadDataLocal = function() {
@@ -2012,18 +1397,13 @@
             const savedVideo = localStorage.getItem('pnj_videoData') || localStorage.getItem('videoData_v1');
             if (savedVideo) try { videoData = JSON.parse(savedVideo); } catch(e) { videoData = []; }
             
-            const parseLS = (key, oldKey, targetObj) => {
-                const s = localStorage.getItem(key) || localStorage.getItem(oldKey);
-                if (s) try { Object.assign(targetObj, JSON.parse(s)); } catch(e) {}
-            };
+            const parseLS = (key, oldKey, targetObj) => { const s = localStorage.getItem(key) || localStorage.getItem(oldKey); if (s) try { Object.assign(targetObj, JSON.parse(s)); } catch(e) {} };
             parseLS('pnj_imageManualDates', 'imageManualDates_v1', imageManualDates);
             parseLS('pnj_imageManualEndDates', 'imageManualEndDates_v1', imageManualEndDates);
             parseLS('pnj_imageManualRetouchStarts', 'imageManualRetouchStarts_v1', imageManualRetouchStarts);
             parseLS('pnj_imageManualRetouchEnds', 'imageManualRetouchEnds_v1', imageManualRetouchEnds);
             
-            window.renderTable(); 
-            window.renderVideoTable(); 
-            window.switchTab('tab-report');
+            window.renderTable(); window.renderVideoTable(); window.switchTab('tab-report');
         }
 
         window.exportCSV = function() {
@@ -2036,26 +1416,16 @@
         window.exportSummaryCSV = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
             let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tổng ngày SX,Tình trạng,TT Chụp (Chưa/Tổng),TT Retouch (Chưa/Tổng),Ghi chú,Tổng SKU\n";
-            Array.from(tbody.querySelectorAll('tr')).forEach(tr => { 
-                csv += Array.from(tr.querySelectorAll('td')).map(td => {
-                    const input = td.querySelector('input');
-                    const val = input ? input.value : td.innerText.trim();
-                    return `"${val.replace(/"/g,'""')}"`;
-                }).join(",") + "\n"; 
-            });
+            Array.from(tbody.querySelectorAll('tr')).forEach(tr => { csv += Array.from(tr.querySelectorAll('td')).map(td => { const input = td.querySelector('input'); const val = input ? input.value : td.innerText.trim(); return `"${val.replace(/"/g,'""')}"`; }).join(",") + "\n"; });
             downloadCSV(csv, `PNJ_Report_${new Date().toISOString().slice(0,10)}.csv`);
         }
 
         window.downloadSpecificSKUs = function(idsStr, dateLabel) {
             if (!idsStr) return;
-            const ids = idsStr.split(',');
-            let rowsToExport = tableData.filter(r => ids.includes(r.id));
+            const ids = idsStr.split(','); let rowsToExport = tableData.filter(r => ids.includes(r.id));
             if(rowsToExport.length === 0) return alert("Không tìm thấy dữ liệu!");
-
             let csv = "\uFEFFMã SKU 13,Lô mượn,Nơi mượn,Tình trạng chụp,Tình trạng retouch,Ghi chú\n";
-            rowsToExport.forEach(r => { 
-                csv += `"${r.sku || ''}","${r.loMuon || ''}","${r.noiMuon || ''}","${r.ttChup || ''}","${r.ttRetouch || ''}","${(r.note||'').replace(/"/g,'""')}"\n`; 
-            });
+            rowsToExport.forEach(r => { csv += `"${r.sku || ''}","${r.loMuon || ''}","${r.noiMuon || ''}","${r.ttChup || ''}","${r.ttRetouch || ''}","${(r.note||'').replace(/"/g,'""')}"\n`; });
             downloadCSV(csv, `DanhSachSKU_${dateLabel}.csv`);
         }
 
@@ -2077,6 +1447,10 @@
                 event.target.value = '';
             };
             reader.readAsText(file);
+        }
+
+        window.saveData = function() {
+            if (window.saveDataToCloud) { window.saveDataToCloud(); } else { window.saveDataLocal(); }
         }
     </script>
 </body>
