@@ -356,39 +356,67 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center">
-                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-calendar-alt mr-2 text-pnjGold"></i> Bảng Theo Dõi Tiến Độ</span>
-                    <button onclick="clearImageManualDates()" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><i class="fas fa-sync-alt"></i> Reset lịch thủ công</button>
+                <!-- Thêm onclick và mũi tên để thu gọn/mở rộng -->
+                <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center cursor-pointer select-none hover:bg-gray-50 transition-colors" onclick="toggleSection('image-tracking-content', 'icon-image-tracking')">
+                    <span class="font-bold text-pnjBlue text-lg uppercase flex items-center gap-3">
+                        <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform -rotate-90" id="icon-image-tracking"></i>
+                        <span><i class="fas fa-calendar-alt mr-2 text-pnjGold"></i> Bảng Theo Dõi Tiến Độ</span>
+                    </span>
+                    <button onclick="clearImageManualDates(); event.stopPropagation();" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><i class="fas fa-sync-alt"></i> Reset lịch thủ công</button>
                 </div>
-                <div class="overflow-x-auto table-container max-h-[60vh]">
-                    <table class="w-full text-sm text-left whitespace-nowrap">
-                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
-                            <tr>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[120px]">Ngày Nhận Hàng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Các Lô Mượn (Ghi Chú)</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tổng SKU</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">BĐ Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Deadline Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Số Ngày<br>Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">BĐ Retouch</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">Deadline Retouch</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Số Ngày<br>Retouch</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
-                                <th class="px-2 py-4 text-center" title="Tải SKU 13"><i class="fas fa-download text-pnjGold"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody id="imageTrackingBody" class="divide-y divide-gray-200"></tbody>
-                    </table>
+                
+                <!-- Bọc nội dung vào div hidden mặc định -->
+                <div id="image-tracking-content" class="hidden">
+                    <div class="p-4 bg-pnjGold/10 text-pnjBlue text-sm border-b border-pnjGold/20 font-medium leading-relaxed">
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-info-circle text-pnjGold mt-1"></i>
+                            <div>
+                                <b>Năng suất:</b> gói 160m (không bao gồm T7, CN)<br>
+                                <ul class="list-disc list-inside ml-4 mt-1 mb-1 text-gray-700">
+                                    <li><b>Chụp hình:</b> 5 ngày (2 ngày xuất hình 50sku)</li>
+                                    <li><b>Retouch:</b> 5 ngày (2 ngày xuất hình 50sku)</li>
+                                </ul>
+                                <b>Lưu ý:</b> Áp dụng theo thứ tự ưu tiên nối tiếp. Nếu kho đang tiến hành chụp một lô hàng, lô tiếp theo sẽ được xếp lịch chụp ngay sau khi lô trước đó hoàn thành.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto table-container max-h-[60vh]">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
+                                <tr>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[120px]">Ngày Nhận Hàng</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Các Lô Mượn (Ghi Chú)</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tổng SKU</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">BĐ Chụp</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Deadline Chụp</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Số Ngày<br>Chụp</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">BĐ Retouch</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pink-300">Deadline Retouch</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Số Ngày<br>Retouch</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
+                                    <th class="px-2 py-4 text-center" title="Tải SKU 13"><i class="fas fa-download text-pnjGold"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="imageTrackingBody" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- SƠ ĐỒ GANTT TIMELINE -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-                <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center">
-                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-stream mr-2 text-pnjGold"></i> Timeline Sản Xuất (Sơ đồ Gantt)</span>
+                <!-- Thêm onclick và mũi tên để thu gọn/mở rộng -->
+                <div class="bg-white p-5 border-b border-gray-200 flex justify-between items-center cursor-pointer select-none hover:bg-gray-50 transition-colors" onclick="toggleSection('gantt-content', 'icon-gantt')">
+                    <span class="font-bold text-pnjBlue text-lg uppercase flex items-center gap-3">
+                        <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform -rotate-90" id="icon-gantt"></i>
+                        <span><i class="fas fa-stream mr-2 text-pnjGold"></i> Timeline Sản Xuất (Sơ đồ Gantt)</span>
+                    </span>
                 </div>
-                <div class="overflow-auto table-container max-h-[500px]" id="gantt-container"></div>
+                <!-- Bọc nội dung vào div hidden mặc định -->
+                <div id="gantt-content" class="hidden">
+                    <div class="overflow-auto table-container max-h-[500px]" id="gantt-container"></div>
+                </div>
             </div>
         </div>
 
@@ -655,6 +683,22 @@
             const details = document.getElementById('pending-m-details');
             const icon = document.getElementById('icon-pending-details');
             if (details && icon) { details.classList.toggle('hidden'); icon.classList.toggle('rotate-180'); }
+        }
+
+        // JS điều khiển Thu gọn / Sổ ra cho các khối chức năng
+        window.toggleSection = function(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if (content && icon) {
+                content.classList.toggle('hidden');
+                if (content.classList.contains('hidden')) {
+                    icon.classList.add('-rotate-90');
+                    icon.classList.remove('rotate-0');
+                } else {
+                    icon.classList.remove('-rotate-90');
+                    icon.classList.add('rotate-0');
+                }
+            }
         }
 
         document.addEventListener('click', function(event) {
