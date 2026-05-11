@@ -368,8 +368,8 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Ghi chú</th>
                                 <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
                             </tr>
@@ -1561,8 +1561,8 @@
                     }
                 }
                 
-                let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-red-500 font-bold">${g.cND}</span> / ${g.count} ${isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
-                let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-red-500 font-bold">${g.rND}</span> / ${g.count} ${isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
+                let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.cD}</span> / ${g.count} ${isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
+                let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.rD}</span> / ${g.count} ${isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
 
                 return `
                 <tr class="hover:bg-gray-50 transition-colors bg-white">
@@ -1731,7 +1731,7 @@
 
         window.exportSummaryCSV = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
-            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tình trạng,TT Chụp (Chưa/Tổng),TT Retouch (Chưa/Tổng),Ghi chú,Tổng SKU\n";
+            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tình trạng,Tiến độ Chụp (Xong/Tổng),Tiến độ Retouch (Xong/Tổng),Ghi chú,Tổng SKU\n";
             Array.from(tbody.querySelectorAll('tr')).forEach(tr => { 
                 csv += Array.from(tr.querySelectorAll('td')).map(td => { 
                     const input = td.querySelector('input'); 
