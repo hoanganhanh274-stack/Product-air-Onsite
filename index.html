@@ -371,6 +371,7 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Trạng thái lô</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Ghi chú</th>
                                 <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
                             </tr>
@@ -505,6 +506,7 @@
                                     <th class="px-4 py-4 border-r border-pnjBlueLight text-center bg-[#002244]">Số Ngày<br>Retouch</th>
                                     <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
                                     <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[120px]">Trạng thái lô</th>
                                     <th class="px-2 py-4 text-center" title="Tải SKU 13"><i class="fas fa-download text-pnjGold"></i></th>
                                 </tr>
                             </thead>
@@ -616,7 +618,9 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[120px]">Nơi mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">Ngày chụp</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">Ngày retouch</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">TT Retouch</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[120px]">Phân loại</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[140px]">BĐ mượn</th>
@@ -649,7 +653,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { initializeFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         let firebaseConfig;
@@ -669,6 +673,8 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
         
         const initAuth = async () => {
             try {
@@ -679,13 +685,11 @@
                 }
             } catch (error) {
                 console.error("Firebase Auth Error:", error);
+                throw error;
             }
         };
         const authPromise = initAuth();
 
-        const db = initializeFirestore(app, { experimentalForceLongPolling: true });
-        const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
-        
         let isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
         const loginOverlay = document.getElementById('login-overlay');
         const appContent = document.getElementById('app-content');
@@ -755,8 +759,7 @@
                     setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
                 }
             } catch(e) {
-                console.error("Lỗi lưu Cloud:", e);
-                alert("Lỗi khi lưu lên Cloud: " + e.message);
+                console.warn("Lưu Cloud thất bại (Lỗi mạng hoặc Timeout), tự động chuyển sang lưu Local:", e.message);
                 if(window.saveDataLocal) window.saveDataLocal(); 
             }
         };
@@ -783,7 +786,7 @@
                     if(window.loadDataLocal) window.loadDataLocal();
                 }
             } catch(e) {
-                console.error("Lỗi tải Cloud:", e);
+                console.warn("Tải Cloud thất bại (Lỗi mạng hoặc Timeout), tự động đọc dữ liệu Local:", e.message);
                 if(window.loadDataLocal) window.loadDataLocal();
             }
         }
@@ -1042,7 +1045,7 @@
             return dates;
         }
 
-        window.addNewRow = function() { tableData.unshift({ id: generateId(), sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ttChup: '', ttRetouch: '', phanLoai: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' }); window.renderTable(); }
+        window.addNewRow = function() { tableData.unshift({ id: generateId(), sku: '', month: '', noiMuon: '', loMuon: '', ttMuon: '', ngayChup: '', ttChup: '', ngayRetouch: '', ttRetouch: '', phanLoai: '', ngayBatDau: '', ngayNhan: '', ngayTra: '', note: '' }); window.renderTable(); }
         window.addNewVideoRow = function() { videoData.unshift({ id: generateId(), month: '', loVideo: '', slThucTe: 0, ttQuay: '', ttDung: '', ghiChu: '' }); window.renderVideoTable(); }
         window.deleteRow = function(id) { if(confirm('Xóa dòng này?')) { tableData = tableData.filter(row => row.id !== id); window.renderTable(); } }
         window.deleteVideoRow = function(id) { if(confirm('Xóa dòng này?')) { videoData = videoData.filter(row => row.id !== id); window.renderVideoTable(); } }
@@ -1179,7 +1182,9 @@
             tableData.forEach(row => { 
                 if (window.globalSkuFilterArray && window.globalSkuFilterArray.length > 0 && !window.globalSkuFilterArray.includes(row.sku)) return;
                 if (!row.sku && !row.loMuon && !row.noiMuon) return; 
-                months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); 
+                
+                months.add(row.month || 'Trống'); 
+                nois.add(row.noiMuon || 'Trống'); 
             });
             buildFilterDropdown(months, 'report-month', curMonth); buildFilterDropdown(nois, 'report-noiMuon', curNoi);
         }
@@ -1277,7 +1282,9 @@
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.noiMuon}" onchange="updateCell('${row.id}', 'noiMuon', this.value)" list="noiMuonList"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.loMuon}" onchange="updateCell('${row.id}', 'loMuon', this.value)"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttMuon}" onchange="updateCell('${row.id}', 'ttMuon', this.value)" list="ttMuonList" class="${row.ttMuon?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayChup || ''}" onchange="updateCell('${row.id}', 'ngayChup', this.value)" class="text-xs text-gray-500"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttChup}" onchange="updateCell('${row.id}', 'ttChup', this.value)" list="ttChupList" class="${row.ttChup?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
+                        <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayRetouch || ''}" onchange="updateCell('${row.id}', 'ngayRetouch', this.value)" class="text-xs text-gray-500"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.ttRetouch}" onchange="updateCell('${row.id}', 'ttRetouch', this.value)" list="ttRetouchList" class="${row.ttRetouch?.includes('Done') ? 'text-emerald-600 font-medium' : ''}"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${row.phanLoai}" onchange="updateCell('${row.id}', 'phanLoai', this.value)" list="phanLoaiList"></td>
                         <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${row.ngayBatDau}" onchange="updateCell('${row.id}', 'ngayBatDau', this.value)" class="text-xs"></td>
@@ -1366,7 +1373,7 @@
                 if (!mF.includes(m.toString()) || !nF.includes(n) || !lF.includes(l)) return;
 
                 let groupKey = row.ngayNhan;
-                if (!dailyGroups[groupKey]) { dailyGroups[groupKey] = { groupKey: groupKey, ngayNhan: row.ngayNhan, skuCount: 0, chupDone: 0, retouchDone: 0, khoSku: 0, nvtSku: 0, otherSku: 0, items: {}, ids: [] }; }
+                if (!dailyGroups[groupKey]) { dailyGroups[groupKey] = { groupKey: groupKey, ngayNhan: row.ngayNhan, skuCount: 0, chupDone: 0, retouchDone: 0, muonDone: 0, khoSku: 0, nvtSku: 0, otherSku: 0, items: {}, ids: [] }; }
                 let group = dailyGroups[groupKey];
                 group.ids.push(row.id);
                 
@@ -1376,6 +1383,7 @@
                 if (!group.items[itemKey]) { group.items[itemKey] = { loMuon: l, noiMuon: n, skuCount: 0 }; }
                 group.items[itemKey].skuCount++;
                 group.skuCount++;
+                if (row.ttMuon && row.ttMuon.toLowerCase().includes('done')) group.muonDone++;
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) group.chupDone++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) group.retouchDone++;
             });
@@ -1432,6 +1440,9 @@
                 let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.chupDone}</span> / ${g.skuCount} ${g.isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.retouchDone}</span> / ${g.skuCount} ${g.isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 
+                let isHoanThanh = (g.muonDone === g.skuCount) && (g.chupDone === g.skuCount) && (g.retouchDone === g.skuCount);
+                let statusLabel = isHoanThanh ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold whitespace-nowrap">Hoàn thành</span>' : '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold whitespace-nowrap">Đang xử lý</span>';
+
                 html += `
                     <tr class="hover:bg-gray-50 transition-colors bg-white">
                         <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjBlue">${formatDateToDisplay(g.ngayNhan)}</td>
@@ -1445,10 +1456,11 @@
                         <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-gray-700 bg-gray-100">${g.tRD}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center">${chupVisual}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center">${retouchVisual}</td>
+                        <td class="px-4 py-3 border-r border-gray-100 text-center">${statusLabel}</td>
                         <td class="px-2 py-2 text-center"><button onclick="downloadSpecificSKUs('${g.ids.join(',')}', '${g.ngayNhan}')" class="bg-gray-100 hover:bg-pnjBlue hover:text-white text-pnjBlue p-2 rounded transition-colors shadow-sm" title="Tải mã SKU 13 của lô này"><i class="fas fa-file-csv"></i></button></td>
                     </tr>`;
             });
-            tbody.innerHTML = html || '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="13" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp.</td></tr>';
 
             window.renderGanttChart(processedGanttData);
         }
@@ -1600,6 +1612,9 @@
                     }
                 }
                 
+                let isHoanThanh = g.tt.toLowerCase().includes('done') && g.cD === g.count && g.rD === g.count;
+                let statusLabel = isHoanThanh ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold whitespace-nowrap">Hoàn thành</span>' : '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold whitespace-nowrap">Đang xử lý</span>';
+
                 let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.cD}</span> / ${g.count} ${isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.rD}</span> / ${g.count} ${isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
 
@@ -1615,6 +1630,7 @@
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${g.tt === 'Trống' ? '' : g.tt}" list="ttMuonList" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ttMuon', this.value)" class="bg-transparent border-none font-medium ${g.tt.includes('Done')?'text-emerald-600':''}"></td>
                     <td class="px-4 py-3 border-r border-gray-100 text-center">${chupVisual}</td>
                     <td class="px-4 py-3 border-r border-gray-100 text-center">${retouchVisual}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center">${statusLabel}</td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${Array.from(g.notes).join('; ')}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'note', this.value)" class="bg-transparent border-none text-gray-500" placeholder="Ghi chú..."></td>
                     <td class="px-4 py-3 text-right font-black text-pnjBlue bg-pnjBlue/5">${g.count}</td>
                 </tr>`;
@@ -1625,47 +1641,112 @@
         }
 
         window.renderReport = function() {
-            const getV = (t) => Array.from(document.querySelectorAll(`.cb-report-${t}:checked`)).map(cb => cb.value);
-            const mF = getV('month'); const nF = getV('noiMuon');
-            let tMD = 0, tCD = 0, tRD = 0; let mD = {};
+            const getV = (t) => {
+                const cbs = document.querySelectorAll(`.cb-report-${t}`);
+                if (cbs.length === 0) return ['ALL'];
+                return Array.from(cbs).filter(cb => cb.checked).map(cb => cb.value);
+            };
+            const mF = getV('month'); 
+            const nF = getV('noiMuon');
+
+            let tMD = 0, tCD = 0, tRD = 0; 
+            let sPK = 0, sPN = 0, sPT = 0, sPC = 0, sPR = 0;
+            let chartObj = {};
+
+            const extractMonth = (dateStr) => {
+                if (dateStr && dateStr.includes('-')) {
+                    const m = parseInt(dateStr.split('-')[1], 10);
+                    if (!isNaN(m)) return m.toString();
+                }
+                return null;
+            };
+
             tableData.forEach(row => {
                 if (window.globalSkuFilterArray && window.globalSkuFilterArray.length > 0 && !window.globalSkuFilterArray.includes(row.sku)) return;
                 if (!row.sku && !row.loMuon && !row.noiMuon) return;
-                const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống';
-                if (!mF.includes(m.toString()) || !nF.includes(n)) return;
-                if (!mD[m]) mD[m] = { dM: 0, dC: 0, dR: 0, pMK: 0, pMN: 0, pMT: 0, pC: 0, pR: 0 };
-                let iDM = row.ttMuon?.toLowerCase().includes('done'), iCBM = row.ttMuon?.toLowerCase().includes('chuẩn bị mượn'), iDC = row.ttChup?.toLowerCase().includes('done'), iDR = row.ttRetouch?.toLowerCase().includes('done');
-                let nU = row.noiMuon?.toUpperCase();
-                if (iDM) { tMD++; mD[m].dM++; } if (iDC) { tCD++; mD[m].dC++; } if (iDR) { tRD++; mD[m].dR++; }
-                if (!iDM) { mD[m].pMT++; if (nU === 'KHO') mD[m].pMK++; else if (nU === 'NVT') mD[m].pMN++; }
-                if (!iDC && !iCBM) mD[m].pC++;
-                if (iDC && !iDR) mD[m].pR++;
+                
+                const mBase = row.month ? row.month.toString() : 'Trống'; 
+                const n = row.noiMuon || 'Trống';
+                
+                if (!nF.includes('ALL') && !nF.includes(n)) return;
+
+                let iDM = row.ttMuon?.toLowerCase().includes('done'), 
+                    iCBM = row.ttMuon?.toLowerCase().includes('chuẩn bị mượn'), 
+                    iDC = row.ttChup?.toLowerCase().includes('done'), 
+                    iDR = row.ttRetouch?.toLowerCase().includes('done');
+                let nU = n.toUpperCase();
+
+                // 1. DỮ LIỆU KPI & DỰ KIẾN: Tính theo "Cột Tháng" (mBase)
+                if (mF.includes('ALL') || mF.includes(mBase)) {
+                    // Cập nhật KPI
+                    if (iDM) tMD++;
+                    if (iDC) tCD++;
+                    if (iDR) tRD++;
+
+                    // Cập nhật Thống kê dự kiến
+                    if (!iDM) {
+                        sPT++;
+                        if (nU === 'KHO') sPK++;
+                        else if (nU === 'NVT') sPN++;
+                    }
+                    if (!iDC && !iCBM) sPC++;
+                    if (iDC && !iDR) sPR++;
+                }
+
+                // 2. DỮ LIỆU CHART: Bỏ qua Cột Tháng, tính theo "Ngày thực tế"
+                // Fallback thông minh: Nếu ngày thực tế trống, mượn tạm Ngày Nhận/Tháng kế hoạch để ko bị mất data trên biểu đồ
+                const mMuon = extractMonth(row.ngayNhan) || mBase;
+                const mChup = extractMonth(row.ngayChup) || mMuon;
+                const mRetouch = extractMonth(row.ngayRetouch) || mChup;
+
+                const addToChart = (m, type) => {
+                    if (mF.includes('ALL') || mF.includes(m)) {
+                        if (!chartObj[m]) chartObj[m] = { dM: 0, dC: 0, dR: 0 };
+                        chartObj[m][type]++;
+                    }
+                };
+
+                if (iDM) addToChart(mMuon, 'dM');
+                if (iDC) addToChart(mChup, 'dC');
+                if (iDR) addToChart(mRetouch, 'dR');
             });
 
+            // Hiển thị KPI Tổng
             const kpiMuon = document.getElementById('kpi-total-muon'); if(kpiMuon) kpiMuon.innerText = tMD.toLocaleString();
             const kpiChup = document.getElementById('kpi-total-chup'); if(kpiChup) kpiChup.innerText = tCD.toLocaleString();
             const kpiRetouch = document.getElementById('kpi-total-retouch'); if(kpiRetouch) kpiRetouch.innerText = tRD.toLocaleString();
 
+            // Hiển thị Chart
             const canvas = document.getElementById('chartDone'); const empty = document.getElementById('emptyChartDone');
             if(!canvas || !empty) return;
             if (chartDoneInstance) chartDoneInstance.destroy();
-            const sM = Object.keys(mD).sort((a,b) => { if(a==='Trống') return 1; if(b==='Trống') return -1; return Number(a) - Number(b); });
+            
+            const sM = Object.keys(chartObj).sort((a,b) => {
+                if (a === 'Trống') return 1;
+                if (b === 'Trống') return -1;
+                return Number(a) - Number(b);
+            });
 
-            if (sM.length === 0) { canvas.classList.add('hidden'); empty.classList.remove('hidden'); } else {
+            if (sM.length === 0) { 
+                canvas.classList.add('hidden'); empty.classList.remove('hidden'); 
+            } else {
                 canvas.classList.remove('hidden'); empty.classList.add('hidden');
                 chartDoneInstance = new Chart(canvas, { 
                     type: 'bar', 
                     data: { 
                         labels: sM.map(m => m === 'Trống' ? 'Trống' : `Tháng ${m}`), 
-                        datasets: [ { label: 'Đã Mượn', data: sM.map(m => mD[m].dM), backgroundColor: '#003366', borderRadius: 4 }, { label: 'Đã Chụp', data: sM.map(m => mD[m].dC), backgroundColor: '#D4AF37', borderRadius: 4 }, { label: 'Đã Retouch', data: sM.map(m => mD[m].dR), backgroundColor: '#9CA3AF', borderRadius: 4 } ] 
+                        datasets: [ 
+                            { label: 'Đã Mượn', data: sM.map(m => chartObj[m].dM), backgroundColor: '#003366', borderRadius: 4 }, 
+                            { label: 'Đã Chụp', data: sM.map(m => chartObj[m].dC), backgroundColor: '#D4AF37', borderRadius: 4 }, 
+                            { label: 'Đã Retouch', data: sM.map(m => chartObj[m].dR), backgroundColor: '#9CA3AF', borderRadius: 4 } 
+                        ] 
                     }, 
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 25 } }, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Be Vietnam Pro', sans-serif" } } } }, scales: { x: { grid: { display: false } }, y: { border: { display: false } } } },
                     plugins: [{ id: 'customDataLabelsReport', afterDatasetsDraw(chart) { const { ctx, data } = chart; ctx.save(); ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#4B5563'; data.datasets.forEach((dataset, i) => { const meta = chart.getDatasetMeta(i); if (!meta.hidden) { meta.data.forEach((bar, index) => { const value = dataset.data[index]; if (value > 0) { ctx.fillText(value, bar.x, bar.y - 4); } }); } }); ctx.restore(); } }]
                 });
             }
 
-            let sPK = 0, sPN = 0, sPT = 0, sPC = 0, sPR = 0;
-            sM.forEach(m => { sPK += mD[m].pMK; sPN += mD[m].pMN; sPT += mD[m].pMT; sPC += mD[m].pC; sPR += mD[m].pR; });
+            // Hiển thị số liệu Dự kiến
             const vM = document.getElementById('val-pending-m-total'); if (vM) vM.innerText = sPT || '-'; 
             const vMK = document.getElementById('val-pending-m-kho'); if (vMK) vMK.innerText = sPK || '-'; 
             const vMN = document.getElementById('val-pending-m-nvt'); if (vMN) vMN.innerText = sPN || '-'; 
@@ -1766,14 +1847,14 @@
             }
             if(dataToExport.length === 0) return alert("Không có dữ liệu để xuất!");
             
-            let csv = "\uFEFFMã SKU 13,Tháng,Nơi mượn,Lô mượn,Ngày bắt đầu mượn,Ngày nhận hàng,Ngày trả hàng,Tổng số ngày mượn,Tình trạng mượn,Tình trạng chụp,Tình trạng retouch,Ghi chú,Phân loại\n";
-            dataToExport.forEach(r => { csv += `"${r.sku}","${r.month}","${r.noiMuon}","${r.loMuon}","${formatDateForExport(r.ngayBatDau)}","${formatDateForExport(r.ngayNhan)}","${formatDateForExport(r.ngayTra)}","${calculateDays(r.ngayBatDau,r.ngayNhan)}","${r.ttMuon}","${r.ttChup}","${r.ttRetouch}","${(r.note||'').replace(/"/g,'""')}","${r.phanLoai}"\n`; });
+            let csv = "\uFEFFMã SKU 13,Tháng,Nơi mượn,Lô mượn,Ngày bắt đầu mượn,Ngày nhận hàng,Ngày trả hàng,Tổng số ngày mượn,Tình trạng mượn,Ngày chụp,Tình trạng chụp,Ngày retouch,Tình trạng retouch,Ghi chú,Phân loại\n";
+            dataToExport.forEach(r => { csv += `"${r.sku}","${r.month}","${r.noiMuon}","${r.loMuon}","${formatDateForExport(r.ngayBatDau)}","${formatDateForExport(r.ngayNhan)}","${formatDateForExport(r.ngayTra)}","${calculateDays(r.ngayBatDau,r.ngayNhan)}","${r.ttMuon}","${formatDateForExport(r.ngayChup)}","${r.ttChup}","${formatDateForExport(r.ngayRetouch)}","${r.ttRetouch}","${(r.note||'').replace(/"/g,'""')}","${r.phanLoai}"\n`; });
             downloadCSV(csv, `PNJ_Database_${new Date().toISOString().slice(0,10)}.csv`);
         }
 
         window.exportSummaryCSV = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
-            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Trả hàng,Ngày mượn,Tình trạng,Tiến độ Chụp (Xong/Tổng),Tiến độ Retouch (Xong/Tổng),Ghi chú,Tổng SKU\n";
+            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Trả hàng,Ngày mượn,Tình trạng,Tiến độ Chụp (Xong/Tổng),Tiến độ Retouch (Xong/Tổng),Trạng thái lô,Ghi chú,Tổng SKU\n";
             Array.from(tbody.querySelectorAll('tr')).forEach(tr => { 
                 csv += Array.from(tr.querySelectorAll('td')).map(td => { 
                     const input = td.querySelector('input'); 
@@ -1854,7 +1935,13 @@
                 const newData = [];
                 for (let i = 1; i < lines.length; i++) {
                     const c = lines[i].trim().split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
-                    if (c.length >= 4 && c[0]) newData.push({ id: generateId()+i, sku: c[0], month: c[1], noiMuon: c[2], loMuon: c[3], ngayBatDau: parseDateFromCSV(c[4]), ngayNhan: parseDateFromCSV(c[5]), ngayTra: parseDateFromCSV(c[6]), ttMuon: c[8]||'', ttChup: c[9]||'', ttRetouch: c[10]||'', note: c[11]||'', phanLoai: c[12]||'' });
+                    if (c.length >= 4 && c[0]) {
+                        if (c.length >= 15) {
+                            newData.push({ id: generateId()+i, sku: c[0], month: c[1], noiMuon: c[2], loMuon: c[3], ngayBatDau: parseDateFromCSV(c[4]), ngayNhan: parseDateFromCSV(c[5]), ngayTra: parseDateFromCSV(c[6]), ttMuon: c[8]||'', ngayChup: parseDateFromCSV(c[9]), ttChup: c[10]||'', ngayRetouch: parseDateFromCSV(c[11]), ttRetouch: c[12]||'', note: c[13]||'', phanLoai: c[14]||'' });
+                        } else {
+                            newData.push({ id: generateId()+i, sku: c[0], month: c[1], noiMuon: c[2], loMuon: c[3], ngayBatDau: parseDateFromCSV(c[4]), ngayNhan: parseDateFromCSV(c[5]), ngayTra: parseDateFromCSV(c[6]), ttMuon: c[8]||'', ttChup: c[9]||'', ttRetouch: c[10]||'', note: c[11]||'', phanLoai: c[12]||'' });
+                        }
+                    }
                 }
                 if (newData.length > 0) { tableData = newData; window.saveData(); window.renderTable(); window.switchTab('tab-database'); }
                 event.target.value = '';
