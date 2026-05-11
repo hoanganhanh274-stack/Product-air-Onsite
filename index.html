@@ -366,6 +366,7 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Bắt đầu mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Trả hàng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
@@ -1539,8 +1540,9 @@
                 if (!mF.includes(m.toString()) || !nF.includes(n) || !tF.includes(tt)) return;
                 const d = calculateDays(row.ngayBatDau, row.ngayNhan); const l = row.loMuon || 'Trống';
                 const bd = row.ngayBatDau || 'Trống'; const nh = row.ngayNhan || 'Trống'; const ds = d !== '' ? d : 'Trống';
-                const k = `${m}|${n}|${l}|${bd}|${nh}|${ds}|${tt}`;
-                if (!groups[k]) groups[k] = { m, n, l, bd, nh, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set(), ids: [] };
+                const tr = row.ngayTra || 'Trống';
+                const k = `${m}|${n}|${l}|${bd}|${nh}|${tr}|${ds}|${tt}`;
+                if (!groups[k]) groups[k] = { m, n, l, bd, nh, tr, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set(), ids: [] };
                 groups[k].count++; grandTotal++; groups[k].ids.push(row.id);
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) groups[k].cD++; else groups[k].cND++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) groups[k].rD++; else groups[k].rND++;
@@ -1571,6 +1573,7 @@
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${g.l === 'Trống' ? '' : g.l}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'loMuon', this.value)" class="font-bold text-pnjBlue bg-transparent border-none w-full min-w-[150px]"></td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.bd === 'Trống' ? '' : g.bd}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayBatDau', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full"></td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.nh === 'Trống' ? '' : g.nh}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayNhan', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full"></td>
+                    <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.tr === 'Trống' ? '' : g.tr}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayTra', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full"></td>
                     <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjGold bg-pnjGold/5">${g.ds}</td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${g.tt === 'Trống' ? '' : g.tt}" list="ttMuonList" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ttMuon', this.value)" class="bg-transparent border-none font-medium ${g.tt.includes('Done')?'text-emerald-600':''}"></td>
                     <td class="px-4 py-3 border-r border-gray-100 text-center">${chupVisual}</td>
@@ -1731,7 +1734,7 @@
 
         window.exportSummaryCSV = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
-            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tình trạng,Tiến độ Chụp (Xong/Tổng),Tiến độ Retouch (Xong/Tổng),Ghi chú,Tổng SKU\n";
+            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Trả hàng,Ngày mượn,Tình trạng,Tiến độ Chụp (Xong/Tổng),Tiến độ Retouch (Xong/Tổng),Ghi chú,Tổng SKU\n";
             Array.from(tbody.querySelectorAll('tr')).forEach(tr => { 
                 csv += Array.from(tr.querySelectorAll('td')).map(td => { 
                     const input = td.querySelector('input'); 
