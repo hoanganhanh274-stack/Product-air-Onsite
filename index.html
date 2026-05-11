@@ -367,7 +367,6 @@
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Bắt đầu mượn</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-emerald-300">Tổng ngày SX</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Chụp</th>
                                 <th class="px-4 py-4 border-r border-pnjBlueLight text-center">TT Retouch</th>
@@ -1243,6 +1242,7 @@
                 let minStart = starts.length > 0 ? starts.reduce((min, p) => p < min ? p : min, starts[0]) : baseStart;
                 let manualKey = g.ngayNhan;
                 let finalStartChup = imageManualDates[manualKey] || minStart;
+                let finalEndChup = imageManualEndDates[manualKey] || maxEnd;
 
                 let sR = addWorkingDays(finalStartChup, 2); 
                 if (globalNextFreeRetouch && sR < globalNextFreeRetouch) sR = globalNextFreeRetouch;
@@ -1250,7 +1250,7 @@
                 let eR = addWorkingDays(asR, Math.max(0, Math.ceil(g.skuCount / 32) - 1)); 
                 let aeR = imageManualRetouchEnds[manualKey] || eR;
                 globalNextFreeRetouch = addWorkingDays(aeR, 1);
-                schedules[g.ngayNhan] = { endRetouch: aeR };
+                schedules[g.ngayNhan] = { endChup: finalEndChup, endRetouch: aeR };
             });
             return schedules;
         };
@@ -1547,12 +1547,23 @@
                 if (row.note && row.note.trim()) groups[k].notes.add(row.note.trim());
             });
             
+            let todayStr = new Date().toISOString().slice(0, 10);
+
             tbody.innerHTML = Object.values(groups).sort((a,b) => (a.m - b.m) || a.l.localeCompare(b.l)).map(g => {
-                let totalSXDys = '-';
-                if (g.nh !== 'Trống' && g.bd !== 'Trống') {
+                let isChupLate = false;
+                let isRetouchLate = false;
+                
+                if (g.nh !== 'Trống') {
                     let schedule = globalSchedules[g.nh];
-                    if (schedule && schedule.endRetouch) totalSXDys = getWorkingDays(g.bd, schedule.endRetouch);
+                    if (schedule) {
+                        isChupLate = todayStr > schedule.endChup && g.cD < g.count;
+                        isRetouchLate = todayStr > schedule.endRetouch && g.rD < g.count;
+                    }
                 }
+                
+                let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-red-500 font-bold">${g.cND}</span> / ${g.count} ${isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
+                let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-red-500 font-bold">${g.rND}</span> / ${g.count} ${isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
+
                 return `
                 <tr class="hover:bg-gray-50 transition-colors bg-white">
                     <td class="px-1 py-1 border-r border-gray-100 w-16"><input type="number" min="1" max="12" value="${g.m === 'Trống' ? '' : g.m}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'month', this.value)" class="text-center font-medium bg-transparent border-none"></td>
@@ -1561,10 +1572,9 @@
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.bd === 'Trống' ? '' : g.bd}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayBatDau', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full"></td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.nh === 'Trống' ? '' : g.nh}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayNhan', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full"></td>
                     <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjGold bg-pnjGold/5">${g.ds}</td>
-                    <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-emerald-600 bg-emerald-50">${totalSXDys}</td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${g.tt === 'Trống' ? '' : g.tt}" list="ttMuonList" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ttMuon', this.value)" class="bg-transparent border-none font-medium ${g.tt.includes('Done')?'text-emerald-600':''}"></td>
-                    <td class="px-4 py-3 border-r border-gray-100 text-center"><span class="text-red-500 font-bold">${g.cND}</span> / ${g.count}</td>
-                    <td class="px-4 py-3 border-r border-gray-100 text-center"><span class="text-red-500 font-bold">${g.rND}</span> / ${g.count}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center">${chupVisual}</td>
+                    <td class="px-4 py-3 border-r border-gray-100 text-center">${retouchVisual}</td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="text" value="${Array.from(g.notes).join('; ')}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'note', this.value)" class="bg-transparent border-none text-gray-500" placeholder="Ghi chú..."></td>
                     <td class="px-4 py-3 text-right font-black text-pnjBlue bg-pnjBlue/5">${g.count}</td>
                 </tr>`;
@@ -1721,7 +1731,7 @@
 
         window.exportSummaryCSV = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody || tbody.children.length === 0) return alert("Bảng trống!");
-            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tổng ngày SX,Tình trạng,TT Chụp (Chưa/Tổng),TT Retouch (Chưa/Tổng),Ghi chú,Tổng SKU\n";
+            let csv = "\uFEFFTháng,Nơi mượn,Lô mượn,Bắt đầu mượn,Nhận hàng,Ngày mượn,Tình trạng,TT Chụp (Chưa/Tổng),TT Retouch (Chưa/Tổng),Ghi chú,Tổng SKU\n";
             Array.from(tbody.querySelectorAll('tr')).forEach(tr => { 
                 csv += Array.from(tr.querySelectorAll('td')).map(td => { 
                     const input = td.querySelector('input'); 
