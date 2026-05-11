@@ -124,6 +124,9 @@
                 <button onclick="switchTab('tab-video')" id="btn-tab-video" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
                     <i class="fas fa-video text-gray-400"></i> Sản xuất video
                 </button>
+                <button onclick="switchTab('tab-process')" id="btn-tab-process" class="text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-project-diagram text-gray-400"></i> Quy trình
+                </button>
                 <div class="w-px bg-gray-300 my-2 mx-1"></div>
                 <button onclick="switchTab('tab-database')" id="btn-tab-database" class="text-gray-600 hover:bg-pnjGold/20 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all">
                     <i class="fas fa-database text-pnjGold"></i> Database Gốc
@@ -227,7 +230,7 @@
         <!-- ==================== TAB 2: SUMMARY ==================== -->
         <div id="tab-summary" class="hidden">
             
-            <!-- START: MODULE FLOW MƯỢN HÀNG -->
+            <!-- START: MODULE FLOW MƯỢN HÀNG (GIỮ NGUYÊN NHƯ CŨ) -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
                 <h3 class="font-bold text-pnjBlue text-lg uppercase mb-4"><i class="fas fa-project-diagram mr-2 text-pnjGold"></i> Flow Thời Gian Mượn Hàng</h3>
                 
@@ -583,6 +586,140 @@
             </div>
         </div>
 
+        <!-- ==================== TAB QUY TRÌNH ==================== -->
+        <div id="tab-process" class="hidden">
+            <!-- Flow 1: Mượn hàng -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
+                <h3 class="font-bold text-[#1C3B5E] text-lg uppercase mb-6 flex items-center"><i class="fas fa-share-alt mr-3 text-pnjGold"></i> FLOW THỜI GIAN MƯỢN HÀNG</h3>
+                <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
+                    
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">1. Check tồn</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Thứ 2 hàng tuần)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f1-min-1" value="1" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f1-max-1" value="1" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden xl:block"></i><i class="fas fa-arrow-down text-gray-300 xl:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">2. Trình EO</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Đề xuất mượn)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f1-min-2" value="3" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f1-max-2" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden xl:block"></i><i class="fas fa-arrow-down text-gray-300 xl:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">3. Soạn hàng</p>
+                        <p class="text-[10px] text-transparent mb-3 select-none">.</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f1-min-3" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f1-max-3" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden xl:block"></i><i class="fas fa-arrow-down text-gray-300 xl:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">4. KCS</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Kiểm tra CL)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f1-min-4" value="4" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f1-max-4" value="7" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden xl:block"></i><i class="fas fa-arrow-down text-gray-300 xl:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">5. Nhận hàng</p>
+                        <p class="text-[10px] text-transparent mb-3 select-none">.</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f1-min-5" value="1" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f1-max-5" value="1" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+
+                    <div class="xl:ml-2 bg-[#F8F9FA] border border-gray-200 rounded-xl p-5 text-center w-full xl:w-56 shadow-sm">
+                        <p class="font-bold text-xs text-[#1C3B5E] uppercase mb-2">Tổng Thời Gian</p>
+                        <div class="flex items-baseline justify-center gap-2">
+                            <span class="text-3xl font-black text-pnjGold" id="f1-total-min">14</span>
+                            <span class="text-gray-400 font-bold mx-1">-</span>
+                            <span class="text-3xl font-black text-pnjGold" id="f1-total-max">19</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mt-2">Ngày làm việc</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flow 2: Sản xuất hình ảnh -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
+                <h3 class="font-bold text-[#1C3B5E] text-lg uppercase mb-6 flex items-center"><i class="fas fa-camera-retro mr-3 text-pnjGold"></i> FLOW SẢN XUẤT HÌNH ẢNH</h3>
+                <div class="flex flex-col lg:flex-row items-center justify-start gap-4">
+                    
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">1. Chụp hình</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Studio/Outsource)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f2-min-1" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f2-max-1" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden lg:block"></i><i class="fas fa-arrow-down text-gray-300 lg:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">2. Retouch</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Hậu kỳ hình ảnh)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f2-min-2" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f2-max-2" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-300 hidden lg:block"></i><i class="fas fa-arrow-down text-gray-300 lg:hidden py-1"></i>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 text-center flex-1 w-full shadow-sm hover:border-pnjGold/50 transition-colors">
+                        <p class="font-bold text-sm text-[#1C3B5E] mb-1 uppercase">3. Onsite</p>
+                        <p class="text-[10px] text-gray-500 mb-3 uppercase">(Tại địa điểm)</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input type="number" id="f2-min-3" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="number" id="f2-max-3" value="5" min="0" class="w-14 text-center border border-gray-300 py-1.5 px-1 rounded focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none font-medium" onchange="saveProcessFlowSettings()">
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 hidden lg:block border-transparent"></div> <!-- Spacer -->
+                    
+                    <div class="lg:ml-2 bg-[#F8F9FA] border border-gray-200 rounded-xl p-5 text-center w-full lg:w-56 shadow-sm">
+                        <p class="font-bold text-xs text-[#1C3B5E] uppercase mb-2">Tổng Thời Gian</p>
+                        <div class="flex items-baseline justify-center gap-2">
+                            <span class="text-3xl font-black text-pnjGold" id="f2-total-min">15</span>
+                            <span class="text-gray-400 font-bold mx-1">-</span>
+                            <span class="text-3xl font-black text-pnjGold" id="f2-total-max">15</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mt-2">Ngày làm việc</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng Ghi chú -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-[#1C3B5E] text-lg uppercase flex items-center"><i class="fas fa-edit mr-3 text-pnjGold"></i> Bảng Ghi Chú Quy Trình</h3>
+                    <button onclick="saveData()" class="bg-gray-100 hover:bg-pnjGold/20 text-pnjBlue px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"><i class="fas fa-save text-pnjGold"></i> Lưu Ghi chú</button>
+                </div>
+                <textarea id="process-notes" rows="8" class="w-full border border-gray-200 bg-gray-50/50 rounded-xl p-4 text-sm focus:bg-white focus:border-pnjGold focus:ring-2 focus:ring-pnjGold/20 outline-none resize-y leading-relaxed text-gray-700" onchange="saveProcessFlowSettings()" placeholder="Nhập các quy định, lưu ý về năng suất, thời gian, cách thức mượn hàng hoặc sản xuất tại đây..."></textarea>
+            </div>
+        </div>
+
         <!-- ==================== TAB 5: DATABASE GỐC ==================== -->
         <div id="tab-database" class="hidden">
             <div class="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
@@ -750,6 +887,8 @@
                     imageManualEndDates: window.imageManualEndDates || {},
                     imageManualRetouchStarts: window.imageManualRetouchStarts || {},
                     imageManualRetouchEnds: window.imageManualRetouchEnds || {},
+                    flowProcessSettings: JSON.parse(localStorage.getItem('pnj_flow_process_settings') || '{}'),
+                    flowSettings: JSON.parse(localStorage.getItem('pnj_flow_settings') || '{}'),
                     timestamp: new Date().toISOString()
                 });
                 
@@ -778,6 +917,13 @@
                     window.imageManualEndDates = data.imageManualEndDates || {};
                     window.imageManualRetouchStarts = data.imageManualRetouchStarts || {};
                     window.imageManualRetouchEnds = data.imageManualRetouchEnds || {};
+                    
+                    if (data.flowProcessSettings) {
+                        localStorage.setItem('pnj_flow_process_settings', JSON.stringify(data.flowProcessSettings));
+                    }
+                    if (data.flowSettings) {
+                        localStorage.setItem('pnj_flow_settings', JSON.stringify(data.flowSettings));
+                    }
                     
                     if (window.renderTable) window.renderTable(); 
                     if (window.renderVideoTable) window.renderVideoTable(); 
@@ -830,28 +976,14 @@
             });
             
             // Tìm tab đang mở để render lại
-            let activeTabId = ['tab-report', 'tab-summary', 'tab-image', 'tab-video', 'tab-database'].find(id => {
+            let activeTabId = ['tab-report', 'tab-summary', 'tab-image', 'tab-video', 'tab-process', 'tab-database'].find(id => {
                 let el = document.getElementById(id);
                 return el && !el.classList.contains('hidden');
             });
             if (activeTabId) window.switchTab(activeTabId.replace('tab-', 'tab-'));
         }
 
-        window.clearGlobalSkuFilter = function() {
-            window.globalSkuFilterArray = [];
-            ['sku-input-report', 'sku-input-summary', 'sku-input-image', 'sku-input-db'].forEach(id => {
-                let el = document.getElementById(id);
-                if(el) el.value = '';
-            });
-            
-            let activeTabId = ['tab-report', 'tab-summary', 'tab-image', 'tab-video', 'tab-database'].find(id => {
-                let el = document.getElementById(id);
-                return el && !el.classList.contains('hidden');
-            });
-            if (activeTabId) window.switchTab(activeTabId.replace('tab-', 'tab-'));
-        }
-
-        // Logic xử lý Flow mượn hàng
+        // Logic xử lý Flow mượn hàng ở Tab Summary (Bản gốc)
         window.calculateFlowTotal = function() {
             let totalMin = 0;
             let totalMax = 0;
@@ -892,6 +1024,66 @@
             window.calculateFlowTotal();
         };
 
+        // Logic xử lý Tab Quy trình (Process) - Độc lập
+        window.saveProcessFlowSettings = function() {
+            let flowData = { f1: {}, f2: {}, notes: '' };
+            
+            // Flow 1
+            let min1 = 0, max1 = 0;
+            for(let i=1; i<=5; i++) {
+                let mnEl = document.getElementById(`f1-min-${i}`);
+                let mxEl = document.getElementById(`f1-max-${i}`);
+                if(mnEl && mxEl) {
+                    let mn = parseInt(mnEl.value) || 0;
+                    let mx = parseInt(mxEl.value) || 0;
+                    flowData.f1[`min${i}`] = mn; flowData.f1[`max${i}`] = mx;
+                    min1 += mn; max1 += mx;
+                }
+            }
+            if(document.getElementById('f1-total-min')) document.getElementById('f1-total-min').innerText = min1;
+            if(document.getElementById('f1-total-max')) document.getElementById('f1-total-max').innerText = max1;
+
+            // Flow 2
+            let min2 = 0, max2 = 0;
+            for(let i=1; i<=3; i++) {
+                let mnEl = document.getElementById(`f2-min-${i}`);
+                let mxEl = document.getElementById(`f2-max-${i}`);
+                if(mnEl && mxEl) {
+                    let mn = parseInt(mnEl.value) || 0;
+                    let mx = parseInt(mxEl.value) || 0;
+                    flowData.f2[`min${i}`] = mn; flowData.f2[`max${i}`] = mx;
+                    min2 += mn; max2 += mx;
+                }
+            }
+            if(document.getElementById('f2-total-min')) document.getElementById('f2-total-min').innerText = min2;
+            if(document.getElementById('f2-total-max')) document.getElementById('f2-total-max').innerText = max2;
+
+            const notesEl = document.getElementById('process-notes');
+            if (notesEl) flowData.notes = notesEl.value || '';
+
+            localStorage.setItem('pnj_flow_process_settings', JSON.stringify(flowData));
+        };
+
+        window.loadProcessFlowSettings = function() {
+            try {
+                const saved = localStorage.getItem('pnj_flow_process_settings');
+                
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    for(let i=1; i<=5; i++) {
+                        if(data.f1 && data.f1[`min${i}`] !== undefined && document.getElementById(`f1-min-${i}`)) document.getElementById(`f1-min-${i}`).value = data.f1[`min${i}`];
+                        if(data.f1 && data.f1[`max${i}`] !== undefined && document.getElementById(`f1-max-${i}`)) document.getElementById(`f1-max-${i}`).value = data.f1[`max${i}`];
+                    }
+                    for(let i=1; i<=3; i++) {
+                        if(data.f2 && data.f2[`min${i}`] !== undefined && document.getElementById(`f2-min-${i}`)) document.getElementById(`f2-min-${i}`).value = data.f2[`min${i}`];
+                        if(data.f2 && data.f2[`max${i}`] !== undefined && document.getElementById(`f2-max-${i}`)) document.getElementById(`f2-max-${i}`).value = data.f2[`max${i}`];
+                    }
+                    if(data.notes !== undefined && document.getElementById('process-notes')) document.getElementById('process-notes').value = data.notes;
+                }
+            } catch(e) {}
+            window.saveProcessFlowSettings(); 
+        };
+
         function togglePendingDetails() {
             const details = document.getElementById('pending-m-details');
             const icon = document.getElementById('icon-pending-details');
@@ -926,7 +1118,7 @@
         });
 
         window.switchTab = function(tabId) {
-            ['tab-database', 'tab-summary', 'tab-report', 'tab-video', 'tab-image'].forEach(id => {
+            ['tab-database', 'tab-summary', 'tab-report', 'tab-video', 'tab-image', 'tab-process'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.classList.add('hidden');
                 const btn = document.getElementById('btn-' + id);
                 if(btn) btn.className = "text-gray-600 hover:bg-gray-100 hover:text-pnjBlue py-2.5 px-5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all";
@@ -939,6 +1131,7 @@
             else if (tabId === 'tab-report') { populateReportFilters(); window.renderReport(); }
             else if (tabId === 'tab-video') { window.renderVideoTable(); }
             else if (tabId === 'tab-image') { populateImageFilters(); window.renderImageTrackingTable(); }
+            else if (tabId === 'tab-process') { window.loadProcessFlowSettings(); }
             else if (tabId === 'tab-database') { window.renderTable(); }
         }
 
@@ -1476,11 +1669,10 @@
 
             let html = '<table class="text-sm text-left whitespace-nowrap border-collapse border border-gray-200" style="table-layout: fixed; min-width: 100%;">';
             html += '<thead class="text-xs text-gray-700 bg-gray-50 sticky top-0" style="z-index: 30;"><tr>';
-            html += '<th class="px-2 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 80px; max-width: 80px; position: sticky; left: 0; z-index: 30;" rowspan="2">Tổng<br>ngày</th>';
-            html += '<th class="px-3 py-2 border border-gray-200 bg-gray-50" style="min-width: 150px; max-width: 150px; position: sticky; left: 80px; z-index: 30;" rowspan="2">Lô</th>';
-            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 100px; max-width: 100px; position: sticky; left: 230px; z-index: 30;" rowspan="2">Ngày nhận</th>';
-            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 90px; max-width: 90px; position: sticky; left: 330px; z-index: 30;" rowspan="2">Nơi mượn</th>';
-            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 60px; max-width: 60px; position: sticky; left: 420px; z-index: 30;" rowspan="2">SL</th>';
+            html += '<th class="px-3 py-2 border border-gray-200 bg-gray-50" style="min-width: 150px; max-width: 150px; position: sticky; left: 0; z-index: 30;" rowspan="2">Lô</th>';
+            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 100px; max-width: 100px; position: sticky; left: 150px; z-index: 30;" rowspan="2">Ngày nhận</th>';
+            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 90px; max-width: 90px; position: sticky; left: 250px; z-index: 30;" rowspan="2">Nơi mượn</th>';
+            html += '<th class="px-3 py-2 border border-gray-200 text-center bg-gray-50" style="min-width: 60px; max-width: 60px; position: sticky; left: 340px; z-index: 30;" rowspan="2">SL</th>';
             
             timelineDates.forEach(d => {
                 let isW = isWeekend(d); let isH = isHoliday(d);
@@ -1499,7 +1691,6 @@
             
             ganttData.forEach(g => {
                 let isManualOverride = !!(imageManualDates[g.manualKey] || imageManualEndDates[g.manualKey]);
-                let totalDays = getWorkingDays(g.ngayNhan, g.endRetouch);
                 
                 Object.values(g.items).forEach(item => {
                     let nUpper = item.noiMuon.toUpperCase(); let iStart = null, iEnd = null;
@@ -1507,11 +1698,10 @@
                     else { iStart = g.startChup; iEnd = g.endChup; }
 
                     html += `<tr>`;
-                    html += `<td class="px-2 py-2 border border-gray-200 text-center font-bold text-pnjGold bg-pnjGold/5" style="position: sticky; left: 0; z-index: 10;">${totalDays}</td>`;
-                    html += `<td class="px-3 py-2 border border-gray-200 font-medium bg-white truncate" style="position: sticky; left: 80px; z-index: 10;" title="${item.loMuon}">${item.loMuon}</td>`;
-                    html += `<td class="px-3 py-2 border border-gray-200 text-center text-gray-500 bg-white" style="position: sticky; left: 230px; z-index: 10;">${formatDateToDisplay(g.ngayNhan)}</td>`;
-                    html += `<td class="px-3 py-2 border border-gray-200 text-center bg-white" style="position: sticky; left: 330px; z-index: 10;">${item.noiMuon}</td>`;
-                    html += `<td class="px-3 py-2 border border-gray-200 text-center bg-white" style="position: sticky; left: 420px; z-index: 10;">${item.skuCount}</td>`;
+                    html += `<td class="px-3 py-2 border border-gray-200 font-medium bg-white truncate" style="position: sticky; left: 0; z-index: 10;" title="${item.loMuon}">${item.loMuon}</td>`;
+                    html += `<td class="px-3 py-2 border border-gray-200 text-center text-gray-500 bg-white" style="position: sticky; left: 150px; z-index: 10;">${formatDateToDisplay(g.ngayNhan)}</td>`;
+                    html += `<td class="px-3 py-2 border border-gray-200 text-center bg-white" style="position: sticky; left: 250px; z-index: 10;">${item.noiMuon}</td>`;
+                    html += `<td class="px-3 py-2 border border-gray-200 text-center bg-white" style="position: sticky; left: 340px; z-index: 10;">${item.skuCount}</td>`;
                     
                     timelineDates.forEach(d => {
                         let isW = isWeekend(d); let isH = isHoliday(d);
@@ -1524,10 +1714,9 @@
 
                 html += `<tr class="bg-gray-50 font-bold">`;
                 html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 0; z-index: 10;"></td>`;
-                html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 80px; z-index: 10;"></td>`;
-                html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 230px; z-index: 10;"></td>`;
-                html += `<td class="px-3 py-2 border border-gray-200 text-right text-[#1C3B5E] bg-gray-50" style="position: sticky; left: 330px; z-index: 10;">Total</td>`;
-                html += `<td class="px-3 py-2 border border-gray-200 text-center text-pnjBlue bg-gray-50" style="position: sticky; left: 420px; z-index: 10;">${g.skuCount}</td>`;
+                html += `<td class="px-3 py-2 border border-gray-200 bg-gray-50" style="position: sticky; left: 150px; z-index: 10;"></td>`;
+                html += `<td class="px-3 py-2 border border-gray-200 text-right text-[#1C3B5E] bg-gray-50" style="position: sticky; left: 250px; z-index: 10;">Total</td>`;
+                html += `<td class="px-3 py-2 border border-gray-200 text-center text-pnjBlue bg-gray-50" style="position: sticky; left: 340px; z-index: 10;">${g.skuCount}</td>`;
                 
                 timelineDates.forEach(d => {
                     let isW = isWeekend(d); let isH = isHoliday(d);
