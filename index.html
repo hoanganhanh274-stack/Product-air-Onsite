@@ -1528,22 +1528,47 @@
 
         window.renderSummary = function() {
             const tbody = document.getElementById('summaryBody'); if(!tbody) return;
-            const getV = (t) => Array.from(document.querySelectorAll(`.cb-${t}:checked`)).map(cb => cb.value);
+            
+            // Hàm lấy danh sách filter cực kỳ an toàn, trả về ['ALL'] nếu DOM chưa có
+            const getV = (t) => {
+                const cbs = document.querySelectorAll(`.cb-${t}`);
+                if (cbs.length === 0) return ['ALL'];
+                return Array.from(cbs).filter(cb => cb.checked).map(cb => cb.value);
+            };
+
             const mF = getV('month'); const nF = getV('noiMuon'); const tF = getV('ttMuon');
             const globalSchedules = window.getGlobalSchedule ? window.getGlobalSchedule() : {};
             let groups = {}; let grandTotal = 0;
             
             tableData.forEach(row => {
+                // Lọc theo SKU chung (nếu có)
                 if (window.globalSkuFilterArray && window.globalSkuFilterArray.length > 0 && !window.globalSkuFilterArray.includes(row.sku)) return;
-                if (!row.sku && !row.loMuon && !row.noiMuon) return; 
-                const m = row.month || 'Trống'; const n = row.noiMuon || 'Trống'; const tt = row.ttMuon || 'Trống';
-                if (!mF.includes(m.toString()) || !nF.includes(n) || !tF.includes(tt)) return;
-                const d = calculateDays(row.ngayBatDau, row.ngayNhan); const l = row.loMuon || 'Trống';
-                const bd = row.ngayBatDau || 'Trống'; const nh = row.ngayNhan || 'Trống'; const ds = d !== '' ? d : 'Trống';
+                
+                const m = row.month || 'Trống'; 
+                const n = row.noiMuon || 'Trống'; 
+                const tt = row.ttMuon || 'Trống';
+                
+                // Lọc an toàn, bỏ qua nếu người dùng chủ động bỏ tick
+                if (!mF.includes('ALL') && !mF.includes(m.toString())) return;
+                if (!nF.includes('ALL') && !nF.includes(n)) return;
+                if (!tF.includes('ALL') && !tF.includes(tt)) return;
+
+                const d = calculateDays(row.ngayBatDau, row.ngayNhan); 
+                const l = row.loMuon || 'Trống';
+                const bd = row.ngayBatDau || 'Trống'; 
+                const nh = row.ngayNhan || 'Trống'; 
+                const ds = d !== '' ? d : 'Trống';
                 const tr = row.ngayTra || 'Trống';
+                
+                // Gom nhóm các dòng giống nhau
                 const k = `${m}|${n}|${l}|${bd}|${nh}|${tr}|${ds}|${tt}`;
-                if (!groups[k]) groups[k] = { m, n, l, bd, nh, tr, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set(), ids: [] };
+                
+                if (!groups[k]) {
+                    groups[k] = { m, n, l, bd, nh, tr, ds, tt, count: 0, cD: 0, cND: 0, rD: 0, rND: 0, notes: new Set(), ids: [] };
+                }
+                
                 groups[k].count++; grandTotal++; groups[k].ids.push(row.id);
+                
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) groups[k].cD++; else groups[k].cND++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) groups[k].rD++; else groups[k].rND++;
                 if (row.note && row.note.trim()) groups[k].notes.add(row.note.trim());
@@ -1551,7 +1576,16 @@
             
             let todayStr = new Date().toISOString().slice(0, 10);
 
-            tbody.innerHTML = Object.values(groups).sort((a,b) => (a.m - b.m) || a.l.localeCompare(b.l)).map(g => {
+            // Sắp xếp an toàn, tránh lỗi khi m là "Trống" hoặc l bị trống
+            let sortedGroups = Object.values(groups).sort((a,b) => {
+                if(a.m === 'Trống' && b.m !== 'Trống') return 1;
+                if(b.m === 'Trống' && a.m !== 'Trống') return -1;
+                let mDiff = parseInt(a.m) - parseInt(b.m);
+                if (!isNaN(mDiff) && mDiff !== 0) return mDiff;
+                return (a.l || '').localeCompare(b.l || '');
+            });
+
+            tbody.innerHTML = sortedGroups.map(g => {
                 let isChupLate = false;
                 let isRetouchLate = false;
                 
@@ -1582,7 +1616,9 @@
                     <td class="px-4 py-3 text-right font-black text-pnjBlue bg-pnjBlue/5">${g.count}</td>
                 </tr>`;
             }).join('');
-            const sgt = document.getElementById('summaryGrandTotal'); if (sgt) sgt.innerText = grandTotal.toLocaleString();
+            
+            const sgt = document.getElementById('summaryGrandTotal'); 
+            if (sgt) sgt.innerText = grandTotal.toLocaleString();
         }
 
         window.renderReport = function() {
