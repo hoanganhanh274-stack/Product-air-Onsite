@@ -529,6 +529,7 @@
                         <table class="w-full text-sm text-left whitespace-nowrap">
                             <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
                                 <tr>
+                                    <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Tình trạng mượn</th>
                                     <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[120px]">Ngày Nhận Hàng</th>
                                     <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Các Lô Mượn (Ghi Chú)</th>
                                     <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tổng SKU</th>
@@ -1868,8 +1869,9 @@
                 let nUpper = n.toUpperCase();
                 if (nUpper === 'KHO') group.khoSku++; else if (nUpper === 'NVT') group.nvtSku++; else group.otherSku++;
                 let itemKey = l + '|' + n;
-                if (!group.items[itemKey]) { group.items[itemKey] = { loMuon: l, noiMuon: n, skuCount: 0 }; }
+                if (!group.items[itemKey]) { group.items[itemKey] = { loMuon: l, noiMuon: n, skuCount: 0, ttMuons: new Set() }; }
                 group.items[itemKey].skuCount++;
+                group.items[itemKey].ttMuons.add(row.ttMuon || 'Trống');
                 group.skuCount++;
                 if (row.ttMuon && row.ttMuon.toLowerCase().includes('done')) group.muonDone++;
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) group.chupDone++;
@@ -1928,6 +1930,15 @@
             processedGanttData.forEach(g => {
                 totalSKU += g.skuCount;
                 let loListHTML = Object.values(g.items).map(i => `<div class="py-1 border-b border-gray-100 last:border-0">${i.loMuon}</div>`).join('') || '-';
+                
+                let ttMuonHTML = Object.values(g.items).map(i => {
+                    let tts = Array.from(i.ttMuons).filter(t => t !== 'Trống').join(', ');
+                    if (!tts) tts = '-';
+                    let colorClass = tts.toLowerCase().includes('done') ? 'text-emerald-600 font-bold' : 'text-amber-600 font-medium';
+                    if (tts === '-') colorClass = 'text-gray-400';
+                    return `<div class="py-1 border-b border-gray-100 last:border-0 truncate ${colorClass}">${tts}</div>`;
+                }).join('') || '-';
+
                 let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.chupDone}</span> / ${g.skuCount} ${g.isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.retouchDone}</span> / ${g.skuCount} ${g.isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 
@@ -1936,6 +1947,7 @@
 
                 html += `
                     <tr class="hover:bg-gray-50 transition-colors bg-white">
+                        <td class="px-4 py-3 border-r border-gray-100 text-center min-w-[140px]">${ttMuonHTML}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjBlue">${formatDateToDisplay(g.ngayNhan)}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-sm text-gray-600 min-w-[250px] whitespace-normal">${loListHTML}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center font-bold text-pnjBlue bg-pnjBlue/5">${g.skuCount}</td>
@@ -1948,10 +1960,10 @@
                         <td class="px-4 py-3 border-r border-gray-100 text-center">${chupVisual}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center">${retouchVisual}</td>
                         <td class="px-4 py-3 border-r border-gray-100 text-center">${statusLabel}</td>
-                        <td class="px-2 py-2 text-center"><button onclick="downloadSpecificSKUs('${g.ids.join(',')}', '${g.ngayNhan}')" class="bg-gray-100 hover:bg-pnjBlue hover:text-white text-pnjBlue p-2 rounded transition-colors shadow-sm" title="Tải mã SKU 13 của lô này"><i class="fas fa-file-csv"></i></button></td>
+                        <td class="px-2 py-2 text-center cursor-pointer hover:bg-pnjBlueLight transition-colors" title="Tải FULL danh sách SKU đang hiển thị" onclick="window.downloadAllImageTrackingSKUs()"><i class="fas fa-download text-pnjGold bg-[#002244] p-1 rounded"></i></td>
                     </tr>`;
             });
-            tbody.innerHTML = html || '<tr><td colspan="13" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="14" class="px-4 py-8 text-center text-gray-400 italic">Không có dữ liệu phù hợp.</td></tr>';
 
             const elTotal1 = document.getElementById('imageTrackingGrandTotal');
             if (elTotal1) elTotal1.innerText = totalSKU.toLocaleString();
@@ -2174,7 +2186,7 @@
             }
 
             let todayStr = new Date().toISOString().slice(0, 10);
-            let csv = "\uFEFFMã SKU 13,Lô mượn,Nơi mượn,Ngày nhận,Deadline Chụp,Deadline Retouch,Tình trạng trễ,Tình trạng chụp,Tình trạng retouch,Ghi chú\n";
+            let csv = "\uFEFFMã SKU 13,Lô mượn,Nơi mượn,Tình trạng mượn,Ngày nhận,Deadline Chụp,Deadline Retouch,Tình trạng trễ,Tình trạng chụp,Tình trạng retouch,Ghi chú\n";
             
             window.currentGanttData.forEach(g => {
                 let deadlineChup = formatDateForExport(g.endChup);
@@ -2193,7 +2205,7 @@
                         if (isThisRowLateRetouch) statusArr.push("Trễ Retouch");
                         let lateStatus = statusArr.join(', ');
 
-                        csv += `"${r.sku}","${r.loMuon || ''}","${r.noiMuon || ''}","${formatDateForExport(r.ngayNhan)}","${deadlineChup}","${deadlineRetouch}","${lateStatus}","${r.ttChup || ''}","${r.ttRetouch || ''}","${(r.note||'').replace(/"/g,'""')}"\n`;
+                        csv += `"${r.sku}","${r.loMuon || ''}","${r.noiMuon || ''}","${r.ttMuon || ''}","${formatDateForExport(r.ngayNhan)}","${deadlineChup}","${deadlineRetouch}","${lateStatus}","${r.ttChup || ''}","${r.ttRetouch || ''}","${(r.note||'').replace(/"/g,'""')}"\n`;
                     }
                 });
             });
