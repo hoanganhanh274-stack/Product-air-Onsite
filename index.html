@@ -1420,7 +1420,11 @@
             
             Object.values(groupsForFilter).forEach(g => {
                 let isHoanThanh = g.tt.toLowerCase().includes('done') && g.cD === g.count && g.rD === g.count;
-                ttLos.add(isHoanThanh ? 'Hoàn thành' : 'Đang xử lý');
+                let isChuanBi = g.tt.toLowerCase().includes('chuẩn bị') || g.tt === 'Trống' || g.tt === '';
+                let statusText = 'Đang xử lý';
+                if (isHoanThanh) statusText = 'Hoàn thành';
+                else if (isChuanBi) statusText = 'Dự kiến mượn';
+                ttLos.add(statusText);
             });
 
             buildFilterDropdown(months, 'month', curMonth); buildFilterDropdown(nois, 'noiMuon', curNoi); buildFilterDropdown(tts, 'ttMuon', curTT); buildFilterDropdown(ttLos, 'status', curStatus);
@@ -1454,14 +1458,18 @@
                 if (!dailyGroups[groupKey]) { dailyGroups[groupKey] = { skuCount: 0, chupDone: 0, retouchDone: 0, muonDone: 0 }; }
                 let group = dailyGroups[groupKey];
                 group.skuCount++;
-                if (row.ttMuon && row.ttMuon.toLowerCase().includes('done')) group.muonDone++;
+                let ttMuonLower = (row.ttMuon || '').toLowerCase();
+                if (ttMuonLower.includes('done')) group.muonDone++;
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) group.chupDone++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) group.retouchDone++;
             });
             
             Object.values(dailyGroups).forEach(g => {
                 let isHoanThanh = (g.muonDone === g.skuCount) && (g.chupDone === g.skuCount) && (g.retouchDone === g.skuCount);
-                ttLos.add(isHoanThanh ? 'Hoàn thành' : 'Đang xử lý');
+                let statusText = 'Đang xử lý';
+                if (isHoanThanh) statusText = 'Hoàn thành';
+                else if (g.muonDone === 0) statusText = 'Dự kiến mượn';
+                ttLos.add(statusText);
             });
 
             buildFilterDropdown(months, 'img-month', curMonth); buildFilterDropdown(nois, 'img-noiMuon', curNoi); buildFilterDropdown(los, 'img-loMuon', curLo); buildFilterDropdown(ttLos, 'img-status', curStatus);
@@ -1674,7 +1682,10 @@
 
             let filteredGroups = sortedGroups.filter(g => {
                 let isHoanThanh = g.tt.toLowerCase().includes('done') && g.cD === g.count && g.rD === g.count;
-                let statusLabelText = isHoanThanh ? 'Hoàn thành' : 'Đang xử lý';
+                let isChuanBi = g.tt.toLowerCase().includes('chuẩn bị') || g.tt === 'Trống' || g.tt === '';
+                let statusLabelText = 'Đang xử lý';
+                if (isHoanThanh) statusLabelText = 'Hoàn thành';
+                else if (isChuanBi) statusLabelText = 'Dự kiến mượn';
                 if (!sF.includes('ALL') && !sF.includes(statusLabelText)) return false;
                 return true;
             });
@@ -1694,7 +1705,20 @@
                 }
                 
                 let isHoanThanh = g.tt.toLowerCase().includes('done') && g.cD === g.count && g.rD === g.count;
-                let statusLabel = isHoanThanh ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold whitespace-nowrap">Hoàn thành</span>' : '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold whitespace-nowrap">Đang xử lý</span>';
+                let isChuanBi = g.tt.toLowerCase().includes('chuẩn bị') || g.tt === 'Trống' || g.tt === '';
+
+                let statusLabelText = 'Đang xử lý';
+                let statusClass = 'bg-amber-100 text-amber-700';
+
+                if (isHoanThanh) {
+                    statusLabelText = 'Hoàn thành';
+                    statusClass = 'bg-emerald-100 text-emerald-700';
+                } else if (isChuanBi) {
+                    statusLabelText = 'Dự kiến mượn';
+                    statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+                }
+
+                let statusLabel = `<span class="px-2 py-1 ${statusClass} rounded text-xs font-bold whitespace-nowrap">${statusLabelText}</span>`;
 
                 let chupVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.cD}</span> / ${g.count} ${isChupLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Chụp!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.rD}</span> / ${g.count} ${isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
@@ -1876,7 +1900,8 @@
                 group.items[itemKey].skuCount++;
                 group.items[itemKey].ttMuons.add(row.ttMuon || 'Trống');
                 group.skuCount++;
-                if (row.ttMuon && row.ttMuon.toLowerCase().includes('done')) group.muonDone++;
+                let ttMuonLower = (row.ttMuon || '').toLowerCase();
+                if (ttMuonLower.includes('done')) group.muonDone++;
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) group.chupDone++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) group.retouchDone++;
             });
@@ -1926,7 +1951,9 @@
             if (!sF.includes('ALL')) {
                 processedGanttData = processedGanttData.filter(g => {
                     let isHoanThanh = (g.muonDone === g.skuCount) && (g.chupDone === g.skuCount) && (g.retouchDone === g.skuCount);
-                    let statusLabelText = isHoanThanh ? 'Hoàn thành' : 'Đang xử lý';
+                    let statusLabelText = 'Đang xử lý';
+                    if (isHoanThanh) statusLabelText = 'Hoàn thành';
+                    else if (g.muonDone === 0) statusLabelText = 'Dự kiến mượn';
                     return sF.includes(statusLabelText);
                 });
             }
@@ -1949,7 +1976,18 @@
                 let retouchVisual = `<div class="flex items-center justify-center gap-2"><span class="text-emerald-600 font-bold">${g.retouchDone}</span> / ${g.skuCount} ${g.isRetouchLate ? '<span class="relative flex h-3 w-3" title="Trễ Deadline Retouch!"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span></span>' : ''}</div>`;
                 
                 let isHoanThanh = (g.muonDone === g.skuCount) && (g.chupDone === g.skuCount) && (g.retouchDone === g.skuCount);
-                let statusLabel = isHoanThanh ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold whitespace-nowrap">Hoàn thành</span>' : '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold whitespace-nowrap">Đang xử lý</span>';
+                let statusLabelText = 'Đang xử lý';
+                let statusClass = 'bg-amber-100 text-amber-700';
+
+                if (isHoanThanh) {
+                    statusLabelText = 'Hoàn thành';
+                    statusClass = 'bg-emerald-100 text-emerald-700';
+                } else if (g.muonDone === 0) {
+                    statusLabelText = 'Dự kiến mượn';
+                    statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+                }
+
+                let statusLabel = `<span class="px-2 py-1 ${statusClass} rounded text-xs font-bold whitespace-nowrap">${statusLabelText}</span>`;
 
                 html += `
                     <tr class="hover:bg-gray-50 transition-colors bg-white">
