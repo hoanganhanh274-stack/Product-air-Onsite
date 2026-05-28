@@ -783,15 +783,15 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         let firebaseConfig;
         if (typeof __firebase_config !== 'undefined') {
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
             firebaseConfig = {
-                apiKey: "AIzaSyBW_picOLzLjkU-JT3PrfwDpFbUN5Cw9ag",
+                apiKey: "",
                 authDomain: "product-air-onsite.firebaseapp.com",
                 projectId: "product-air-onsite",
                 storageBucket: "product-air-onsite.firebasestorage.app",
@@ -806,6 +806,9 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : "product-air-onsite";
         
+        let currentUser = null;
+        let unsubscribeSnapshot = null;
+
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -815,17 +818,105 @@
                 }
             } catch (error) {
                 console.error("Firebase Auth Error:", error);
-                throw error;
             }
         };
-        const authPromise = initAuth();
+
+        const setupApp = async () => {
+            await initAuth();
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    window.listenToCloudData();
+                } else {
+                    if(window.loadDataLocal) window.loadDataLocal();
+                }
+            });
+        };
 
         // Kiểm tra biến môi trường Global
         window.isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
         window.applyAdminState();
         
-        // Luôn load dữ liệu khi vào trang
-        setTimeout(() => { if(window.loadDataFromCloud) window.loadDataFromCloud(); }, 500);
+        // Khởi động luồng xác thực (thay thế cho setTimeout)
+        setupApp();
+
+        window.listenToCloudData = function() {
+            if (!currentUser) return;
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+            
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data');
+            
+            // Lắng nghe dữ liệu realtime thay vì getDoc 1 lần
+            unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.tableData = data.tableData || [];
+                    window.videoData = data.videoData || [];
+                    window.imageManualDates = data.imageManualDates || {};
+                    window.imageManualEndDates = data.imageManualEndDates || {};
+                    window.imageManualRetouchStarts = data.imageManualRetouchStarts || {};
+                    window.imageManualRetouchEnds = data.imageManualRetouchEnds || {};
+                    
+                    if (data.flowProcessSettings) {
+                        localStorage.setItem('pnj_flow_process_settings', JSON.stringify(data.flowProcessSettings));
+                    }
+                    if (data.flowSettings) {
+                        localStorage.setItem('pnj_flow_settings', JSON.stringify(data.flowSettings));
+                    }
+                    
+                    if (data.timestamp && window.updateLastUpdatedUI) {
+                        window.updateLastUpdatedUI(data.timestamp);
+                    }
+                    
+                    if (window.renderTable) window.renderTable(); 
+                    if (window.renderVideoTable) window.renderVideoTable(); 
+                    if (window.switchTab) {
+                        const currentTab = document.querySelector('nav button.bg-pnjBlue');
+                        if (currentTab) window.switchTab(currentTab.id.replace('btn-', ''));
+                        else window.switchTab('tab-report');
+                    }
+                } else {
+                    if (window.tableData && window.tableData.length === 0 && window.loadDataLocal) {
+                        window.loadDataLocal();
+                    }
+                }
+            }, (error) => {
+                console.warn("Lỗi đồng bộ Cloud:", error);
+                if (window.loadDataLocal) window.loadDataLocal();
+            });
+        };
+
+        window.saveDataToCloud = async function() {
+            if (!window.isFakeLoggedIn) { alert("Vui lòng đăng nhập Admin để lưu dữ liệu!"); return; }
+            if (!currentUser) { alert("Đang kết nối hệ thống máy chủ, vui lòng thử lại sau giây lát."); return; }
+            try {
+                const now = new Date().toISOString();
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data'); 
+                await setDoc(docRef, {
+                    tableData: window.tableData || [],
+                    videoData: window.videoData || [],
+                    imageManualDates: window.imageManualDates || {},
+                    imageManualEndDates: window.imageManualEndDates || {},
+                    imageManualRetouchStarts: window.imageManualRetouchStarts || {},
+                    imageManualRetouchEnds: window.imageManualRetouchEnds || {},
+                    flowProcessSettings: JSON.parse(localStorage.getItem('pnj_flow_process_settings') || '{}'),
+                    flowSettings: JSON.parse(localStorage.getItem('pnj_flow_settings') || '{}'),
+                    timestamp: now
+                });
+                
+                if (window.updateLastUpdatedUI) window.updateLastUpdatedUI(now);
+                
+                const toast = document.getElementById('toast'); 
+                if (toast) {
+                    toast.classList.remove('opacity-0', 'translate-y-[-10px]'); 
+                    setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
+                }
+            } catch(e) {
+                console.warn("Lưu Cloud thất bại:", e.message);
+                alert("Lưu Cloud thất bại: Hệ thống sẽ tự động lưu tạm trên máy của bạn.");
+                if(window.saveDataLocal) window.saveDataLocal(); 
+            }
+        };
 
         window.handleLogin = async function() {
             const username = document.getElementById('admin-username').value;
@@ -857,82 +948,10 @@
                 localStorage.removeItem('pnj_admin_logged_in');
                 window.isFakeLoggedIn = false;
                 window.applyAdminState();
-                if(window.loadDataFromCloud) window.loadDataFromCloud(); 
+                if(window.listenToCloudData) window.listenToCloudData(); 
                 alert("Đã thoát quyền Admin. Bạn đang xem dữ liệu ở chế độ Chỉ đọc (Read-only).");
             }
         };
-
-        window.saveDataToCloud = async function() {
-            if (!window.isFakeLoggedIn) { alert("Vui lòng đăng nhập Admin để lưu dữ liệu!"); return; }
-            try {
-                await authPromise;
-                const now = new Date().toISOString();
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data'); 
-                await setDoc(docRef, {
-                    tableData: window.tableData || [],
-                    videoData: window.videoData || [],
-                    imageManualDates: window.imageManualDates || {},
-                    imageManualEndDates: window.imageManualEndDates || {},
-                    imageManualRetouchStarts: window.imageManualRetouchStarts || {},
-                    imageManualRetouchEnds: window.imageManualRetouchEnds || {},
-                    flowProcessSettings: JSON.parse(localStorage.getItem('pnj_flow_process_settings') || '{}'),
-                    flowSettings: JSON.parse(localStorage.getItem('pnj_flow_settings') || '{}'),
-                    timestamp: now
-                });
-                
-                if (window.updateLastUpdatedUI) window.updateLastUpdatedUI(now);
-                
-                const toast = document.getElementById('toast'); 
-                if (toast) {
-                    toast.classList.remove('opacity-0', 'translate-y-[-10px]'); 
-                    setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-10px]'); }, 2500);
-                }
-            } catch(e) {
-                console.warn("Lưu Cloud thất bại (Lỗi mạng hoặc Timeout), tự động chuyển sang lưu Local:", e.message);
-                if(window.saveDataLocal) window.saveDataLocal(); 
-            }
-        };
-
-        window.loadDataFromCloud = async function() {
-            try {
-                await authPromise;
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    window.tableData = data.tableData || [];
-                    window.videoData = data.videoData || [];
-                    window.imageManualDates = data.imageManualDates || {};
-                    window.imageManualEndDates = data.imageManualEndDates || {};
-                    window.imageManualRetouchStarts = data.imageManualRetouchStarts || {};
-                    window.imageManualRetouchEnds = data.imageManualRetouchEnds || {};
-                    
-                    if (data.flowProcessSettings) {
-                        localStorage.setItem('pnj_flow_process_settings', JSON.stringify(data.flowProcessSettings));
-                    }
-                    if (data.flowSettings) {
-                        localStorage.setItem('pnj_flow_settings', JSON.stringify(data.flowSettings));
-                    }
-                    
-                    if (data.timestamp && window.updateLastUpdatedUI) {
-                        window.updateLastUpdatedUI(data.timestamp);
-                    }
-                    
-                    if (window.renderTable) window.renderTable(); 
-                    if (window.renderVideoTable) window.renderVideoTable(); 
-                    if (window.switchTab) {
-                        const currentTab = document.querySelector('nav button.bg-pnjBlue');
-                        if (currentTab) window.switchTab(currentTab.id.replace('btn-', ''));
-                        else window.switchTab('tab-report');
-                    }
-                } else {
-                    if(window.loadDataLocal) window.loadDataLocal();
-                }
-            } catch(e) {
-                console.warn("Tải Cloud thất bại (Lỗi mạng hoặc Timeout), tự động đọc dữ liệu Local:", e.message);
-                if(window.loadDataLocal) window.loadDataLocal();
-            }
-        }
     </script>
 
     <script>
