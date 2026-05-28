@@ -140,7 +140,7 @@
             </nav>
         </div>
 
-        <!-- Thanh Tìm kiếm SKU Toàn cục -->
+        <!-- ==================== TAB QUY TRÌNH ==================== -->
         <div id="tab-process" class="hidden">
             <!-- Flow 1: Mượn hàng -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
@@ -397,6 +397,98 @@
             </div>
         </div>
 
+        <!-- ==================== TAB 5: MƯỢN HÀNG (SUMMARY) ==================== -->
+        <div id="tab-summary" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-white p-5 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Mượn hàng</span>
+                    <div class="flex gap-2">
+                        <button onclick="saveData()" class="admin-only hidden bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
+                        <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"><i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo</button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 border-b border-gray-200 flex flex-wrap gap-3 items-center">
+                    <span class="text-sm font-bold text-pnjBlue uppercase"><i class="fas fa-filter text-pnjGold mr-1"></i> Lọc:</span>
+                    <div class="relative inline-block text-left" id="wrap-filter-month">
+                        <button onclick="toggleFilterDropdown('dropdown-month')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[120px]">
+                            <span id="label-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-month" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-month" checked onchange="toggleAllCheckboxes('month', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left" id="wrap-filter-noiMuon">
+                        <button onclick="toggleFilterDropdown('dropdown-noiMuon')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
+                            <span id="label-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-noiMuon" checked onchange="toggleAllCheckboxes('noiMuon', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left" id="wrap-filter-ttMuon">
+                        <button onclick="toggleFilterDropdown('dropdown-ttMuon')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
+                            <span id="label-ttMuon" class="truncate font-medium">Tất cả TT Mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-ttMuon" class="hidden absolute z-50 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-ttMuon" checked onchange="toggleAllCheckboxes('ttMuon', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-ttMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative inline-block text-left" id="wrap-filter-status">
+                        <button onclick="toggleFilterDropdown('dropdown-status')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
+                            <span id="label-status" class="truncate font-medium">Tất cả Trạng thái</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
+                        </button>
+                        <div id="dropdown-status" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
+                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-status" checked onchange="toggleAllCheckboxes('status', this.checked)"><span>Chọn tất cả</span></label></div>
+                            <div id="list-status" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-grow"></div>
+                    
+                    <div class="relative flex items-center" title="Tra cứu nhanh nhiều mã SKU (cách nhau bằng dấu phẩy hoặc khoảng trắng)">
+                        <i class="fas fa-search absolute left-3 text-gray-400"></i>
+                        <input type="text" id="search-sku-summary" oninput="window.applyGlobalSkuFilter(this.value)" class="pl-8 pr-8 py-1.5 w-48 md:w-64 border border-gray-300 rounded-lg text-sm bg-white focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none transition-all shadow-inner" placeholder="Tra cứu SKU...">
+                        <button onclick="window.applyGlobalSkuFilter('')" class="absolute right-2 text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="w-px h-6 bg-gray-300 mx-1 hidden lg:block"></div>
+                    
+                    <button onclick="clearSummaryFilters();" class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 transition-colors"><i class="fas fa-times-circle"></i> Xóa lọc</button>
+                </div>
+
+                <div class="overflow-x-auto table-container max-h-[65vh]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
+                            <tr>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center rounded-tl-lg">Tháng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Nơi mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Bắt đầu mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Trả hàng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Trạng thái lô</th>
+                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Ghi chú</th>
+                                <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end text-gray-800 text-base font-bold">
+                    <div>Tổng tất cả SKU: <span id="summaryGrandTotal" class="text-pnjBlue text-2xl ml-2 font-black">0</span></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ==================== TAB 3: HÌNH ẢNH ==================== -->
         <div id="tab-image" class="hidden">
             
@@ -623,98 +715,6 @@
             </div>
         </div>
 
-        <!-- ==================== TAB 5: MƯỢN HÀNG (SUMMARY) ==================== -->
-        <div id="tab-summary" class="hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="bg-white p-5 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <span class="font-bold text-pnjBlue text-lg uppercase"><i class="fas fa-layer-group mr-2 text-pnjGold"></i> Mượn hàng</span>
-                    <div class="flex gap-2">
-                        <button onclick="saveData()" class="admin-only hidden bg-pnjGold text-white hover:bg-pnjGoldLight px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
-                        <button onclick="exportSummaryCSV()" class="bg-pnjBlue text-white hover:bg-pnjBlueLight px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"><i class="fas fa-file-excel text-pnjGold"></i> Xuất Excel Báo Cáo</button>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 border-b border-gray-200 flex flex-wrap gap-3 items-center">
-                    <span class="text-sm font-bold text-pnjBlue uppercase"><i class="fas fa-filter text-pnjGold mr-1"></i> Lọc:</span>
-                    <div class="relative inline-block text-left" id="wrap-filter-month">
-                        <button onclick="toggleFilterDropdown('dropdown-month')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[120px]">
-                            <span id="label-month" class="truncate font-medium">Tất cả Tháng</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
-                        </button>
-                        <div id="dropdown-month" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
-                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-month" checked onchange="toggleAllCheckboxes('month', this.checked)"><span>Chọn tất cả</span></label></div>
-                            <div id="list-month" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left" id="wrap-filter-noiMuon">
-                        <button onclick="toggleFilterDropdown('dropdown-noiMuon')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
-                            <span id="label-noiMuon" class="truncate font-medium">Tất cả Nơi mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
-                        </button>
-                        <div id="dropdown-noiMuon" class="hidden absolute z-50 mt-1 w-56 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
-                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-noiMuon" checked onchange="toggleAllCheckboxes('noiMuon', this.checked)"><span>Chọn tất cả</span></label></div>
-                            <div id="list-noiMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left" id="wrap-filter-ttMuon">
-                        <button onclick="toggleFilterDropdown('dropdown-ttMuon')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
-                            <span id="label-ttMuon" class="truncate font-medium">Tất cả TT Mượn</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
-                        </button>
-                        <div id="dropdown-ttMuon" class="hidden absolute z-50 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
-                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-ttMuon" checked onchange="toggleAllCheckboxes('ttMuon', this.checked)"><span>Chọn tất cả</span></label></div>
-                            <div id="list-ttMuon" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
-                        </div>
-                    </div>
-
-                    <div class="relative inline-block text-left" id="wrap-filter-status">
-                        <button onclick="toggleFilterDropdown('dropdown-status')" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 flex items-center justify-between min-w-[140px]">
-                            <span id="label-status" class="truncate font-medium">Tất cả Trạng thái</span><i class="fas fa-chevron-down ml-2 text-xs text-gray-400"></i>
-                        </button>
-                        <div id="dropdown-status" class="hidden absolute z-50 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 top-full left-0">
-                            <div class="p-2 border-b border-gray-100 bg-gray-50 rounded-t-lg"><label class="flex items-center space-x-2 text-sm text-pnjBlue font-bold cursor-pointer"><input type="checkbox" id="selectAll-status" checked onchange="toggleAllCheckboxes('status', this.checked)"><span>Chọn tất cả</span></label></div>
-                            <div id="list-status" class="p-2 max-h-48 overflow-y-auto space-y-1"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex-grow"></div>
-                    
-                    <div class="relative flex items-center" title="Tra cứu nhanh nhiều mã SKU (cách nhau bằng dấu phẩy hoặc khoảng trắng)">
-                        <i class="fas fa-search absolute left-3 text-gray-400"></i>
-                        <input type="text" id="search-sku-summary" oninput="window.applyGlobalSkuFilter(this.value)" class="pl-8 pr-8 py-1.5 w-48 md:w-64 border border-gray-300 rounded-lg text-sm bg-white focus:border-pnjGold focus:ring-1 focus:ring-pnjGold outline-none transition-all shadow-inner" placeholder="Tra cứu SKU...">
-                        <button onclick="window.applyGlobalSkuFilter('')" class="absolute right-2 text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
-                    </div>
-
-                    <div class="w-px h-6 bg-gray-300 mx-1 hidden lg:block"></div>
-                    
-                    <button onclick="clearSummaryFilters();" class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 transition-colors"><i class="fas fa-times-circle"></i> Xóa lọc</button>
-                </div>
-
-                <div class="overflow-x-auto table-container max-h-[65vh]">
-                    <table class="w-full text-sm text-left whitespace-nowrap">
-                        <thead class="text-xs text-white uppercase bg-pnjBlue sticky top-0 z-10 font-medium tracking-wide">
-                            <tr>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center rounded-tl-lg">Tháng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Nơi mượn</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Lô mượn</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Bắt đầu mượn</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Nhận hàng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center min-w-[140px]">Trả hàng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center text-pnjGold">Ngày mượn</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[150px]">Tình trạng</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Chụp</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Tiến độ Retouch</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight text-center">Trạng thái lô</th>
-                                <th class="px-4 py-4 border-r border-pnjBlueLight min-w-[200px]">Ghi chú</th>
-                                <th class="px-4 py-4 text-right bg-[#002244] text-pnjGold rounded-tr-lg">Tổng SKU</th>
-                            </tr>
-                        </thead>
-                        <tbody id="summaryBody" class="divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-                <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end text-gray-800 text-base font-bold">
-                    <div>Tổng tất cả SKU: <span id="summaryGrandTotal" class="text-pnjBlue text-2xl ml-2 font-black">0</span></div>
-                </div>
-            </div>
-        </div>
-
         <!-- ==================== TAB 6: DATABASE GỐC ==================== -->
         <div id="tab-database" class="hidden">
             <div class="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm items-center">
@@ -786,34 +786,57 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // =========================================================================
+        // HƯỚNG DẪN KẾT NỐI FIREBASE THẬT (ĐỂ ĐỒNG BỘ DỮ LIỆU KHI GỬI FILE CHO NGƯỜI KHÁC)
+        // 1. Vào https://console.firebase.google.com/ tạo 1 Project mới.
+        // 2. Vào "Build" -> "Firestore Database" -> Create Database -> Chọn "Start in Test Mode".
+        // 3. Vào "Build" -> "Authentication" -> Get Started -> Bật tính năng "Anonymous" (Khách ẩn danh).
+        // 4. Vào "Project Settings" (icon bánh răng) -> Thêm App Web (Biểu tượng </>) -> Copy các mã điền vào dưới đây:
+        // =========================================================================
+        const MY_REAL_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBW_picOLzLjkU-JT3PrfwDpFbUN5Cw9ag",
+            authDomain: "product-air-onsite.firebaseapp.com",
+            projectId: "product-air-onsite",
+            storageBucket: "product-air-onsite.firebasestorage.app",
+            messagingSenderId: "669904152111",
+            appId: "1:669904152111:web:3d4d53af1fb082c83608da",
+            measurementId: "G-NDXY6R3LVF"
+        };
+        // =========================================================================
+
         let firebaseConfig;
+        let isRealCloud = false;
+
         try {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                // Chạy trên màn hình của AI
                 firebaseConfig = JSON.parse(__firebase_config);
+                isRealCloud = true;
+            } else if (!MY_REAL_FIREBASE_CONFIG.apiKey.includes("ĐIỀN_")) {
+                // Đã điền Firebase thật và đang chạy ở máy người khác
+                firebaseConfig = MY_REAL_FIREBASE_CONFIG;
+                isRealCloud = true;
             } else {
-                throw new Error("Missing config");
+                throw new Error("Chưa có cấu hình máy chủ");
             }
         } catch (e) {
-            firebaseConfig = {
-                apiKey: "",
-                authDomain: "product-air-onsite.firebaseapp.com",
-                projectId: "product-air-onsite",
-                storageBucket: "product-air-onsite.firebasestorage.app",
-                messagingSenderId: "669904152111",
-                appId: "1:669904152111:web:3d4d53af1fb082c83608da",
-                measurementId: "G-NDXY6R3LVF"
-            };
+            // Chạy Offline
+            firebaseConfig = { apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
         }
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' && __app_id ? __app_id : "product-air-onsite";
-        
+        let app, auth, db, appIdValue;
         let currentUser = null;
         let unsubscribeSnapshot = null;
 
+        if (isRealCloud) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            appIdValue = (typeof __app_id !== 'undefined' && __app_id) ? __app_id : "pnj-app-public";
+        }
+
         const initAuth = async () => {
+            if (!isRealCloud) return;
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
@@ -826,6 +849,12 @@
         };
 
         const setupApp = async () => {
+            if (!isRealCloud) {
+                if(window.loadDataLocal) window.loadDataLocal();
+                console.warn("Hệ thống đang chạy Offline (Local Storage) vì chưa cấu hình Firebase.");
+                return;
+            }
+            
             await initAuth();
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
@@ -841,16 +870,15 @@
         window.isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
         window.applyAdminState();
         
-        // Khởi động luồng xác thực (thay thế cho setTimeout)
+        // Khởi động
         setupApp();
 
         window.listenToCloudData = function() {
-            if (!currentUser) return;
+            if (!isRealCloud || !currentUser) return;
             if (unsubscribeSnapshot) unsubscribeSnapshot();
             
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data');
+            const docRef = doc(db, 'artifacts', appIdValue, 'public', 'data', 'pnj_dashboard', 'main_data');
             
-            // Lắng nghe dữ liệu realtime thay vì getDoc 1 lần
             unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -892,10 +920,14 @@
 
         window.saveDataToCloud = async function() {
             if (!window.isFakeLoggedIn) { alert("Vui lòng đăng nhập Admin để lưu dữ liệu!"); return; }
-            if (!currentUser) { alert("Đang kết nối hệ thống máy chủ, vui lòng thử lại sau giây lát."); return; }
+            if (!isRealCloud || !currentUser) { 
+                alert("Lưu ý: Bạn đang dùng hệ thống ở chế độ Offline.\nDữ liệu được lưu an toàn trên máy tính của bạn, nhưng người khác sẽ không thấy được trừ khi bạn cài đặt cấu hình Firebase thực sự (xem trong mã nguồn)."); 
+                if(window.saveDataLocal) window.saveDataLocal();
+                return; 
+            }
             try {
                 const now = new Date().toISOString();
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pnj_dashboard', 'main_data'); 
+                const docRef = doc(db, 'artifacts', appIdValue, 'public', 'data', 'pnj_dashboard', 'main_data'); 
                 await setDoc(docRef, {
                     tableData: window.tableData || [],
                     videoData: window.videoData || [],
@@ -1441,6 +1473,7 @@
             let groupsForFilter = {};
 
             tableData.forEach(row => { 
+                if (!window.isSkuMatched(row.sku)) return;
                 if (!row.sku && !row.loMuon && !row.noiMuon) return; 
                 months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); tts.add(row.ttMuon || 'Trống'); 
                 
@@ -1473,6 +1506,7 @@
             const curMonth = getFilterState('report-month'); const curNoi = getFilterState('report-noiMuon'); const curPhanLoai = getFilterState('report-phanLoai');
             const months = new Set(); const nois = new Set(); const phanLoais = new Set();
             tableData.forEach(row => { 
+                if (!window.isSkuMatched(row.sku)) return;
                 if (!row.sku && !row.loMuon && !row.noiMuon) return; 
                 months.add(row.month || 'Trống'); 
                 nois.add(row.noiMuon || 'Trống'); 
@@ -1489,6 +1523,7 @@
             let dailyGroups = {};
 
             tableData.forEach(row => { 
+                if (!window.isSkuMatched(row.sku)) return;
                 if (!row.loMuon) return; 
                 months.add(row.month || 'Trống'); nois.add(row.noiMuon || 'Trống'); los.add(row.loMuon); 
                 
