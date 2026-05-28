@@ -95,13 +95,13 @@
             <div class="w-12 h-12 bg-pnjBlue text-pnjGold rounded-lg flex items-center justify-center font-bold text-2xl shadow-md border border-pnjGold/30">P</div>
             <div>
                 <h1 class="text-xl md:text-2xl font-bold text-pnjBlue uppercase tracking-wide">Product Air Onsite</h1>
-                <p id="last-update-time" class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud text-pnjGold mr-1"></i>Chưa cập nhật</p>
+                <p id="last-update-time" class="text-xs text-gray-500 font-medium"><i class="fas fa-spinner fa-spin mr-1"></i>Đang kết nối Máy chủ PNJ...</p>
             </div>
         </div>
         
         <div class="flex items-center gap-4">
             <div id="toast" class="bg-emerald-500 text-white px-5 py-2.5 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-[-10px] flex items-center gap-2 font-medium text-sm">
-                <i class="fas fa-check-circle text-lg"></i> Dữ liệu đã được lưu!
+                <i class="fas fa-check-circle text-lg"></i> Dữ liệu đã được lưu lên Cloud!
             </div>
             
             <button id="btn-show-login" onclick="document.getElementById('login-modal').classList.remove('hidden')" class="bg-pnjBlue text-white hover:bg-pnjBlueLight border border-pnjBlue px-4 py-2.5 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-sm">
@@ -784,16 +784,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // =========================================================================
-        // HƯỚNG DẪN KẾT NỐI FIREBASE THẬT (ĐỂ ĐỒNG BỘ DỮ LIỆU KHI GỬI FILE CHO NGƯỜI KHÁC)
-        // 1. Vào https://console.firebase.google.com/ tạo 1 Project mới.
-        // 2. Vào "Build" -> "Firestore Database" -> Create Database -> Chọn "Start in Test Mode".
-        // 3. Vào "Build" -> "Authentication" -> Get Started -> Bật tính năng "Anonymous" (Khách ẩn danh).
-        // 4. Vào "Project Settings" (icon bánh răng) -> Thêm App Web (Biểu tượng </>) -> Copy các mã điền vào dưới đây:
+        // CẤU HÌNH FIREBASE THẬT TỪ PNJ (PRODUCT AIR ONSITE)
         // =========================================================================
-        const MY_REAL_FIREBASE_CONFIG = {
+        const firebaseConfig = {
             apiKey: "AIzaSyBW_picOLzLjkU-JT3PrfwDpFbUN5Cw9ag",
             authDomain: "product-air-onsite.firebaseapp.com",
             projectId: "product-air-onsite",
@@ -804,82 +800,40 @@
         };
         // =========================================================================
 
-        let firebaseConfig;
-        let isRealCloud = false;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Khai báo một đường dẫn cứng để bất kỳ ai mở file cũng truy cập chung 1 kho dữ liệu
+        const SHARED_DOC_PATH = doc(db, 'artifacts', 'pnj-production-2026', 'public', 'data', 'dashboard', 'main_data');
 
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                // Chạy trên màn hình của AI
-                firebaseConfig = JSON.parse(__firebase_config);
-                isRealCloud = true;
-            } else if (!MY_REAL_FIREBASE_CONFIG.apiKey.includes("ĐIỀN_")) {
-                // Đã điền Firebase thật và đang chạy ở máy người khác
-                firebaseConfig = MY_REAL_FIREBASE_CONFIG;
-                isRealCloud = true;
-            } else {
-                throw new Error("Chưa có cấu hình máy chủ");
-            }
-        } catch (e) {
-            // Chạy Offline
-            firebaseConfig = { apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
-        }
-
-        let app, auth, db, appIdValue;
-        let currentUser = null;
         let unsubscribeSnapshot = null;
 
-        if (isRealCloud) {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            appIdValue = (typeof __app_id !== 'undefined' && __app_id) ? __app_id : "pnj-app-public";
-        }
-
-        const initAuth = async () => {
-            if (!isRealCloud) return;
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-            }
-        };
-
+        // Khởi tạo luồng: Đăng nhập Ẩn danh (Background) -> Đọc dữ liệu Realtime
         const setupApp = async () => {
-            if (!isRealCloud) {
-                if(window.loadDataLocal) window.loadDataLocal();
-                console.warn("Hệ thống đang chạy Offline (Local Storage) vì chưa cấu hình Firebase.");
-                return;
+            try {
+                // Ép buộc kết nối bằng quyền Ẩn danh cho tất cả mọi người mở file
+                await signInAnonymously(auth);
+                window.listenToCloudData();
+            } catch (error) {
+                console.error("Lỗi kết nối Firebase (Vui lòng kiểm tra đã bật Anonymous trong Authentication chưa):", error);
+                document.getElementById('last-update-time').innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>Lỗi kết nối Cloud`;
+                if(window.loadDataLocal) window.loadDataLocal(); // Chạy offline nếu rớt mạng
             }
-            
-            await initAuth();
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    window.listenToCloudData();
-                } else {
-                    if(window.loadDataLocal) window.loadDataLocal();
-                }
-            });
         };
 
-        // Kiểm tra biến môi trường Global
+        // Kiểm tra quyền Admin Local
         window.isFakeLoggedIn = localStorage.getItem('pnj_admin_logged_in') === 'true';
         window.applyAdminState();
         
-        // Khởi động
+        // Bắt đầu chạy
         setupApp();
 
         window.listenToCloudData = function() {
-            if (!isRealCloud || !currentUser) return;
             if (unsubscribeSnapshot) unsubscribeSnapshot();
             
-            const docRef = doc(db, 'artifacts', appIdValue, 'public', 'data', 'pnj_dashboard', 'main_data');
-            
-            unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+            // Lắng nghe dữ liệu thay đổi trên Cloud (Bất kỳ ai lưu thì màn hình người khác sẽ nhảy số)
+            unsubscribeSnapshot = onSnapshot(SHARED_DOC_PATH, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     window.tableData = data.tableData || [];
@@ -908,27 +862,25 @@
                         else window.switchTab('tab-report');
                     }
                 } else {
+                    // Nếu là lần chạy đầu tiên, database trống trơn
                     if (window.tableData && window.tableData.length === 0 && window.loadDataLocal) {
                         window.loadDataLocal();
                     }
                 }
             }, (error) => {
-                console.warn("Lỗi đồng bộ Cloud:", error);
-                if (window.loadDataLocal) window.loadDataLocal();
+                console.warn("Lỗi đồng bộ Cloud Real-time:", error);
+                document.getElementById('last-update-time').innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>Lỗi đồng bộ`;
             });
         };
 
         window.saveDataToCloud = async function() {
             if (!window.isFakeLoggedIn) { alert("Vui lòng đăng nhập Admin để lưu dữ liệu!"); return; }
-            if (!isRealCloud || !currentUser) { 
-                alert("Lưu ý: Bạn đang dùng hệ thống ở chế độ Offline.\nDữ liệu được lưu an toàn trên máy tính của bạn, nhưng người khác sẽ không thấy được trừ khi bạn cài đặt cấu hình Firebase thực sự (xem trong mã nguồn)."); 
-                if(window.saveDataLocal) window.saveDataLocal();
-                return; 
-            }
+            
             try {
                 const now = new Date().toISOString();
-                const docRef = doc(db, 'artifacts', appIdValue, 'public', 'data', 'pnj_dashboard', 'main_data'); 
-                await setDoc(docRef, {
+                
+                // Đẩy thẳng dữ liệu lên Database của PNJ
+                await setDoc(SHARED_DOC_PATH, {
                     tableData: window.tableData || [],
                     videoData: window.videoData || [],
                     imageManualDates: window.imageManualDates || {},
@@ -949,7 +901,7 @@
                 }
             } catch(e) {
                 console.warn("Lưu Cloud thất bại:", e.message);
-                alert("Lưu Cloud thất bại: Hệ thống sẽ tự động lưu tạm trên máy của bạn.");
+                alert("Lưu Cloud thất bại! Vui lòng kiểm tra lại kết nối mạng hoặc quyền Firestore.");
                 if(window.saveDataLocal) window.saveDataLocal(); 
             }
         };
@@ -989,7 +941,6 @@
                 localStorage.removeItem('pnj_admin_logged_in');
                 window.isFakeLoggedIn = false;
                 if (window.applyAdminState) window.applyAdminState();
-                if(window.listenToCloudData) window.listenToCloudData(); 
                 alert("Đã thoát quyền Admin. Bạn đang xem dữ liệu ở chế độ Chỉ đọc (Read-only).");
             }
         };
@@ -1003,7 +954,7 @@
         var chartDoneInstance = null;
         var chartVideoInstance = null;
         window.globalSkuFilterArray = [];
-        window.globalSkuFilterArrayLower = []; // Thêm mảng chuẩn hóa
+        window.globalSkuFilterArrayLower = []; 
 
         window.applyGlobalSkuFilter = function(val) {
             const searchText = val !== undefined ? val : (document.getElementById('search-sku-report')?.value || '');
@@ -1012,13 +963,10 @@
                 window.globalSkuFilterArray = [];
                 window.globalSkuFilterArrayLower = [];
             } else {
-                // Tách theo khoảng trắng, dấu phẩy, dấu tab, xuống dòng...
                 window.globalSkuFilterArray = searchText.split(/[\s,]+/).map(s => s.trim()).filter(s => s);
-                // Chuyển toàn bộ về chữ thường để so sánh không phân biệt hoa/thường
                 window.globalSkuFilterArrayLower = window.globalSkuFilterArray.map(s => s.toLowerCase());
             }
             
-            // Sync các ô input để giao diện đồng nhất khi chuyển tab
             ['search-sku-report', 'search-sku-img', 'search-sku-summary', 'search-sku-database'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el && el.value !== searchText) el.value = searchText;
@@ -1030,7 +978,6 @@
             if (window.renderImageTrackingTable) window.renderImageTrackingTable();
         };
 
-        // Hàm kiểm tra SKU thông minh mới (So sánh tương đối và không phân biệt hoa thường)
         window.isSkuMatched = function(rowSku) {
             if (!window.globalSkuFilterArrayLower || window.globalSkuFilterArrayLower.length === 0) return true;
             const target = (rowSku || '').toLowerCase();
@@ -1052,7 +999,6 @@
             document.querySelectorAll('.admin-only').forEach(el => {
                 if(window.isFakeLoggedIn) {
                     el.classList.remove('hidden');
-                    // Ensure block/flex classes are restored if it's a spacer line
                     if (el.tagName === 'DIV' && el.classList.contains('md:block')) {
                         el.style.display = ''; 
                     }
@@ -1741,7 +1687,7 @@
                 
                 if (row.ttChup && row.ttChup.toLowerCase().includes('done')) groups[k].cD++; else groups[k].cND++;
                 if (row.ttRetouch && row.ttRetouch.toLowerCase().includes('done')) groups[k].rD++; else groups[k].rND++;
-                if (row.daTra) groups[k].daTraCount++; // Tính tổng SKU đã đánh dấu trả
+                if (row.daTra) groups[k].daTraCount++; 
                 if (row.note && row.note.trim()) groups[k].notes.add(row.note.trim());
             });
             
@@ -1807,7 +1753,7 @@
                 
                 let isHoanThanh = g.tt.toLowerCase().includes('done') && g.cD === g.count && g.rD === g.count;
                 let isChuanBi = g.tt.toLowerCase().includes('chuẩn bị') || g.tt === 'Trống' || g.tt === '';
-                let isDaTra = g.count > 0 && g.daTraCount === g.count; // Xác định lô đã trả
+                let isDaTra = g.count > 0 && g.daTraCount === g.count; 
 
                 let statusLabelText = 'Đang xử lý';
                 let statusClass = 'bg-amber-100 text-amber-700';
@@ -1833,7 +1779,6 @@
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.bd === 'Trống' ? '' : g.bd}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayBatDau', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full" ${!window.isFakeLoggedIn ? 'disabled' : ''}></td>
                     <td class="px-1 py-1 border-r border-gray-100"><input type="date" value="${g.nh === 'Trống' ? '' : g.nh}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayNhan', this.value)" class="text-xs bg-transparent border-none text-gray-500 text-center w-full" ${!window.isFakeLoggedIn ? 'disabled' : ''}></td>
                     
-                    <!-- Khối hiển thị Ngày trả hàng & Checkbox Đã trả -->
                     <td class="px-2 py-1 border-r border-gray-100 min-w-[150px]">
                         <div class="flex items-center justify-center gap-1.5 w-full">
                             <input type="date" value="${g.tr === 'Trống' ? '' : g.tr}" onchange="updateSummaryGroup('${g.ids.join(',')}', 'ngayTra', this.value)" class="text-xs bg-transparent border-none ${isDaTra ? 'text-emerald-600 font-bold' : 'text-gray-500'} text-center flex-grow p-0 outline-none transition-colors" ${!window.isFakeLoggedIn ? 'disabled' : ''}>
