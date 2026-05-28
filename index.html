@@ -515,10 +515,10 @@
                         <div class="flex items-start gap-2">
                             <i class="fas fa-info-circle text-pnjGold mt-1"></i>
                             <div>
-                                <b>Năng suất:</b> Gói cơ bản 160 SKU (không bao gồm T7, CN)<br>
+                                <b>Năng suất:</b> gói 160m (không bao gồm T7, CN)<br>
                                 <ul class="list-disc list-inside ml-4 mt-1 mb-1 text-gray-700">
-                                    <li><b>Từ 160 SKU trở xuống:</b> Deadline Chụp 5 ngày / Retouch 5 ngày.</li>
-                                    <li><b>Trên 160 SKU:</b> Cứ phát sinh thêm 50 SKU sẽ cộng thêm 2 ngày vào deadline.</li>
+                                    <li><b>Chụp hình:</b> 5 ngày (xuất hình cuốn chiếu)</li>
+                                    <li><b>Retouch:</b> 5 ngày (xuất hình cuốn chiếu)</li>
                                 </ul>
                                 <b>Lưu ý:</b> Áp dụng theo thứ tự ưu tiên nối tiếp. Nếu kho đang tiến hành chụp một lô hàng, lô tiếp theo sẽ được xếp lịch chụp ngay sau khi lô trước đó hoàn thành.
                             </div>
@@ -1517,17 +1517,10 @@
             ['img-month', 'img-noiMuon', 'img-loMuon', 'img-status'].forEach(type => { const btn = document.getElementById(`selectAll-${type}`); if(btn) { btn.checked = true; window.toggleAllCheckboxes(type, true); } }); 
         }
 
-        // Thuật toán tính deadline tự động mới
-        function getProcessDays(skuCount) {
-            if (!skuCount || skuCount <= 0) return 0;
-            if (skuCount <= 160) return 5;
-            let extra = skuCount - 160;
-            return 5 + Math.ceil(extra / 50) * 2;
-        }
-
         window.getGlobalSchedule = function() {
             let dailyGroups = {};
             tableData.forEach(row => {
+                if (!window.isSkuMatched(row.sku)) return;
                 if (!row.ngayNhan) return; 
                 let dateKey = row.ngayNhan;
                 if (!dailyGroups[dateKey]) { dailyGroups[dateKey] = { ngayNhan: dateKey, skuCount: 0, khoSku: 0, nvtSku: 0, otherSku: 0 }; }
@@ -1546,21 +1539,21 @@
                 let sKHO = null, eKHO = null;
                 if (g.khoSku > 0) {
                     sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart;
-                    eKHO = addWorkingDays(sKHO, Math.max(0, getProcessDays(g.khoSku) - 1));
+                    eKHO = addWorkingDays(sKHO, Math.max(0, Math.ceil(g.khoSku / 32) - 1));
                     globalNextFreeChupKHO = addWorkingDays(eKHO, 1);
                 }
 
                 let sNVT = null, eNVT = null;
                 if (g.nvtSku > 0) {
                     sNVT = (globalNextFreeChupNVT && baseStart < globalNextFreeChupNVT) ? globalNextFreeChupNVT : baseStart;
-                    eNVT = addWorkingDays(sNVT, Math.max(0, getProcessDays(g.nvtSku) - 1));
+                    eNVT = addWorkingDays(sNVT, Math.max(0, Math.ceil(g.nvtSku / 32) - 1));
                     globalNextFreeChupNVT = addWorkingDays(eNVT, 1);
                 }
 
                 let sOther = null, eOther = null;
                 if (g.otherSku > 0) {
                     sOther = (globalNextFreeChupOther && baseStart < globalNextFreeChupOther) ? globalNextFreeChupOther : baseStart;
-                    eOther = addWorkingDays(sOther, Math.max(0, getProcessDays(g.otherSku) - 1));
+                    eOther = addWorkingDays(sOther, Math.max(0, Math.ceil(g.otherSku / 32) - 1));
                     globalNextFreeChupOther = addWorkingDays(eOther, 1);
                 }
 
@@ -1576,7 +1569,7 @@
                 let sR = addWorkingDays(finalStartChup, 2); 
                 if (globalNextFreeRetouch && sR < globalNextFreeRetouch) sR = globalNextFreeRetouch;
                 let asR = imageManualRetouchStarts[manualKey] || sR;
-                let eR = addWorkingDays(asR, Math.max(0, getProcessDays(g.skuCount) - 1)); 
+                let eR = addWorkingDays(asR, Math.max(0, Math.ceil(g.skuCount / 32) - 1)); 
                 let aeR = imageManualRetouchEnds[manualKey] || eR;
                 globalNextFreeRetouch = addWorkingDays(aeR, 1);
                 schedules[g.ngayNhan] = { endChup: finalEndChup, endRetouch: aeR };
@@ -2001,11 +1994,11 @@
             let processedGanttData = sortedDates.map(g => {
                 let baseStart = addWorkingDays(g.ngayNhan, 1); 
                 let sKHO = null, eKHO = null;
-                if (g.khoSku > 0) { sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart; eKHO = addWorkingDays(sKHO, Math.max(0, getProcessDays(g.khoSku) - 1)); globalNextFreeChupKHO = addWorkingDays(eKHO, 1); }
+                if (g.khoSku > 0) { sKHO = (globalNextFreeChupKHO && baseStart < globalNextFreeChupKHO) ? globalNextFreeChupKHO : baseStart; eKHO = addWorkingDays(sKHO, Math.max(0, Math.ceil(g.khoSku / 32) - 1)); globalNextFreeChupKHO = addWorkingDays(eKHO, 1); }
                 let sNVT = null, eNVT = null;
-                if (g.nvtSku > 0) { sNVT = (globalNextFreeChupNVT && baseStart < globalNextFreeChupNVT) ? globalNextFreeChupNVT : baseStart; eNVT = addWorkingDays(sNVT, Math.max(0, getProcessDays(g.nvtSku) - 1)); globalNextFreeChupNVT = addWorkingDays(eNVT, 1); }
+                if (g.nvtSku > 0) { sNVT = (globalNextFreeChupNVT && baseStart < globalNextFreeChupNVT) ? globalNextFreeChupNVT : baseStart; eNVT = addWorkingDays(sNVT, Math.max(0, Math.ceil(g.nvtSku / 32) - 1)); globalNextFreeChupNVT = addWorkingDays(eNVT, 1); }
                 let sOther = null, eOther = null;
-                if (g.otherSku > 0) { sOther = (globalNextFreeChupOther && baseStart < globalNextFreeChupOther) ? globalNextFreeChupOther : baseStart; eOther = addWorkingDays(sOther, Math.max(0, getProcessDays(g.otherSku) - 1)); globalNextFreeChupOther = addWorkingDays(eOther, 1); }
+                if (g.otherSku > 0) { sOther = (globalNextFreeChupOther && baseStart < globalNextFreeChupOther) ? globalNextFreeChupOther : baseStart; eOther = addWorkingDays(sOther, Math.max(0, Math.ceil(g.otherSku / 32) - 1)); globalNextFreeChupOther = addWorkingDays(eOther, 1); }
 
                 let starts = [sKHO, sNVT, sOther].filter(x => x !== null); let ends = [eKHO, eNVT, eOther].filter(x => x !== null);
                 let minStart = starts.length > 0 ? starts.reduce((min, p) => p < min ? p : min, starts[0]) : baseStart;
@@ -2018,7 +2011,7 @@
                 let sR = addWorkingDays(finalStartChup, 2); 
                 if (globalNextFreeRetouch && sR < globalNextFreeRetouch) { sR = globalNextFreeRetouch; }
                 let asR = imageManualRetouchStarts[manualKey] || sR;
-                let eR = addWorkingDays(asR, Math.max(0, getProcessDays(g.skuCount) - 1)); 
+                let eR = addWorkingDays(asR, Math.max(0, Math.ceil(g.skuCount / 32) - 1)); 
                 let aeR = imageManualRetouchEnds[manualKey] || eR;
                 globalNextFreeRetouch = addWorkingDays(aeR, 1);
                 
@@ -2282,7 +2275,7 @@
                 }
             }
 
-            let daysToProcess = Math.max(0, getProcessDays(sku) - 1);
+            let daysToProcess = Math.max(0, Math.ceil(sku / 32) - 1);
             let endChup = addWorkingDays(actualStart, daysToProcess);
             let startRetouch = addWorkingDays(actualStart, 2);
             let endRetouch = addWorkingDays(startRetouch, daysToProcess);
